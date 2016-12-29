@@ -1,0 +1,99 @@
+#
+# Description
+# -----------
+# The items that are part of an order. Items can be a child of another item in the order.
+#
+# Fields
+# ------
+# id:                       The order ID.
+# uuid:                     The Universal Unique ID for the order.
+# business_id:              The business the order is for.
+#
+# order_id:                 The ID of the order the item is attached to.
+#
+# parent_id:                The ID of the parent item for the order this item is a subitem of.
+#                           This is used for product baskets to allow for substitutions.
+#
+# line_number:              The line number of the item on the order. Used for sorting.
+#
+# flags:                    The options for the item.
+#
+#                               0x01 - Inventoried Item
+#                               0x02 - Substitutions Allowed (used for substitution status, designed for produce baskets in foodmarket)
+#                               0x04 - 
+#                               0x04 - 
+#
+# object:                   The object for the item in the order. This is the reference to package.module.object. When 
+#                           combined with object_id it can be linked to modules information.
+# object_id:                The ID of the object in the module.
+#
+# code:                     The code for the item.
+# description:              The item description to be printed on the order.
+# itype:                    The type of item for the order.
+#
+#                               10 - Weight
+#                               20 - Weighted Units
+#                               30 - Units (this will work for cases as well)
+#
+# weight_units:             The units for the item weight.
+#
+#                               20 - lb (pound)
+#                               25 - oz (ounce)
+#                               60 - kg (kilogram)
+#                               65 - g (gram)
+#                           
+# weight_quantity:          The quantity of weight for the item. For item type weight, this will be the number of lbs, kgs, etc that
+#                           was order and charged per unit of weight. For item type weighted units this will be the number
+#                           of lbs, kgs, etc that was all the # of units.
+#                           For units type this field is ignored.
+#                           
+# unit_quantity:            The quantity ordered of the item for weighted units or units. If weight type this field is ignored.
+#
+# unit_suffix:              The suffix for the unit (each, pair, case, bag)
+#
+# unit_amount:              The price of a single item.
+# unit_discount_amount:     The amount to deduct from the item as a discount.
+# unit_discount_percentage: The percentage to apply as a discount to this item.
+# subtotal_amount:          The subtotal before taxes/shipping for this item.
+# discount_amount:          The amount of discount applied to this item.
+# total_amount:             The total amount for this item after quantity and discounts have been applied.
+#
+# taxtype_id:               The ID of the tax type to be applied to this item.
+#
+# notes:                    Any notes about this item on the order. Can be used to explain why something is not available.
+#
+# date_added:               The UTC date and time the record was added.
+# last_updated:             The UTC date and time the record was last updated.
+#
+create table ciniki_poma_order_items (
+    id int not null auto_increment,
+    uuid char(36) not null,
+    business_id int not null,
+    order_id int not null,
+    parent_id int not null,
+    line_number int not null,
+    flags smallint not null,
+    object varchar(100) not null,
+    object_id varchar(100) not null,
+    code varchar(150) not null,
+    description varchar(250) not null,
+    itype tinyint unsigned not null,
+    weight_units mediumint unsigned not null,
+    weight_quantity decimal(19,6) not null,
+    unit_quantity decimal(19,4) not null,
+    unit_suffix varchar(20) not null,
+    unit_amount decimal(19,4) not null,
+    unit_discount_amount decimal(19,4) not null,
+    unit_discount_percentage decimal(19,4) not null,
+    subtotal_amount decimal(19,4) not null,
+    discount_amount decimal(19,4) not null,
+    total_amount decimal(19,4) not null,
+    taxtype_id int not null,
+    notes varchar(2000) not null,
+    date_added datetime not null,
+    last_updated datetime not null,
+    primary key (id),
+    unique index (uuid),
+    index (order_id, parent_id, object, object_id),
+    index sync (business_id, uuid, last_updated)
+) ENGINE='InnoDB', COMMENT='v1.01';

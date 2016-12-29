@@ -1,0 +1,71 @@
+#
+# Description
+# -----------
+# This table stores the items that a customer has marked as a favourite, queued to order, deposits for queued items, or standing orders.
+#
+# Fields
+# ------
+# id:                   The ID assigned to the customer item.
+# uuid:                 The Universal Unique ID.
+# business_id:          The business the customer item is attached to.
+#
+# parent_id:            The ID of the parent customer item. This is used when
+#                       deposits are tracked for a queued item.
+#
+# customer_id:          The ID of the customer the item is saved for.
+#
+# itype:                The reason the item is being stored for the customer.
+#
+#                           20 - Favourite
+#                           40 - Repeating/Standing Order item
+#                           60 - Queued Item
+#                           62 - Queued Item Deposit
+#
+# status:               The current status of the customer item. This is used to lock items when they have been
+#                       ordered so they can't be removed or changed.
+#
+#                           10 - Active
+#                           40 - Ordered (only used for queued items)
+#
+# object:               The object of the item being stored for the customer.
+#
+#                           ciniki.foodmarket.output - Foodmarket Items
+#                           ciniki.poma.orderitem - POMA order item, used for deposits
+#
+# object_id:            The ID of the object.
+#                           
+# repeat_days:          For standing orders the number of days between ordering this product. 7 days = 1 week, 
+#
+# last_order_date:      The date of the last time this item was ordered.
+# next_order_date:      The date of the next time the item will be added to an order. This can be increased by a week if required.
+#
+# quantity:             The quantity ordered of the item. This may be units or weight, it is determined by the module that added the item.
+# single_units_text:    The text to show after the quantity if quantity is 1 or less. eg: lb, kg, case
+# plural_units_text:    The text to show after the quantity if quantity is more than 1.  eg: lbs, kgs, cases
+#
+# date_added:           The UTC date and time the record was added.
+# last_updated:         The UTC date and time the record was last updated.
+#
+create table ciniki_poma_customer_items (
+    id int not null auto_increment,
+    uuid char(36) not null,
+    business_id int not null,
+    parent_id int not null,
+    customer_id int not null,
+    itype tinyint unsigned not null,
+    status tinyint unsigned not null,
+    object varchar(100) not null,
+    object_id varchar(100) not null,
+    repeat_days int not null,
+    last_order_date date not null,
+    next_order_date date not null,
+    quantity decimal(19,4) not null,
+    single_units_text varchar(20) not null,
+    plural_units_text varchar(20) not null,
+    date_added datetime not null,
+    last_updated datetime not null,
+    primary key (id),
+    unique index (uuid),
+    unique index (customer_id, itype, object, object_id),
+    index sync (business_id, uuid, last_updated)
+) ENGINE='InnoDB', COMMENT='v1.01';

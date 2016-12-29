@@ -1,0 +1,84 @@
+#
+# Description
+# -----------
+# The orders for a business. The orders are considered orders until delivered/picked up and then become "invoices".
+#
+# Fields
+# ------
+# id:                   The ID assigned to the order.
+# uuid:                 The Universal Unique ID.
+# business_id:          The business the product is attached to.
+#
+# order_number:         The number for the order, or as entered by the user. This allows
+#                       smoother transitions from existing systems that have a numbering system in place.
+#
+# customer_id:          The ID of the customer the order is for.
+# date_id:              The ID of the order date the order is attached to.
+# order_date:           The date the order will be picked up or delivered.
+#
+# status:               The current status of the order.
+#
+#                           10 - Open/cart, customer is allowed to add more items.
+#                           30 - Closed, the order is in the system. Basket substitions may still happen depending on the date status.
+#                           50 - Pending delivery/pickup
+#                           70 - Delivered/picked up
+#                           
+# payment_status:       The current status of payment for the order.
+#
+#                           0 - No payment required.
+#                           10 - Payment required.
+#                           40 - Partial Paid
+#                           50 - Paid
+#
+# flags:                The options for the order.
+#
+#                           0x01 - 
+#                           0x02 - 
+#
+# subtotal_amount:                  The amount before taxes, not including shipping amount.
+# subtotal_discount_percentage:     The percent discount to apply to the subtotal.
+# subtotal_discount_amount:         The discount amount to apply to the subtotal.
+# discount_amount:                  The amount of discount on the order. This is the amount of discounts from subtotal_discount_percentage and subtotal_discount_amount.
+#  
+# total_amount:                     The total amount of all the items, shipping and taxes.
+# total_savings:                    The total amount saved on this order.
+#
+# paid_amount:                      The amount that has been paid on this invoice.
+# balance_amount:                   The amount that remains to be paid on the invoice.
+# 
+# customer_notes:                   Notes that the customer can edit and see.
+# order_notes:                      The notes that will appear on an order.
+# internal_notes:                   The notes for only owner/employees eyes, not to be shown on order.
+#
+# date_added:           The UTC date and time the record was added.
+# last_updated:         The UTC date and time the record was last updated.
+#
+create table ciniki_poma_orders (
+    id int not null auto_increment,
+    uuid char(36) not null,
+    business_id int not null,
+    order_number varchar(20) not null,
+    customer_id int not null,
+    date_id int not null,
+    order_date date not null,
+    status tinyint unsigned not null,
+    payment_status tinyint unsigned not null,
+    flags tinyint unsigned not null,
+    subtotal_amount decimal(19,4) not null,
+    subtotal_discount_amount decimal(19,4) not null,
+    subtotal_percentage_amount decimal(19,4) not null,
+    discount_amount decimal(19,4) not null,
+    total_amount decimal(19,4) not null,
+    total_savings decimal(19,4) not null,
+    paid_amount decimal(19,4) not null,
+    balance_amount decimal(19,4) not null,
+    customer_notes text not null,
+    order_notes text not null,
+    internal_notes text not null,
+    date_added datetime not null,
+    last_updated datetime not null,
+    primary key (id),
+    unique index (uuid),
+    index (customer_id, status, order_date),
+    index sync (business_id, uuid, last_updated)
+) ENGINE='InnoDB', COMMENT='v1.01';
