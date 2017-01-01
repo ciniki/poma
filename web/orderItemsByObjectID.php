@@ -23,7 +23,7 @@ function ciniki_poma_web_orderItemsByObjectID(&$ciniki, $business_id, $args) {
     // Check to make sure the module is enabled
     //
     if( !isset($ciniki['business']['modules']['ciniki.poma']) ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.19', 'msg'=>"I'm sorry, the page you requested does not exist."));
+        return array('stat'=>'ok', 'items'=>array());
     }
 
     //
@@ -73,7 +73,7 @@ function ciniki_poma_web_orderItemsByObjectID(&$ciniki, $business_id, $args) {
     $strsql .= "ORDER BY ciniki_poma_order_items.object_id ";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryIDTree');
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
-        array('container'=>'items', 'fname'=>'id', 
+        array('container'=>'items', 'fname'=>'object_id', 
             'fields'=>array('id', 'object', 'object_id', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix')),
         ));
     if( $rc['stat'] != 'ok' ) {

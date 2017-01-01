@@ -51,7 +51,7 @@
 #
 # unit_suffix:              The suffix for the unit (each, pair, case, bag)
 #
-# unit_amount:              The price of a single item.
+# unit_amount:              The price of a single unit or unit of weight.
 # unit_discount_amount:     The amount to deduct from the item as a discount.
 # unit_discount_percentage: The percentage to apply as a discount to this item.
 # subtotal_amount:          The subtotal before taxes/shipping for this item.

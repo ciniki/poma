@@ -36,8 +36,8 @@
 #                           0x02 - 
 #
 # subtotal_amount:                  The amount before taxes, not including shipping amount.
-# subtotal_discount_percentage:     The percent discount to apply to the subtotal.
 # subtotal_discount_amount:         The discount amount to apply to the subtotal.
+# subtotal_discount_percentage:     The percent discount to apply to the subtotal.
 # discount_amount:                  The amount of discount on the order. This is the amount of discounts from subtotal_discount_percentage and subtotal_discount_amount.
 #  
 # total_amount:                     The total amount of all the items, shipping and taxes.
@@ -66,7 +66,7 @@ create table ciniki_poma_orders (
     flags tinyint unsigned not null,
     subtotal_amount decimal(19,4) not null,
     subtotal_discount_amount decimal(19,4) not null,
-    subtotal_percentage_amount decimal(19,4) not null,
+    subtotal_discount_percentage decimal(19,4) not null,
     discount_amount decimal(19,4) not null,
     total_amount decimal(19,4) not null,
     total_savings decimal(19,4) not null,
