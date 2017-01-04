@@ -68,6 +68,18 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
     }
 
     //
+    // Start a transaction
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
+    $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    
+    //
     // Check if there is already an order
     //
     $strsql = "SELECT ciniki_poma_orders.id, "
@@ -115,18 +127,6 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
         $order = $rc['order'];
     }
 
-    //
-    // Start a transaction
-    //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
-    $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
-    if( $rc['stat'] != 'ok' ) {
-        return $rc;
-    }
-    
     //
     // Check if the item already exists
     //
