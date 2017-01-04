@@ -51,6 +51,15 @@
 #
 # unit_suffix:              The suffix for the unit (each, pair, case, bag)
 #
+# packing_order:            The position in the packing list this should be. Heavier items on the bottom, lighter/delicate on top. 
+#                           The packing list will use to start with heaviest at top of list.
+#                           
+#                               10 - Top
+#                               30 - Top/Middle **future**
+#                               50 - Middle
+#                               70 - Mid/Bottom **future**
+#                               90 - Bottom
+#
 # unit_amount:              The price of a single unit or unit of weight.
 # unit_discount_amount:     The amount to deduct from the item as a discount.
 # unit_discount_percentage: The percentage to apply as a discount to this item.
@@ -82,6 +91,7 @@ create table ciniki_poma_order_items (
     weight_quantity decimal(19,6) not null,
     unit_quantity decimal(19,4) not null,
     unit_suffix varchar(20) not null,
+    packing_order tinyint unsigned not null,
     unit_amount decimal(19,4) not null,
     unit_discount_amount decimal(19,4) not null,
     unit_discount_percentage decimal(19,4) not null,

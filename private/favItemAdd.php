@@ -50,6 +50,25 @@ function ciniki_poma_favItemAdd(&$ciniki, $business_id, $args) {
     }
 
     //
+    // Lookup the item description
+    //
+    list($pkg, $mod, $obj) = explode('.', $args['object']);
+    $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemLookup');
+    if( $rc['stat'] != 'ok' ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.33', 'msg'=>'Unable to add favourite.'));
+    }
+    $fn = $rc['function_call'];
+    $rc = $fn($ciniki, $business_id, $args);
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( !isset($rc['item']['description']) ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.34', 'msg'=>'Unable to add favourite.'));
+    }
+    $args['description'] = $rc['item']['description'];
+
+
+    //
     // Add the favourite
     //
     $args['itype'] = 20;

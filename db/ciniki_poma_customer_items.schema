@@ -33,6 +33,8 @@
 #                           ciniki.poma.orderitem - POMA order item, used for deposits
 #
 # object_id:            The ID of the object.
+#
+# description:          The description of the item. This is used when listing so callbacks don't have to be made to query for descriptions.
 #                           
 # repeat_days:          For standing orders the number of days between ordering this product. 7 days = 1 week, 
 #
@@ -56,6 +58,7 @@ create table ciniki_poma_customer_items (
     status tinyint unsigned not null,
     object varchar(100) not null,
     object_id varchar(100) not null,
+    description varchar(250) not null,
     repeat_days int not null,
     last_order_date date not null,
     next_order_date date not null,
