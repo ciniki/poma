@@ -128,7 +128,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     foreach(['subtotal_amount', 'discount_amount', 'total_amount', 'total_savings', 'paid_amount', 'balance_amount'] as $field) {
         if( $order[$field] != $new_order[$field] ) {
             $update_args[$field] = $new_order[$field];
-            $order[$iid][$field] = $new_order[$field];
+            $order[$field] = $new_order[$field];
         }
     }
     if( count($update_args) > 0 ) {

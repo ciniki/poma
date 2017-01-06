@@ -102,6 +102,7 @@ function ciniki_poma_dateList($ciniki) {
                 . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
                 . ") "
             . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "GROUP BY ciniki_poma_order_dates.id "
             . "ORDER BY order_date DESC "
             . "";
     }

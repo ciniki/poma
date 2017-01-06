@@ -29,6 +29,7 @@ function ciniki_poma_objects(&$ciniki) {
             'status'=>array('name'=>'Status', 'default'=>'10'),
             'payment_status'=>array('name'=>'Payment Status', 'default'=>'0'),
             'flags'=>array('name'=>'Options', 'default'=>'0'),
+            'billing_name'=>array('name'=>'Billing Name', 'default'=>''),
             'subtotal_amount'=>array('name'=>'Subtotal Amount', 'default'=>'0'),
             'subtotal_discount_amount'=>array('name'=>'Subtotal Discount Amount', 'default'=>'0'),
             'subtotal_discount_percentage'=>array('name'=>'Subtotal Discount Percentage', 'default'=>'0'),

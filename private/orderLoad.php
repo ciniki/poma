@@ -32,6 +32,7 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
     // Get the order information
     //
     $strsql = "SELECT ciniki_poma_orders.id, "
+        . "ciniki_poma_orders.customer_id, "
         . "ciniki_poma_orders.status, "
         . "ciniki_poma_orders.payment_status, "
         . "ciniki_poma_orders.order_date, "
@@ -46,8 +47,7 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         . "ciniki_poma_orders.customer_notes, "
         . "ciniki_poma_orders.order_notes "
         . "FROM ciniki_poma_orders "
-        . "WHERE ciniki_poma_orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $ciniki['session']['customer']['id']) . "' "
-        . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "WHERE ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "AND ciniki_poma_orders.id = '" . ciniki_core_dbQuote($ciniki, $order_id) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
@@ -87,18 +87,20 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         . "ciniki_poma_order_items.subtotal_amount, "
         . "ciniki_poma_order_items.discount_amount, "
         . "ciniki_poma_order_items.total_amount, "
-        . "ciniki_poma_order_items.taxtype_id "
+        . "ciniki_poma_order_items.taxtype_id, "
+        . "ciniki_poma_order_items.notes "
         . "FROM ciniki_poma_order_items "
         . "WHERE ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
         . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "AND ciniki_poma_order_items.parent_id = 0 "   // Don't load child items, they are only used for product baskets in foodmarket
         . "ORDER BY line_number "
         . "";
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryIDTree');
-    $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
+    $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'items', 'fname'=>'id', 
-            'fields'=>array('id', 'line_number', 'object', 'object_id', 'code', 'description', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix',
-                'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'subtotal_amount', 'discount_amount', 'total_amount', 'taxtype_id')),
+            'fields'=>array('id', 'line_number', 'object', 'object_id', 'code', 'description', 
+                'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix',
+                'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'subtotal_amount', 'discount_amount', 'total_amount', 'taxtype_id', 'notes')),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -136,7 +138,10 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
             }
             if( $item['itype'] == 10 ) {
                 $order['items'][$iid]['quantity'] = (float)$item['weight_quantity'];
-                $order['items'][$iid]['price_text'] = "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['quantity_single'];
+                // Format the price "2.3lbs @ 1.32/lb"
+                $order['items'][$iid]['price_text'] = (float)$item['weight_quantity'] 
+                    . ($item['weight_quantity'] > 1 ? $order['items'][$iid]['quantity_plural'] : $order['items'][$iid]['quantity_single'])
+                    . '@' . "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['quantity_single'];
                 $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
             } elseif( $item['itype'] == 20 ) {
                 $order['items'][$iid]['quantity'] = (float)$item['unit_quantity'];
@@ -150,13 +155,34 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
                 }
             } else {
                 $order['items'][$iid]['quantity'] = (float)$item['unit_quantity'];
-                $order['items'][$iid]['price_text'] = "$" . number_format($item['unit_amount'], 2, '.', ',') 
+                $order['items'][$iid]['price_text'] = (float)$item['unit_quantity'] . " @ $" . number_format($item['unit_amount'], 2, '.', ',') 
                     . ($item['unit_suffix'] != '' ? ' ' . $item['unit_suffix'] : '');
                 $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
             }
+            // FIXME: Setup discount text
+            $order['items'][$iid]['discount_text'] = '';
         }
     } else {
         $order['items'] = array();
+    }
+
+    //
+    // FIXME: Load the taxes
+    //
+
+    //
+    // Setup the order tallies
+    //
+    $order['tallies'] = array();
+    $order['tallies'][] = array('label'=>'Sub Total', 'value'=>number_format($order['subtotal_amount'], 2));
+    if( isset($order['taxes']) && count($order['taxes']) > 0 ) {
+        foreach($order['taxes'] as $tax) {
+            $order['tallies'][] = array('label'=>$tax['description'], 'value'=>number_format($tax['amount'], 2));
+        }
+    }
+    $order['tallies'][] = array('label'=>'Total', 'value'=>number_format($order['total_amount'], 2));
+    if( $order['total_savings'] > 0 ) {
+        $order['tallies'][] = array('label'=>'Savings', 'value'=>number_format($order['total_savings'], 2));
     }
 
     return array('stat'=>'ok', 'order'=>$order);

@@ -37,6 +37,19 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
     $intl_timezone = $rc['settings']['intl-default-timezone'];
 
     //
+    // Load the customer details
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
+    $rc = ciniki_customers_hooks_customerDetails($ciniki, $business_id, array('customer_id'=>$args['customer_id']));
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( !isset($rc['customer']) ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.36', 'msg'=>'No customer found.'));
+    }
+    $customer = $rc['customer'];
+
+    //
     // Get the current status of the order date_id
     //
     $strsql = "SELECT ciniki_poma_order_dates.id, "
@@ -87,6 +100,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
     $order = array(
         'order_number'=>$order_number,
         'customer_id'=>$args['customer_id'],
+        'billing_name'=>$customer['display_name'],
         'date_id'=>$args['date_id'],
         'order_date'=>$odate['order_date'],
         'status'=>10,

@@ -35,6 +35,9 @@
 #                           0x01 - 
 #                           0x02 - 
 #
+# billing_name:         The customer name who is being billed for the item. This is copied from the customer record
+#                       when the order is created.
+#
 # subtotal_amount:                  The amount before taxes, not including shipping amount.
 # subtotal_discount_amount:         The discount amount to apply to the subtotal.
 # subtotal_discount_percentage:     The percent discount to apply to the subtotal.
@@ -64,6 +67,7 @@ create table ciniki_poma_orders (
     status tinyint unsigned not null,
     payment_status tinyint unsigned not null,
     flags tinyint unsigned not null,
+    billing_name varchar(250) not null,
     subtotal_amount decimal(19,4) not null,
     subtotal_discount_amount decimal(19,4) not null,
     subtotal_discount_percentage decimal(19,4) not null,
