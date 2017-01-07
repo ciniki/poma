@@ -2,6 +2,10 @@
 // This is the main app for the poma module
 //
 function ciniki_poma_main() {
+    this.weightToggles = {'20':'lb', '25':'oz', '60':'kg', '65':'g'};
+    this.unitFlags = {'9':{'name':'Each'}, '10':{'name':'Pair'}, '11':{'name':'Bunch'}, '12':{'name':'Bag'}};
+    this.caseFlags = {'17':{'name':'Case'}, '18':{'name':'Bushel'}, };
+
     //
     // The panel to list the orderdate
     //
@@ -10,6 +14,7 @@ function ciniki_poma_main() {
     this.menu.customer_id = 0;
     this.menu.date_id = 0;
     this.menu.order_id = 0;
+    this.menu.nplists = {'orderitems':[]};
     this.menu.date_nplist = [];
     this.menu.sections = {
         '_tabs':{'label':'', 'type':'menutabs', 'selected':'checkout', 'tabs':{
@@ -39,6 +44,8 @@ function ciniki_poma_main() {
         'open_orders':{'label':'Open Orders', 'type':'simplegrid', 'num_cols':1, 'aside':'yes',
             'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'checkout') ? 'yes':'no'; },
             'noData':'No open orders',
+            'addTxt':'Add',
+            'addFn':'M.startApp(\'ciniki.customers.edit\',null,\'M.ciniki_poma_main.menu.open();\',\'mc\',{\'next\':\'M.ciniki_poma_main.menu.newOrder\',\'customer_id\':0});',
             },
         'closed_orders':{'label':'Closed Orders', 'type':'simplegrid', 'num_cols':1, 'aside':'yes',
             'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'checkout') ? 'yes':'no'; },
@@ -49,6 +56,8 @@ function ciniki_poma_main() {
             'headerValues':['', 'Item', 'Price', 'Total'],
             'headerClasses':['', '', 'alignright', 'alignright'],
             'cellClasses':['alignright', 'multiline', 'multiline alignright', 'multiline alignright'],
+            'addTxt':'Add',
+            'addFn':'M.ciniki_poma_main.orderitem.open(\'M.ciniki_poma_main.menu.open();\',0,M.ciniki_poma_main.menu.order_id,[]);',
             },
         'tallies':{'label':'', 'type':'simplegrid', 'num_cols':2,
             'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'checkout' && M.ciniki_poma_main.menu.order_id > 0 ) ? 'yes':'no'; },
@@ -186,6 +195,8 @@ function ciniki_poma_main() {
             return 'M.ciniki_poma_main.editdate.open(\'M.ciniki_poma_main.menu.open();\',\'' + d.id + '\',M.ciniki_poma_main.menu.date_nplist);';
         } else if( s == 'open_orders' || s == 'closed_orders' ) {
             return 'M.ciniki_poma_main.menu.openOrder(\'' + d.id + '\');';
+        } else if( s == 'orderitems' ) {
+            return 'M.ciniki_poma_main.orderitem.open(\'M.ciniki_poma_main.menu.open();\',\'' + d.id + '\',null,M.ciniki_poma_main.menu.nplists.orderitems);';
         } else if( s == 'customers' ) {
             return 'M.ciniki_poma_main.menu.openFavourites(\'' + d.id + '\');';
         }
@@ -212,29 +223,46 @@ function ciniki_poma_main() {
         }
         this.open();
     } */
+    this.menu.openCheckout = function(rsp) {
+        if( rsp.stat != 'ok' ) {
+            M.api.err(rsp);
+            return false;
+        }
+        var p = M.ciniki_poma_main.menu;
+        p.size = 'large narrowaside';
+        p.data = rsp;
+        p.nplists = [];
+        if( rsp.nplists != null ) {
+            p.nplists = rsp.nplists;
+        }
+        p.sections._dates.fields.date_id.options = rsp.dates;
+        if( rsp.date_id != null && rsp.date_id > 0 ) {
+            p.date_id = rsp.date_id;
+        }
+        if( rsp.order != null && rsp.order.customer_id > 0 ) {
+            p.order_id = rsp.order.id;
+            p.customer_id = rsp.order.customer_id;
+        }
+        p.order_nplist = (rsp.order_nplist != null ? rsp.order_nplist : null);
+        p.refresh();
+        p.show();
+    }
+    this.menu.newOrder = function(cid) {
+        this.customer_id = cid;
+        M.api.getJSONCb('ciniki.poma.dateCheckout', 
+            {'business_id':M.curBusinessID, 'date_id':this.date_id, 'order_id':0, 'order':'new', 'customer_id':this.customer_id}, 
+            M.ciniki_poma_main.menu.openCheckout);
+        this.open();
+    }
     this.menu.open = function(cb, tab) {
         if( tab != null ) { this.sections._tabs.selected = tab; }
         if( this.sections._tabs.selected == 'checkout' ) {
-            M.api.getJSONCb('ciniki.poma.dateCheckout', {'business_id':M.curBusinessID, 'date_id':this.date_id, 'order_id':this.order_id, 'customer_id':this.customer_id}, function(rsp) {
-                if( rsp.stat != 'ok' ) {
-                    M.api.err(rsp);
-                    return false;
-                }
-                var p = M.ciniki_poma_main.menu;
-                p.size = 'large narrowaside';
-                p.data = rsp;
-                p.sections._dates.fields.date_id.options = rsp.dates;
-                if( rsp.date_id != null && rsp.date_id > 0 ) {
-                    p.date_id = rsp.date_id;
-                }
-                if( rsp.order != null && rsp.order.customer_id > 0 ) {
-                    p.order_id = rsp.order.id;
-                    p.customer_id = rsp.order.customer_id;
-                }
-                p.order_nplist = (rsp.order_nplist != null ? rsp.order_nplist : null);
-                p.refresh();
-                p.show(cb);
-            });
+            if( cb != null ) {
+                this.cb = cb;
+            }
+            M.api.getJSONCb('ciniki.poma.dateCheckout', 
+                {'business_id':M.curBusinessID, 'date_id':this.date_id, 'order_id':this.order_id, 'customer_id':this.customer_id}, 
+                M.ciniki_poma_main.menu.openCheckout);
         }
         else if( this.sections._tabs.selected == 'repeats' ) {
             M.api.getJSONCb('ciniki.poma.repeatList', {'business_id':M.curBusinessID}, function(rsp) {
@@ -407,15 +435,142 @@ function ciniki_poma_main() {
     this.editdate.addLeftButton('prev', 'Prev');
 
     //
-    // The order item edit panel
+    // The panel to edit Order Item
     //
-    this.edititem = new M.panel('Order Item', 'ciniki_poma_main', 'edititem', 'mc', 'medium', 'sectioned', 'ciniki.poma.main.edititem');
-    this.edititem.data = null;
-    this.edititem.item_id = 0;
-    this.edititem.nplist = [];
-    this.edititem.addClose('Cancel');
-    this.edititem.addButton('next', 'Next');
-    this.edititem.addLeftButton('prev', 'Prev');
+    this.orderitem = new M.panel('Order Item', 'ciniki_poma_main', 'orderitem', 'mc', 'medium', 'sectioned', 'ciniki.poma.main.orderitem');
+    this.orderitem.data = null;
+    this.orderitem.item_id = 0;
+    this.orderitem.order_id = 0;
+    this.orderitem.nplist = [];
+    this.orderitem.sections = {
+        'general':{'label':'', 'fields':{
+//            'flags':{'label':'Options', 'type':'text'},
+//            'object':{'label':'Object', 'type':'text'},
+//            'object_id':{'label':'Object ID', 'type':'text'},
+//            'code':{'label':'Code', 'type':'text'},
+            'description':{'label':'Item', 'required':'yes', 'type':'text'},
+            'itype':{'label':'Sold By', 'required':'yes', 'type':'toggle', 
+                'toggles':{'10':'Weight', '20':'Weighted Units', '30':'Units'}, 
+                'onchange':'M.ciniki_poma_main.orderitem.updateForm', 
+                },
+            'unit_quantity':{'label':'Unit Quantity', 'visible':'no', 'type':'text', 'size':'small'},
+            'unit_suffix':{'label':'Unit Suffix', 'visible':'no', 'type':'text', 'size':'small'},
+            'weight_quantity':{'label':'Weight', 'visible':'no', 'type':'text', 'size':'small'},
+            'weight_units':{'label':'Weight Units', 'visible':'no', 'type':'toggle', 'toggles':{'20':'lb', '25':'oz', '60':'kg', '65':'g'}},
+            'packing_order':{'label':'Packing', 'type':'toggle', 'toggles':{'10':'Top', '50':'Middle', '90':'Bottom'}},
+            'unit_amount':{'label':'Amount', 'required':'yes', 'type':'text', 'size':'small'},
+            'unit_discount_amount':{'label':'Discount Amount', 'type':'text', 'size':'small'},
+            'unit_discount_percentage':{'label':'Discount Percentage', 'type':'text', 'size':'small'},
+//            'taxtype_id':{'label':'Tax Type', 'type':'text'},
+            }},
+        '_notes':{'label':'Notes', 'fields':{
+            'notes':{'label':'', 'hidelabel':'yes', 'type':'textarea', 'size':'small'},
+            }},
+        '_buttons':{'label':'', 'buttons':{
+            'save':{'label':'Save', 'fn':'M.ciniki_poma_main.orderitem.save();'},
+            'delete':{'label':'Delete', 
+                'visible':function() {return M.ciniki_poma_main.orderitem.item_id > 0 ? 'yes' : 'no'; },
+                'fn':'M.ciniki_poma_main.orderitem.remove();'},
+            }},
+        };
+    this.orderitem.fieldValue = function(s, i, d) { return this.data[i]; }
+    this.orderitem.fieldHistoryArgs = function(s, i) {
+        return {'method':'ciniki.poma.orderItemHistory', 'args':{'business_id':M.curBusinessID, 'item_id':this.item_id, 'field':i}};
+    }
+    this.orderitem.updateForm = function() {
+        var v = this.formValue('itype');
+        if( v == '10' ) {
+            this.sections.general.fields.weight_quantity.visible = 'yes';
+            this.sections.general.fields.weight_units.visible = 'yes';
+            this.sections.general.fields.unit_quantity.visible = 'no';
+            this.sections.general.fields.unit_suffix.visible = 'no';
+        } else if( v == '20' ) {
+            this.sections.general.fields.weight_quantity.visible = 'yes';
+            this.sections.general.fields.weight_units.visible = 'yes';
+            this.sections.general.fields.unit_quantity.visible = 'yes';
+            this.sections.general.fields.unit_suffix.visible = 'no';
+        } else if( v == '30' ) {
+            this.sections.general.fields.weight_quantity.visible = 'no';
+            this.sections.general.fields.weight_units.visible = 'no';
+            this.sections.general.fields.unit_quantity.visible = 'yes';
+            this.sections.general.fields.unit_suffix.visible = 'yes';
+        }
+        this.refreshFormField('general', 'weight_quantity');
+        this.refreshFormField('general', 'weight_units');
+        this.refreshFormField('general', 'unit_quantity');
+        this.refreshFormField('general', 'unit_suffix');
+    }
+    this.orderitem.open = function(cb, iid, oid, list) {
+        if( iid != null ) { this.item_id = iid; }
+        if( list != null ) { this.nplist = list; }
+        if( oid != null ) { this.order_id = oid; }
+        M.api.getJSONCb('ciniki.poma.orderItemGet', {'business_id':M.curBusinessID, 'item_id':this.item_id}, function(rsp) {
+            if( rsp.stat != 'ok' ) {
+                M.api.err(rsp);
+                return false;
+            }
+            var p = M.ciniki_poma_main.orderitem;
+            p.data = rsp.item;
+            p.refresh();
+            p.show(cb);
+            p.updateForm();
+        });
+    }
+    this.orderitem.save = function(cb) {
+        if( cb == null ) { cb = 'M.ciniki_poma_main.orderitem.close();'; }
+        if( !this.checkForm() ) { return false; }
+        if( this.item_id > 0 ) {
+            var c = this.serializeForm('no');
+            if( c != '' ) {
+                M.api.postJSONCb('ciniki.poma.orderItemUpdate', {'business_id':M.curBusinessID, 'item_id':this.item_id}, c, function(rsp) {
+                    if( rsp.stat != 'ok' ) {
+                        M.api.err(rsp);
+                        return false;
+                    }
+                    eval(cb);
+                });
+            } else {
+                eval(cb);
+            }
+        } else {
+            var c = this.serializeForm('yes');
+            M.api.postJSONCb('ciniki.poma.orderItemAdd', {'business_id':M.curBusinessID, 'order_id':this.order_id}, c, function(rsp) {
+                if( rsp.stat != 'ok' ) {
+                    M.api.err(rsp);
+                    return false;
+                }
+                M.ciniki_poma_main.orderitem.item_id = rsp.id;
+                eval(cb);
+            });
+        }
+    }
+    this.orderitem.remove = function() {
+        if( confirm('Are you sure you want to remove orderitem?') ) {
+            M.api.getJSONCb('ciniki.poma.orderItemDelete', {'business_id':M.curBusinessID, 'item_id':this.item_id}, function(rsp) {
+                if( rsp.stat != 'ok' ) {
+                    M.api.err(rsp);
+                    return false;
+                }
+                M.ciniki_poma_main.orderitem.close();
+            });
+        }
+    }
+    this.orderitem.nextButtonFn = function() {
+        if( this.nplist != null && this.nplist.indexOf('' + this.item_id) < (this.nplist.length - 1) ) {
+            return 'M.ciniki_poma_main.orderitem.save(\'M.ciniki_poma_main.orderitem.open(null,' + this.nplist[this.nplist.indexOf('' + this.item_id) + 1] + ');\');';
+        }
+        return null;
+    }
+    this.orderitem.prevButtonFn = function() {
+        if( this.nplist != null && this.nplist.indexOf('' + this.item_id) > 0 ) {
+            return 'M.ciniki_poma_main.orderitem.save(\'M.ciniki_poma_main.orderitem.open(null,' + this.nplist[this.nplist.indexOf('' + this.item_id) - 1] + ');\');';
+        }
+        return null;
+    }
+    this.orderitem.addButton('save', 'Save', 'M.ciniki_poma_main.orderitem.save();');
+    this.orderitem.addClose('Cancel');
+    this.orderitem.addButton('next', 'Next');
+    this.orderitem.addLeftButton('prev', 'Prev');
 
     //
     // Start the app

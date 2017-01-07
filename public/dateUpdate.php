@@ -28,7 +28,6 @@ function ciniki_poma_dateUpdate(&$ciniki) {
         return $rc;
     }
     $args = $rc['args'];
-    error_log('testing');
 
     //
     // Make sure this module is activated, and

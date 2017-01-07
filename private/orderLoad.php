@@ -110,7 +110,7 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         foreach($order['items'] as $iid => $item) {
             $order['items'][$iid]['quantity_single'] = '';
             $order['items'][$iid]['quantity_plural'] = '';
-            if( $item['itype'] == 10 ) {
+            if( $item['itype'] == 10 || $item['itype'] == 20 ) {
                 if( $item['weight_units'] == 20 ) {
                     $order['items'][$iid]['quantity_single'] = 'lb';
                     $order['items'][$iid]['quantity_plural'] = 'lbs';
@@ -140,17 +140,20 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
                 $order['items'][$iid]['quantity'] = (float)$item['weight_quantity'];
                 // Format the price "2.3lbs @ 1.32/lb"
                 $order['items'][$iid]['price_text'] = (float)$item['weight_quantity'] 
-                    . ($item['weight_quantity'] > 1 ? $order['items'][$iid]['quantity_plural'] : $order['items'][$iid]['quantity_single'])
-                    . '@' . "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['quantity_single'];
+                    . ' ' . ($item['weight_quantity'] > 1 ? $order['items'][$iid]['quantity_plural'] : $order['items'][$iid]['quantity_single'])
+                    . ' @ $' . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['quantity_single'];
                 $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
             } elseif( $item['itype'] == 20 ) {
                 $order['items'][$iid]['quantity'] = (float)$item['unit_quantity'];
                 if( $item['weight_quantity'] > 0 ) {
-                    $order['items'][$iid]['price_text'] = (float)$item['weight_quantity'] . " @ "
-                        . "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['weight_unit_text'];
+                    $order['items'][$iid]['price_text'] = (float)$item['unit_quantity'] . ' - '
+                        . (float)$item['weight_quantity'] 
+                        . ($item['weight_quantity'] > 1 ? $order['items'][$iid]['quantity_plural'] : $order['items'][$iid]['quantity_single'])
+                        . ' @ $' . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['weight_unit_text'];
                     $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
                 } else {
-                    $order['items'][$iid]['price_text'] = "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['weight_unit_text'];
+                    $order['items'][$iid]['price_text'] = (float)$item['unit_quantity'] . ' - '
+                        . "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['weight_unit_text'];
                     $order['items'][$iid]['total_text'] = "TBD";
                 }
             } else {

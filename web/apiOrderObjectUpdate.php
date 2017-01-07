@@ -110,7 +110,7 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
         // Check to make sure order is still open for changes
         //
         if( $order['status'] > 10 ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.43', 'msg'=>'Your order is closed, no more changes can be made.'));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.68', 'msg'=>'Your order is closed, no more changes can be made.'));
         }
     } else {
         //
