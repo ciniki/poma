@@ -95,6 +95,13 @@ function ciniki_poma_main() {
             'addTxt':'Add Order Date',
             'addFn':'M.ciniki_poma_main.editdate.open(\'M.ciniki_poma_main.menu.open();\',0,null);'
             },
+        '_orderbuttons':{'label':'', 
+            'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'checkout' && M.ciniki_poma_main.menu.order_id > 0 ) ? 'yes':'no'; },
+            'buttons':{
+                'delete':{'label':'Delete Order', 'visible':function() { return (M.ciniki_poma_main.menu.data.orderitems != null && M.ciniki_poma_main.menu.data.orderitems.length == 0 ? 'yes' : 'no');},
+                    'fn':'M.ciniki_poma_main.menu.orderRemove()',
+                    },
+            }},
     }
     this.menu.fieldValue = function(s, i, d) {
         return this.date_id;
@@ -252,7 +259,6 @@ function ciniki_poma_main() {
         M.api.getJSONCb('ciniki.poma.dateCheckout', 
             {'business_id':M.curBusinessID, 'date_id':this.date_id, 'order_id':0, 'order':'new', 'customer_id':this.customer_id}, 
             M.ciniki_poma_main.menu.openCheckout);
-        this.open();
     }
     this.menu.open = function(cb, tab) {
         if( tab != null ) { this.sections._tabs.selected = tab; }
@@ -325,6 +331,20 @@ function ciniki_poma_main() {
                 p.show(cb);
             });
         } */
+    }
+    this.menu.orderRemove = function() {
+        if( confirm('Are you sure you want to remove order?') ) {
+            M.api.getJSONCb('ciniki.poma.orderDelete', {'business_id':M.curBusinessID, 'order_id':this.order_id}, function(rsp) {
+                if( rsp.stat != 'ok' ) {
+                    M.api.err(rsp);
+                    return false;
+                }
+                var p = M.ciniki_poma_main.menu;
+                p.order_id = 0;
+                p.customer_id = 0;
+                p.open();
+            });
+        }
     }
     this.menu.addClose('Back');
 
@@ -448,7 +468,7 @@ function ciniki_poma_main() {
 //            'object':{'label':'Object', 'type':'text'},
 //            'object_id':{'label':'Object ID', 'type':'text'},
 //            'code':{'label':'Code', 'type':'text'},
-            'description':{'label':'Item', 'required':'yes', 'type':'text'},
+            'description':{'label':'Item', 'required':'yes', 'type':'text', 'livesearch':'yes', 'livesearchcols':2},
             'itype':{'label':'Sold By', 'required':'yes', 'type':'toggle', 
                 'toggles':{'10':'Weight', '20':'Weighted Units', '30':'Units'}, 
                 'onchange':'M.ciniki_poma_main.orderitem.updateForm', 
@@ -472,7 +492,64 @@ function ciniki_poma_main() {
                 'visible':function() {return M.ciniki_poma_main.orderitem.item_id > 0 ? 'yes' : 'no'; },
                 'fn':'M.ciniki_poma_main.orderitem.remove();'},
             }},
-        };
+    }
+    this.orderitem.liveSearchCb = function(s, i, v) {
+        M.api.getJSONBgCb('ciniki.poma.orderItemSearch', {'business_id':M.curBusinessID,
+            'field':i, 'order_id':M.ciniki_poma_main.orderitem.order_id, 'start_needle':v, 'limit':25}, function(rsp) {
+            M.ciniki_poma_main.orderitem.liveSearchShow(s,i,M.gE(M.ciniki_poma_main.orderitem.panelUID + '_' + i), rsp.items);
+           });
+    }
+    this.orderitem.liveSearchResultClass = function(s, f, i, j, d) {
+        return 'multiline';
+    }
+    this.orderitem.liveSearchResultValue = function(s,f,i,j,d) {
+        switch(j) {
+            case 0: 
+                if( d.notes != null && d.notes != '' ) {
+                    return '<span class="maintext">' + d.description + '</span><span class="subtext">' + d.notes + '</span>';
+                }
+                return d.description;
+            case 1:
+                if( d.discount_text != null && d.discount_text != '' ) {
+                    return '<span class="maintext">' + d.unit_amount_text + '</span><span class="subtext">' + d.discount_text + '</span>';
+                }
+                return d.unit_price_text;
+            case 2: 
+                if( d.taxtype_name != null && d.taxtype_name != '' ) {
+                    return '<span class="maintext">' + d.total_text + '</span><span class="subtext">' + d.taxtype_name + '</span>';
+                }
+                return d.total_text;
+        }
+        return '';
+    }
+    this.orderitem.liveSearchResultRowFn = function(s, f, i, j, d) {
+        return 'M.ciniki_poma_main.orderitem.updateFromSearch(\'' + s + '\',\'' + f + '\',\'' + d.object + '\',\'' + d.object_id + '\',\'' + escape(d.description) + '\',\'' + d.itype + '\',\'' + d.weight_units + '\',\'' + d.weight_quantity + '\',\'' + d.unit_quantity + '\',\'' + escape(d.unit_suffix) + '\',\'' + d.packing_order + '\',\'' + d.unit_amount_text + '\',\'' + d.unit_discount_amount + '\',\'' + d.unit_discount_percentage + '\',\'' + d.taxtype_id + '\',\'' + escape(d.notes) + '\');';
+    }
+    this.orderitem.updateFromSearch = function(s,f,o,oid,d,i,wu,wq,uq,us,po,ua,da,dp,t,n) {
+        this.object = o;
+        this.object_id = oid;
+        this.setFieldValue('itype', i);
+        this.updateForm();
+        this.setFieldValue('description', unescape(d));
+        this.setFieldValue('weight_units', wu);
+        this.setFieldValue('weight_quantity', wq);
+        this.setFieldValue('unit_quantity', uq);
+        this.setFieldValue('unit_suffix', unescape(us));
+        this.setFieldValue('packing_order', po);
+        this.setFieldValue('unit_amount', ua);
+        this.setFieldValue('unit_discount_amount', da);
+        this.setFieldValue('unit_discount_percentage', dp);
+        if( M.curBusiness.modules['ciniki.taxes'] != null ) {
+            this.setFieldValue('taxtype_id', t);
+        }
+        this.setFieldValue('notes', unescape(n));
+        this.removeLiveSearch(s, f);
+        if( i < 30 ) {
+            M.gE(this.panelUID + '_weight_quantity').focus();
+        } else {
+            M.gE(this.panelUID + '_unit_quantity').focus();
+        }
+    }
     this.orderitem.fieldValue = function(s, i, d) { return this.data[i]; }
     this.orderitem.fieldHistoryArgs = function(s, i) {
         return {'method':'ciniki.poma.orderItemHistory', 'args':{'business_id':M.curBusinessID, 'item_id':this.item_id, 'field':i}};

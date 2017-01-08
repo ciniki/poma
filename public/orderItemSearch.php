@@ -22,6 +22,7 @@ function ciniki_poma_orderItemSearch($ciniki) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
         'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Order'),
         'start_needle'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Search String'),
         'limit'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Limit'),
         ));
@@ -40,61 +41,98 @@ function ciniki_poma_orderItemSearch($ciniki) {
     }
 
     //
-    // Get the list of items
+    // Load business INTL settings
     //
-    $strsql = "SELECT ciniki_poma_order_items.id, "
-        . "ciniki_poma_order_items.order_id, "
-        . "ciniki_poma_order_items.parent_id, "
-        . "ciniki_poma_order_items.line_number, "
-        . "ciniki_poma_order_items.flags, "
-        . "ciniki_poma_order_items.object, "
-        . "ciniki_poma_order_items.object_id, "
-        . "ciniki_poma_order_items.code, "
-        . "ciniki_poma_order_items.description, "
-        . "ciniki_poma_order_items.itype, "
-        . "ciniki_poma_order_items.weight_units, "
-        . "ciniki_poma_order_items.weight_quantity, "
-        . "ciniki_poma_order_items.unit_quantity, "
-        . "ciniki_poma_order_items.unit_suffix, "
-        . "ciniki_poma_order_items.packing_order, "
-        . "ciniki_poma_order_items.unit_amount, "
-        . "ciniki_poma_order_items.unit_discount_amount, "
-        . "ciniki_poma_order_items.unit_discount_percentage, "
-        . "ciniki_poma_order_items.subtotal_amount, "
-        . "ciniki_poma_order_items.discount_amount, "
-        . "ciniki_poma_order_items.total_amount, "
-        . "ciniki_poma_order_items.taxtype_id "
-        . "FROM ciniki_poma_order_items "
-        . "WHERE ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
-        . "AND ("
-            . "name LIKE '" . ciniki_core_dbQuote($ciniki, $args['start_needle']) . "%' "
-            . "OR name LIKE '% " . ciniki_core_dbQuote($ciniki, $args['start_needle']) . "%' "
-        . ") "
-        . "";
-    if( isset($args['limit']) && is_numeric($args['limit']) && $args['limit'] > 0 ) {
-        $strsql .= "LIMIT " . ciniki_core_dbQuote($ciniki, $args['limit']) . " ";
-    } else {
-        $strsql .= "LIMIT 25 ";
-    }
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
-    $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
-        array('container'=>'items', 'fname'=>'id', 
-            'fields'=>array('id', 'order_id', 'parent_id', 'line_number', 'flags', 'object', 'object_id', 'code', 'description', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'packing_order', 'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'subtotal_amount', 'discount_amount', 'total_amount', 'taxtype_id')),
-        ));
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
+    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
-    if( isset($rc['items']) ) {
-        $items = $rc['items'];
-        $item_ids = array();
-        foreach($items as $iid => $item) {
-            $item_ids[] = $item['id'];
+    $intl_timezone = $rc['settings']['intl-default-timezone'];
+    $intl_currency_fmt = numfmt_create($rc['settings']['intl-default-locale'], NumberFormatter::CURRENCY);
+    $intl_currency = $rc['settings']['intl-default-currency'];
+
+    //
+    // Setup the array for the items
+    //
+    $items = array();
+
+    //
+    // Check for modules which have searchable items
+    //
+    foreach($ciniki['business']['modules'] as $module => $m) {
+        list($pkg, $mod) = explode('.', $module);
+        $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemSearch');
+        if( $rc['stat'] != 'ok' ) {
+            continue;
         }
-    } else {
-        $items = array();
-        $item_ids = array();
+        $fn = $rc['function_call'];
+        $rc = $fn($ciniki, $args['business_id'], array(
+            'start_needle'=>$args['start_needle'], 
+            'order_id'=>$args['order_id'],
+            'limit'=>$args['limit']));
+        if( $rc['stat'] != 'ok' ) {
+            continue;
+        }
+        if( isset($rc['items']) ) {
+            $items = array_merge($items, $rc['items']);
+        }
     }
 
-    return array('stat'=>'ok', 'items'=>$items, 'nplist'=>$item_ids);
+    //
+    // Check existing items in invoices, but only if owner/employee
+    //
+    if( count($items) == 0 ) {
+        $strsql = "SELECT DISTINCT "    
+            . "CONCAT_WS('-', ciniki_poma_order_items.description, ciniki_poma_order_items.unit_amount) AS id, "
+            . "ciniki_poma_order_items.object, "
+            . "ciniki_poma_order_items.object_id, "
+            . "ciniki_poma_order_items.description, "
+            . "ciniki_poma_order_items.itype, "
+            . "ciniki_poma_order_items.weight_units, "
+            . "ciniki_poma_order_items.weight_quantity, "
+            . "ciniki_poma_order_items.unit_quantity, "
+            . "ciniki_poma_order_items.unit_suffix, "
+            . "ciniki_poma_order_items.packing_order, "
+            . "ciniki_poma_order_items.unit_amount, "
+            . "ciniki_poma_order_items.unit_discount_amount, "
+            . "ciniki_poma_order_items.unit_discount_percentage, "
+            . "ciniki_poma_order_items.taxtype_id, "
+            . "ciniki_poma_order_items.notes "
+            . "FROM ciniki_poma_order_items "
+            . "WHERE business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND object = '' "
+            . "AND (description LIKE '" . ciniki_core_dbQuote($ciniki, $args['start_needle']) . "%' "
+                . "OR description LIKE ' %" . ciniki_core_dbQuote($ciniki, $args['start_needle']) . "%' "
+                . ") "
+            . "";
+        if( isset($args['limit']) && $args['limit'] > 0 ) {
+            $strsql .= "LIMIT " . ciniki_core_dbQuote($ciniki, $args['limit']) . " ";
+        } else {
+            $strsql .= "LIMIT 15 ";
+        }
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryTree');
+        $rc = ciniki_core_dbHashQueryTree($ciniki, $strsql, 'ciniki.poma', array(
+            array('container'=>'items', 'fname'=>'id', 'name'=>'item',
+                'fields'=>array('object', 'object_id', 'description', 
+                    'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'packing_order',
+                    'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'taxtype_id', 'notes')),
+            ));
+        if( $rc['stat'] != 'ok' ) {    
+            return $rc;
+        }
+        if( isset($rc['items']) ) {
+            $items = array_merge($rc['items'], $items);
+        }
+    }
+
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'formatItems');
+    $rc = ciniki_poma_formatItems($ciniki, $args['business_id'], $items);
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    $items = $rc['items'];
+
+    return array('stat'=>'ok', 'items'=>$items);
 }
 ?>

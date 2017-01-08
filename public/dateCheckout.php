@@ -106,7 +106,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
-        $rsp['order'] = $rc['order'];
+        $args['order_id'] = $rc['order']['id'];
     }
 
     //

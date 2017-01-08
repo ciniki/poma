@@ -111,6 +111,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
         'status'=>10,
         'payment_status'=>0,
         'flags'=>0,
+        'items'=>array(),
         );
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
     $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.order', $order, 0x07);

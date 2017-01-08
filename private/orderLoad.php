@@ -106,65 +106,12 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         return $rc;
     }
     if( isset($rc['items']) ) {
-        $order['items'] = $rc['items'];
-        foreach($order['items'] as $iid => $item) {
-            $order['items'][$iid]['quantity_single'] = '';
-            $order['items'][$iid]['quantity_plural'] = '';
-            if( $item['itype'] == 10 || $item['itype'] == 20 ) {
-                if( $item['weight_units'] == 20 ) {
-                    $order['items'][$iid]['quantity_single'] = 'lb';
-                    $order['items'][$iid]['quantity_plural'] = 'lbs';
-                } elseif( $item['weight_units'] == 25 ) {
-                    $order['items'][$iid]['quantity_single'] = 'oz';
-                    $order['items'][$iid]['quantity_plural'] = 'ozs';
-                } elseif( $item['weight_units'] == 60 ) {
-                    $order['items'][$iid]['quantity_single'] = 'kg';
-                    $order['items'][$iid]['quantity_plural'] = 'kgs';
-                } elseif( $item['weight_units'] == 65 ) {
-                    $order['items'][$iid]['quantity_single'] = 'g';
-                    $order['items'][$iid]['quantity_plural'] = 'gs';
-                }
-            }
-            if( $item['itype'] == 20 ) {
-                if( $item['weight_units'] == 20 ) {
-                    $order['items'][$iid]['weight_unit_text'] = 'lb';
-                } elseif( $item['weight_units'] == 25 ) {
-                    $order['items'][$iid]['weight_unit_text'] = 'oz';
-                } elseif( $item['weight_units'] == 60 ) {
-                    $order['items'][$iid]['weight_unit_text'] = 'kg';
-                } elseif( $item['weight_units'] == 65 ) {
-                    $order['items'][$iid]['weight_unit_text'] = 'g';
-                }
-            }
-            if( $item['itype'] == 10 ) {
-                $order['items'][$iid]['quantity'] = (float)$item['weight_quantity'];
-                // Format the price "2.3lbs @ 1.32/lb"
-                $order['items'][$iid]['price_text'] = (float)$item['weight_quantity'] 
-                    . ' ' . ($item['weight_quantity'] > 1 ? $order['items'][$iid]['quantity_plural'] : $order['items'][$iid]['quantity_single'])
-                    . ' @ $' . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['quantity_single'];
-                $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
-            } elseif( $item['itype'] == 20 ) {
-                $order['items'][$iid]['quantity'] = (float)$item['unit_quantity'];
-                if( $item['weight_quantity'] > 0 ) {
-                    $order['items'][$iid]['price_text'] = (float)$item['unit_quantity'] . ' - '
-                        . (float)$item['weight_quantity'] 
-                        . ($item['weight_quantity'] > 1 ? $order['items'][$iid]['quantity_plural'] : $order['items'][$iid]['quantity_single'])
-                        . ' @ $' . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['weight_unit_text'];
-                    $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
-                } else {
-                    $order['items'][$iid]['price_text'] = (float)$item['unit_quantity'] . ' - '
-                        . "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['weight_unit_text'];
-                    $order['items'][$iid]['total_text'] = "TBD";
-                }
-            } else {
-                $order['items'][$iid]['quantity'] = (float)$item['unit_quantity'];
-                $order['items'][$iid]['price_text'] = (float)$item['unit_quantity'] . " @ $" . number_format($item['unit_amount'], 2, '.', ',') 
-                    . ($item['unit_suffix'] != '' ? ' ' . $item['unit_suffix'] : '');
-                $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
-            }
-            // FIXME: Setup discount text
-            $order['items'][$iid]['discount_text'] = '';
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'formatItems');
+        $rc = ciniki_poma_formatItems($ciniki, $business_id, $rc['items']);
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
         }
+        $order['items'] = $rc['items'];
     } else {
         $order['items'] = array();
     }
@@ -177,15 +124,15 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
     // Setup the order tallies
     //
     $order['tallies'] = array();
-    $order['tallies'][] = array('label'=>'Sub Total', 'value'=>number_format($order['subtotal_amount'], 2));
+    $order['tallies'][] = array('label'=>'Sub Total', 'value'=>'$' . number_format($order['subtotal_amount'], 2));
     if( isset($order['taxes']) && count($order['taxes']) > 0 ) {
         foreach($order['taxes'] as $tax) {
-            $order['tallies'][] = array('label'=>$tax['description'], 'value'=>number_format($tax['amount'], 2));
+            $order['tallies'][] = array('label'=>$tax['description'], 'value'=>'$' . number_format($tax['amount'], 2));
         }
     }
-    $order['tallies'][] = array('label'=>'Total', 'value'=>number_format($order['total_amount'], 2));
+    $order['tallies'][] = array('label'=>'Total', 'value'=>'$' . number_format($order['total_amount'], 2));
     if( $order['total_savings'] > 0 ) {
-        $order['tallies'][] = array('label'=>'Savings', 'value'=>number_format($order['total_savings'], 2));
+        $order['tallies'][] = array('label'=>'Savings', 'value'=>'$' . number_format($order['total_savings'], 2));
     }
 
     return array('stat'=>'ok', 'order'=>$order);

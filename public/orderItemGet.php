@@ -151,7 +151,7 @@ function ciniki_poma_orderItemGet($ciniki) {
             $item['unit_discount_amount'] = '';
         }
         if( $item['unit_discount_percentage'] != 0 ) {
-            $item['unit_discount_percentage'] = (float)number_format($item['unit_discount_amount'], 2);
+            $item['unit_discount_percentage'] = (float)number_format($item['unit_discount_percentage'], 2);
         } else {
             $item['unit_discount_percentage'] = '';
         }
