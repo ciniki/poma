@@ -45,8 +45,26 @@ function ciniki_poma_hooks_customerItemsByType(&$ciniki, $business_id, $args) {
     //
     // Get the list of customer items
     //
-    $strsql = "SELECT id, itype, status, object, object_id, repeat_days, quantity, last_order_date, next_order_date "
+    $strsql = "SELECT ciniki_poma_customer_items.id, "
+        . "ciniki_poma_customer_items.itype, "
+        . "ciniki_poma_customer_items.status, "
+        . "ciniki_poma_customer_items.object, "
+        . "ciniki_poma_customer_items.object_id, "
+        . "ciniki_poma_customer_items.repeat_days, "
+        . "ciniki_poma_customer_items.quantity, "
+        . "ciniki_poma_customer_items.last_order_date_id, "
+        . "IFNULL(d1.order_date, '') AS last_order_date, "
+        . "ciniki_poma_customer_items.next_order_date_id, "
+        . "IFNULL(d2.order_date, '') AS next_order_date "
         . "FROM ciniki_poma_customer_items "
+        . "LEFT JOIN ciniki_poma_order_dates AS d1 ON ("
+            . "ciniki_poma_customer_items.last_order_date_id = d1.id "
+            . "AND d1.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . ") "
+        . "LEFT JOIN ciniki_poma_order_dates AS d2 ON ("
+            . "ciniki_poma_customer_items.next_order_date_id = d2.id "
+            . "AND d2.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . ") "
         . "WHERE ciniki_poma_customer_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "AND ciniki_poma_customer_items.customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
         . "";
