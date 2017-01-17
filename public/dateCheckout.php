@@ -39,6 +39,16 @@ function ciniki_poma_dateCheckout($ciniki) {
         return $rc;
     }
 
+    //
+    // Load poma maps
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'maps');
+    $rc = ciniki_poma_maps($ciniki);
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    $maps = $rc['maps'];
+
     $rsp = array('stat'=>'ok', 'dates'=>array(), 'open_orders'=>array(), 'closed_orders'=>array(), 
         'nplists'=>array('orderitems'=>array()),
         );
@@ -89,6 +99,9 @@ function ciniki_poma_dateCheckout($ciniki) {
         return array('stat'=>'ok', 'dates'=>array(), 'open_orders'=>array(), 'closed_orders'=>array(), 'order'=>array());
     }
     $rsp['dates'] = $rc['dates'];
+    foreach($rsp['dates'] as $did => $date) {
+        $rsp['dates'][$did]['name_status'] = $date['display_name'] . ' - ' . $maps['orderdate']['status'][$date['status']];
+    }
     
     //
     // Check if a new order should be created

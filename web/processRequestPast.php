@@ -28,6 +28,8 @@ function ciniki_poma_web_processRequestPast(&$ciniki, $settings, $business_id, $
 
     $page['breadcrumbs'][] = array('name'=>'Past', 'url'=>$args['base_url'] . '/past');
 
+    $page['blocks'][] = array('type'=>'content', 'size'=>'wide', 'content'=>'Coming soon...');
+
     return array('stat'=>'ok', 'page'=>$page);
 }
 ?>

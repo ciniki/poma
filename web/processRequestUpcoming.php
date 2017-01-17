@@ -65,8 +65,6 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $business_i
     if( $rc['stat'] != 'ok' ) {
         return array('stat'=>'500', 'err'=>array('code'=>'ciniki.poma.19', 'msg'=>'Unable to find order dates'));
     }
-
-
     if( !isset($rc['dates']) || count($rc['dates']) == 0 ) {
         $page['blocks'][] = array('type'=>'formmessage', 'level'=>'error', 'message'=>"Oops, it looks like we forgot to add more available dates. Please contact us and we'll get more dates added.");
     } else {
@@ -118,6 +116,7 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $business_i
                 $page['blocks'][] = array('type'=>'orderdetails', 'section'=>'order-details', 'size'=>'wide', 
                     'title'=>$rc['order']['order_date_text'], 
                     'api_item_update'=>$api_item_update,
+                    'base_url'=>$args['base_url'],
                     'order'=>$rc['order']);
             } else {
                 $page['blocks'][] = array('type'=>'message', 'title'=>'Order', 'size'=>'wide', 'level'=>'warning', 

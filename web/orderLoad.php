@@ -41,6 +41,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
     $strsql = "SELECT ciniki_poma_orders.id, "
         . "ciniki_poma_orders.status, "
         . "ciniki_poma_orders.payment_status, "
+        . "ciniki_poma_orders.date_id, "
         . "ciniki_poma_orders.order_date, "
         . "ciniki_poma_orders.subtotal_amount, "
         . "ciniki_poma_orders.total_amount, "
@@ -86,6 +87,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
                 'id'=>0,
                 'order_number'=>'New Order',
                 'order_date'=>$odate['order_date'],
+                'order_date_status'=>$odate['status'],
                 'status'=>10,
                 'payment_status'=>0,
                 'flags'=>0,
@@ -105,6 +107,28 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         }
     } else {
         $order = $rc['order'];
+        //
+        // Get the order date
+        //
+        if( $order['date_id'] > 0 ) {
+            $strsql = "SELECT ciniki_poma_order_dates.id, "
+                . "ciniki_poma_order_dates.status, "
+                . "ciniki_poma_order_dates.order_date, "
+                . "ciniki_poma_order_dates.display_name "
+                . "FROM ciniki_poma_order_dates "
+                . "WHERE ciniki_poma_order_dates.id = '" . ciniki_core_dbQuote($ciniki, $order['date_id']) . "' "
+                . "AND ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+                . "";
+            $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
+            if( $rc['stat'] != 'ok' ) {
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.51', 'msg'=>"Oops, we seem to have trouble loading your order. Please try again or contact us for help."));
+            }
+            if( !isset($rc['date']) ) {
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.52', 'msg'=>"Oops, we seem to have trouble loading your order. Please try again or contact us for help."));
+            }
+            $odate = $rc['date'];
+            $order['order_date_status'] = $odate['status'];
+        }
 
         //
         // FIXME: Add query to get taxes
@@ -126,11 +150,13 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
     //
     $strsql = "SELECT "
         . "ciniki_poma_order_items.id, "
+        . "ciniki_poma_order_items.parent_id, "
         . "ciniki_poma_order_items.line_number, "
         . "ciniki_poma_order_items.object, "
         . "ciniki_poma_order_items.object_id, "
         . "ciniki_poma_order_items.code, "
         . "ciniki_poma_order_items.description, "
+        . "ciniki_poma_order_items.flags, "
         . "ciniki_poma_order_items.itype, "
         . "ciniki_poma_order_items.weight_units, "
         . "ciniki_poma_order_items.weight_quantity, "
@@ -146,13 +172,14 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         . "FROM ciniki_poma_order_items "
         . "WHERE ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
         . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
-        . "AND ciniki_poma_order_items.parent_id = 0 "   // Don't load child items, they are only used for product baskets in foodmarket
-        . "ORDER BY line_number "
+//        . "AND ciniki_poma_order_items.parent_id = 0 "   // Don't load child items, they are only used for product baskets in foodmarket
+        . "ORDER BY line_number, parent_id, description "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryIDTree');
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'items', 'fname'=>'id', 
-            'fields'=>array('id', 'line_number', 'object', 'object_id', 'code', 'description', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix',
+            'fields'=>array('id', 'parent_id', 'line_number', 'object', 'object_id', 'code', 'description', 
+                'flags', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix',
                 'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'subtotal_amount', 'discount_amount', 'total_amount', 'taxtype_id')),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -160,54 +187,23 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
     }
     if( isset($rc['items']) ) {
         $order['items'] = $rc['items'];
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'orderItemFormat');
         foreach($order['items'] as $iid => $item) {
-            $order['items'][$iid]['quantity_single'] = '';
-            $order['items'][$iid]['quantity_plural'] = '';
-            if( $item['itype'] == 10 ) {
-                if( $item['weight_units'] == 20 ) {
-                    $order['items'][$iid]['quantity_single'] = 'lb';
-                    $order['items'][$iid]['quantity_plural'] = 'lbs';
-                } elseif( $item['weight_units'] == 25 ) {
-                    $order['items'][$iid]['quantity_single'] = 'oz';
-                    $order['items'][$iid]['quantity_plural'] = 'ozs';
-                } elseif( $item['weight_units'] == 60 ) {
-                    $order['items'][$iid]['quantity_single'] = 'kg';
-                    $order['items'][$iid]['quantity_plural'] = 'kgs';
-                } elseif( $item['weight_units'] == 65 ) {
-                    $order['items'][$iid]['quantity_single'] = 'g';
-                    $order['items'][$iid]['quantity_plural'] = 'gs';
-                }
+            $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $item);
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
             }
-            if( $item['itype'] == 20 ) {
-                if( $item['weight_units'] == 20 ) {
-                    $order['items'][$iid]['weight_unit_text'] = 'lb';
-                } elseif( $item['weight_units'] == 25 ) {
-                    $order['items'][$iid]['weight_unit_text'] = 'oz';
-                } elseif( $item['weight_units'] == 60 ) {
-                    $order['items'][$iid]['weight_unit_text'] = 'kg';
-                } elseif( $item['weight_units'] == 65 ) {
-                    $order['items'][$iid]['weight_unit_text'] = 'g';
-                }
+            $order['items'][$iid] = $rc['item'];
+
+            if( ($order['items'][$iid]['flags']&0x02) && $order['order_date_status'] == 30 ) {
+                $order['items'][$iid]['substitutions'] = 'yes';
             }
-            if( $item['itype'] == 10 ) {
-                $order['items'][$iid]['quantity'] = (float)$item['weight_quantity'];
-                $order['items'][$iid]['price_text'] = "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['quantity_single'];
-                $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
-            } elseif( $item['itype'] == 20 ) {
-                $order['items'][$iid]['quantity'] = (float)$item['unit_quantity'];
-                if( $item['weight_quantity'] > 0 ) {
-                    $order['items'][$iid]['price_text'] = (float)$item['weight_quantity'] . " @ "
-                        . "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['weight_unit_text'];
-                    $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
-                } else {
-                    $order['items'][$iid]['price_text'] = "$" . number_format($item['unit_amount'], 2, '.', ',') . '/' . $order['items'][$iid]['weight_unit_text'];
-                    $order['items'][$iid]['total_text'] = "TBD";
+            if( isset($item['parent_id']) && $item['parent_id'] > 0 && isset($order['items'][$item['parent_id']]) ) {
+                if( !isset($order['items'][$item['parent_id']]['subitems']) ) {
+                    $order['items'][$item['parent_id']]['subitems'] = array();
                 }
-            } else {
-                $order['items'][$iid]['quantity'] = (float)$item['unit_quantity'];
-                $order['items'][$iid]['price_text'] = "$" . number_format($item['unit_amount'], 2, '.', ',') 
-                    . ($item['unit_suffix'] != '' ? ' ' . $item['unit_suffix'] : '');
-                $order['items'][$iid]['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
+                $order['items'][$item['parent_id']]['subitems'][$iid] = $order['items'][$iid];
+                unset($order['items'][$iid]);
             }
         }
     } else {

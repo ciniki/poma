@@ -76,6 +76,29 @@ function ciniki_poma_web_processAPI(&$ciniki, $settings, $business_id, $args) {
             'item_id'=>$args['uri_split'][1],
             ));
     }
+
+    //
+    // orderSubstitutionAdd/item_id/object/object_id
+    //
+    elseif( isset($args['uri_split'][3]) && $args['uri_split'][0] == 'orderSubstitutionAdd' ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'apiOrderSubstitutionAdd');
+        return ciniki_poma_web_apiOrderSubstitutionAdd($ciniki, $settings, $business_id, array(
+            'item_id'=>$args['uri_split'][1],
+            'object'=>$args['uri_split'][2],
+            'object_id'=>$args['uri_split'][3],
+            ));
+    }
+
+    //
+    // orderSubstitutionUpdate/item_id/subitem_id
+    //
+    elseif( isset($args['uri_split'][2]) && $args['uri_split'][0] == 'orderSubstitutionUpdate' ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'apiOrderSubstitutionUpdate');
+        return ciniki_poma_web_apiOrderSubstitutionUpdate($ciniki, $settings, $business_id, array(
+            'item_id'=>$args['uri_split'][1],
+            'subitem_id'=>$args['uri_split'][2],
+            ));
+    }
     
     return array('stat'=>'ok');
 }

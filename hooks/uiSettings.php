@@ -30,8 +30,8 @@ function ciniki_poma_hooks_uiSettings(&$ciniki, $business_id, $args) {
             )
         ) {
         $menu_item = array(
-            'priority'=>6700,
-            'label'=>'Order Management',
+            'priority'=>6500,
+            'label'=>'Accounting',
             'edit'=>array('app'=>'ciniki.poma.main'),
             );
         $rsp['menu_items'][] = $menu_item;
