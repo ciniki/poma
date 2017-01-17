@@ -32,6 +32,7 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
     if( !isset($ciniki['session']['ciniki.poma']['date']['id']) || $ciniki['session']['ciniki.poma']['date']['id'] < 1 ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.43', 'msg'=>'Unable to add item to order'));
     }
+    $args['date_id'] = $ciniki['session']['ciniki.poma']['date']['id'];
 
     //
     // The list of fields the customer is allowed to change
@@ -125,6 +126,7 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
             return $rc;
         }
         $order = $rc['order'];
+        $order['max_line_number'] = 0;
     }
 
     //
@@ -161,6 +163,32 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
         // Check if item should be removed, zero quantity
         //
         if( isset($_GET['quantity']) && $_GET['quantity'] <= 0 ) {
+            //
+            // Remove any subitems
+            //
+            $strsql = "SELECT id, uuid "
+                . "FROM ciniki_poma_order_items "
+                . "WHERE ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
+                . "AND ciniki_poma_order_items.parent_id = '" . ciniki_core_dbQuote($ciniki, $existing_item['id']) . "' "
+                . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+                . "";
+            $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+            if( isset($rc['rows']) && count($rc['rows']) > 0 ) {
+                $subitems = $rc['rows'];
+                foreach($subitems as $subitem) {
+                    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectDelete');
+                    $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.orderitem', $subitem['id'], $subitem['uuid'], 0x04);
+                    if( $rc['stat'] != 'ok' ) {
+                        ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                        return $rc;
+                    }
+                }
+            }
+
             ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectDelete');
             $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.orderitem', $existing_item['id'], $existing_item['uuid'], 0x04);
             if( $rc['stat'] != 'ok' ) {
@@ -182,7 +210,7 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
     else {
         $item['order_id'] = $order['id'];
         if( isset($order['max_line_number']) ) {
-            $item['line_number'] = $order['max_line_number'];
+            $item['line_number'] = $order['max_line_number'] + 1;
         } else {
             $item['line_number'] = 1;
         }
@@ -191,6 +219,23 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
         if( $rc['stat'] != 'ok' ) {
             ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
             return $rc;
+        }
+        $parent_id = $rc['id'];
+
+        //
+        // Check for subitems
+        //
+        if( isset($item['subitems']) ) {
+            error_log('adding subitems');
+            foreach($item['subitems'] as $subitem) {
+                $subitem['order_id'] = $order['id'];
+                $subitem['parent_id'] = $parent_id;
+                $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', $subitem, 0x04);
+                if( $rc['stat'] != 'ok' ) {
+                    ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                    return $rc;
+                }
+            }
         }
     }
 
