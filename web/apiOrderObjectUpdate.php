@@ -226,7 +226,6 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
         // Check for subitems
         //
         if( isset($item['subitems']) ) {
-            error_log('adding subitems');
             foreach($item['subitems'] as $subitem) {
                 $subitem['order_id'] = $order['id'];
                 $subitem['parent_id'] = $parent_id;

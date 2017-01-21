@@ -72,7 +72,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
     // Check the status of the date, unless override is specified
     //
     if( !isset($args['checkdate']) || $args['checkdate'] != 'no' ) {
-        if( $odate['status'] != 10 ) {
+        if( $odate['status'] > 30 ) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.47', 'msg'=>'No more orders are being accepted for this date, please choose another other date.'));
         }
         $odt = new DateTime($odate['order_date'], new DateTimezone($intl_timezone));

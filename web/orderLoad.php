@@ -173,7 +173,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         . "WHERE ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
         . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
 //        . "AND ciniki_poma_order_items.parent_id = 0 "   // Don't load child items, they are only used for product baskets in foodmarket
-        . "ORDER BY line_number, parent_id, description "
+        . "ORDER BY parent_id, line_number, description "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryIDTree');
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
@@ -209,6 +209,12 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
     } else {
         $order['items'] = array();
     }
+    uasort($order['items'], function($a, $b) {
+        if( $a['line_number'] == $b['line_number'] ) {
+            return 0;
+        }
+        return $a['line_number'] < $b['line_number'] ? -1 : 1;
+        });
 
     return array('stat'=>'ok', 'order'=>$order);
 }

@@ -96,6 +96,17 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $busine
                         return $rc;
                     }
                 }
+
+                //
+                // Update the order totals
+                //
+                ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
+                $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $business_id, $existing_item['order_id']);
+                if( $rc['stat'] != 'ok' ) {
+                    ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                    return $rc;
+                }
+
                 //
                 // Commit the transaction
                 //

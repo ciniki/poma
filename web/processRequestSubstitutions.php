@@ -40,6 +40,8 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
     $intl_timezone = $rc['settings']['intl-default-timezone'];
     $dt = new DateTime('now', new DateTimezone($intl_timezone));
 
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'orderItemFormat');
+
     //
     // Display the current order
     //
@@ -79,6 +81,7 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
         return array('stat'=>'ok', 'page'=>$page);
     }
     $item = $order['items'][$item_id];
+//    $page['blocks'][] = array('type'=>'content', 'title'=>'Subs', 'html'=>"<pre>" . print_r($item_id, true) . "</pre>");
     if( !isset($item['flags']) || ($item['flags']&0x02) == 0 ) {
         $page['blocks'][] = array('type'=>'formmessage', 'level'=>'error', 
             'message'=>"Oops, we couldn't find the item you requested. Please try again or contact us for help.");
@@ -120,6 +123,17 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
                         unset($substitutions[$sid]);
                     }
                 }
+            }
+            foreach($substitutions as $sid => $sub) {
+                $sub['unit_quantity'] = 1;
+                $sub['total_amount'] = $sub['unit_amount'];
+                $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $sub);
+                if( $rc['stat'] != 'ok' ) {
+                    return $rc;
+                }
+                $substitutions[$sid] = $rc['item'];
+//                $substitutions[$sid]['quantity_single'] = $rc['item']['quantity_single'];
+//                $substitutions[$sid]['quantity_plural'] = $rc['item']['quantity_plural'];
             }
         }
     }

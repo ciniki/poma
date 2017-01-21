@@ -21,7 +21,11 @@
 #                               0x01 - Inventoried Item
 #                               0x02 - Substitutions Allowed (used for substitution status, designed for produce baskets in foodmarket)
 #                               0x04 - Substituted Item (this item was a substitute for another item)
-#                               0x04 - 
+#                               0x08 - Substitution Fee
+#                               0x10 - 
+#                               0x20 - 
+#                               0x40 - 
+#                               0x80 - 
 #
 # object:                   The object for the item in the order. This is the reference to package.module.object. When 
 #                           combined with object_id it can be linked to modules information.

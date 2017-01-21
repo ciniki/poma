@@ -36,7 +36,10 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     }
     $order = $rc['order'];
 
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectDelete');
+
     //
     // Recalculate the totals
     //
@@ -48,7 +51,10 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
         'paid_amount'=>0,
         'balance_amount'=>0,
         );
+    $max_line_number = 0;
     if( isset($order['items']) && count($order['items']) > 0 ) {
+        $subitemcount = 0;  // The basket items that have substitutions on them, not the individual count of subd items
+        $subfeeitem = null;
         foreach($order['items'] as $iid => $item) {
             $unit_amount = $item['unit_amount'];
             if( isset($item['unit_discount_amount']) && $item['unit_discount_amount'] > 0 ) {
@@ -92,6 +98,82 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                     return $rc;
                 }
             }
+            if( $max_line_number < $item['line_number'] ) {
+                $max_line_number = $item['line_number'];
+            }
+
+            // 
+            // Check for item to keep track of sub fees
+            //
+            if( ($item['flags']&0x08) == 0x08 ) {
+                $subfeeitem = $item;
+            }
+
+            //
+            // Check for substitutions
+            //
+            if( ($item['flags']&0x02) == 0x02 ) {
+                if( isset($item['subitems']) ) {
+                    $sub_found = 0;
+                    foreach($item['subitems'] as $subitem) {
+                        if( ($subitem['flags']&0x04) > 0 ) {
+                            $sub_found++;
+                        }
+                    }
+                    if( $sub_found > 0 ) {
+                        $subitemcount += 1;
+                    }
+                }
+            }
+        }
+        if( $subitemcount > 0 ) {
+            if( $subfeeitem == null ) {
+                $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', array(
+                    'line_number'=>$max_line_number+1,
+                    'order_id'=>$order_id,
+                    'parent_id'=>0,
+                    'flags'=>0x08,
+                    'itype'=>30,
+                    'description'=>'Modification Fee',
+                    'unit_quantity'=>$subitemcount,
+                    'unit_amount'=>2,
+                    'total_amount'=>bcmul($subitemcount, 2, 2),
+                    'taxtype_id'=>0,
+                    ), 0x04);
+                if( $rc['stat'] != 'ok' ) {
+                    return $rc;
+                }
+                //
+                // Update order total
+                //
+                $new_order['subtotal_amount'] = bcadd($new_order['subtotal_amount'], 2, 2);
+            } elseif( $subfeeitem['unit_quantity'] != $subitemcount ) {
+                $update_args = array(
+                    'unit_quantity'=>$subitemcount,
+                    'total_amount'=>bcmul($subfeeitem['unit_amount'], $subitemcount, 2),
+                    );
+                $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $subfeeitem['id'], $update_args, 0x04);
+                if( $rc['stat'] != 'ok' ) {
+                    return $rc;
+                }
+                //
+                // Update order total
+                //
+                $new_order['subtotal_amount'] = bcsub($new_order['subtotal_amount'], $subfeeitem['total_amount'], 2);
+                $new_order['subtotal_amount'] = bcadd($new_order['subtotal_amount'], bcmul($subfeeitem['unit_amount'], $subitemcount, 2), 2);
+            }
+        } elseif( $subfeeitem != null ) {
+            //
+            // No sub fees, remove the sub fee item
+            //
+            $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.orderitem', $subfeeitem['id'], $subfeeitem['uuid'], 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+            //
+            // Update order total
+            //
+            $new_order['subtotal_amount'] = bcsub($new_order['subtotal_amount'], $subfeeitem['total_amount'], 2);
         }
     }
 

@@ -68,7 +68,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
     //
     // Add the item if available, set quantity to 1 by default
     //
-    if( $new_item['unit_amount'] > $existing_item['available'] ) {
+    if( $newitem['unit_amount'] > $existing_item['available'] ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.90', 'msg'=>"No room left, you'll need to remove something."));
     }
 
@@ -91,8 +91,19 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
     } else {
         $newitem['unit_quantity'] = 1;
     }
+    $newitem['flags'] |= 0x04;
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
     $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', $newitem, 0x04);
+    if( $rc['stat'] != 'ok' ) {
+        ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+        return $rc;
+    }
+
+    //
+    // Update the order totals
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
+    $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $business_id, $newitem['order_id']);
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
         return $rc;
