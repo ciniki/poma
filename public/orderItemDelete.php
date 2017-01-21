@@ -55,6 +55,24 @@ function ciniki_poma_orderItemDelete(&$ciniki) {
     $item = $rc['item'];
 
     //
+    // Check for any subitems
+    //
+    $strsql = "SELECT id, uuid "
+        . "FROM ciniki_poma_order_items "
+        . "WHERE business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "AND parent_id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
+        . "AND order_id = '" . ciniki_core_dbQuote($ciniki, $item['order_id']) . "' "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( isset($rc['rows']) ) {
+        error_log(count($rc['rows']));
+        $subitems = $rc['rows'];
+    }
+
+    //
     // Check for any dependencies before deleting
     //
 
@@ -82,6 +100,19 @@ function ciniki_poma_orderItemDelete(&$ciniki) {
     $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
+    }
+
+    //
+    // Remove the subitems
+    //
+    if( isset($subitems) ) {
+        foreach($subitems as $subitem) {
+            $rc = ciniki_core_objectDelete($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $subitem['id'], $subitem['uuid'], 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+        }
     }
 
     //

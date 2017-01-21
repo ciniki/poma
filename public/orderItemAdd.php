@@ -58,6 +58,47 @@ function ciniki_poma_orderItemAdd(&$ciniki) {
     }
 
     //
+    // Load the order
+    //
+    $strsql = "SELECT id, uuid, date_id "
+        . "FROM ciniki_poma_orders "
+        . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( !isset($rc['order']) ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.78', 'msg'=>'Unable to find order'));
+    }
+    $order = $rc['order'];
+    $args['date_id'] = $order['date_id'];
+
+    //
+    // Check for object and lookup
+    //
+    if( isset($args['object']) && $args['object'] != '' && isset($args['object_id']) && $args['object_id'] != '' ) {
+        //
+        // Get the details for the item
+        //
+        list($pkg, $mod, $obj) = explode('.', $args['object']);
+        $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemLookup');
+        if( $rc['stat'] != 'ok' ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.91', 'msg'=>'Unable to add favourite.'));
+        }
+        $fn = $rc['function_call'];
+        $rc = $fn($ciniki, $args['business_id'], $args);
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( !isset($rc['item']) ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.92', 'msg'=>'Unable to add favourite.'));
+        }
+        $item = $rc['item'];
+    }
+
+    //
     // Start transaction
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
@@ -79,6 +120,21 @@ function ciniki_poma_orderItemAdd(&$ciniki) {
         return $rc;
     }
     $item_id = $rc['id'];
+
+    //
+    // Check if there are subitems
+    //
+    if( isset($item['subitems']) ) {
+        foreach($item['subitems'] as $subitem) {
+            $subitem['order_id'] = $args['order_id'];
+            $subitem['parent_id'] = $item_id;
+            $rc = ciniki_core_objectAdd($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $subitem, 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+        }
+    }
 
     //
     // Update the order
