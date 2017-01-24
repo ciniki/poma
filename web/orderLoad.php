@@ -150,6 +150,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
     //
     $strsql = "SELECT "
         . "ciniki_poma_order_items.id, "
+        . "ciniki_poma_order_items.uuid, "
         . "ciniki_poma_order_items.parent_id, "
         . "ciniki_poma_order_items.line_number, "
         . "ciniki_poma_order_items.object, "
@@ -195,8 +196,12 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
             }
             $order['items'][$iid] = $rc['item'];
 
-            if( ($order['items'][$iid]['flags']&0x02) && $order['order_date_status'] == 30 ) {
+            if( ($order['items'][$iid]['flags']&0x02) == 0x02 && $order['order_date_status'] == 30 ) {
                 $order['items'][$iid]['substitutions'] = 'yes';
+            }
+            $order['items'][$iid]['modifications'] = 'yes';
+            if( ($order['items'][$iid]['flags']&0x20) == 0x20 ) {
+                $order['items'][$iid]['modifications'] = 'no';
             }
             if( isset($item['parent_id']) && $item['parent_id'] > 0 && isset($order['items'][$item['parent_id']]) ) {
                 if( !isset($order['items'][$item['parent_id']]['subitems']) ) {

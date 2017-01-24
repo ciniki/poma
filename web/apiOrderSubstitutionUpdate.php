@@ -80,8 +80,10 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $busine
                 if( $rc['stat'] != 'ok' ) {
                     return $rc;
                 }
-    
+
+                $update_args = array();
                 if( $subitems[$args['subitem_id']]['itype'] == 10 ) {
+                    $update_args['weight_quantity'] = $new_quantity;
                     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
                     $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $subitem['id'], array('weight_quantity'=>$new_quantity), 0x04);
                     if( $rc['stat'] != 'ok' ) {
@@ -89,8 +91,18 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $busine
                         return $rc;
                     }
                 } else {
+                    $update_args['unit_quantity'] = $new_quantity;
+                }
+                if( ($subitem['flags']&0x14) == 0 ) {
+                    $update_args['flags'] = ($subitem['flags'] | 0x10);
+                }
+
+                //
+                // Update the item
+                //
+                if( count($update_args) > 0 ) {
                     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
-                    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $subitem['id'], array('unit_quantity'=>$new_quantity), 0x04);
+                    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $subitem['id'], $update_args, 0x04);
                     if( $rc['stat'] != 'ok' ) {
                         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
                         return $rc;

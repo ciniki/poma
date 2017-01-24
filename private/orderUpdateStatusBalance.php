@@ -116,7 +116,10 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                 if( isset($item['subitems']) ) {
                     $sub_found = 0;
                     foreach($item['subitems'] as $subitem) {
-                        if( ($subitem['flags']&0x04) > 0 ) {
+                        //
+                        // Check if the subitem was alter quantity 0x10 or was a substituted item 0x04
+                        //
+                        if( ($subitem['flags']&0x14) > 0 ) {
                             $sub_found++;
                         }
                     }
@@ -132,7 +135,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                     'line_number'=>$max_line_number+1,
                     'order_id'=>$order_id,
                     'parent_id'=>0,
-                    'flags'=>0x08,
+                    'flags'=>0x28,
                     'itype'=>30,
                     'description'=>'Modification Fee',
                     'unit_quantity'=>$subitemcount,

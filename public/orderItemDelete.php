@@ -68,7 +68,6 @@ function ciniki_poma_orderItemDelete(&$ciniki) {
         return $rc;
     }
     if( isset($rc['rows']) ) {
-        error_log(count($rc['rows']));
         $subitems = $rc['rows'];
     }
 
