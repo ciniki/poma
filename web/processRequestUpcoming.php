@@ -29,6 +29,7 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $business_i
     $page['breadcrumbs'][] = array('name'=>'Upcoming', 'url'=>$args['base_url']);
     
     $api_item_update = 'ciniki/poma/orderItemUpdate/';
+    $api_repeat_update = 'ciniki/poma/repeatObjectUpdate/';
 
     //
     // Load business settings
@@ -116,6 +117,7 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $business_i
                 $page['blocks'][] = array('type'=>'orderdetails', 'section'=>'order-details', 'size'=>'wide', 
                     'title'=>$rc['order']['order_date_text'], 
                     'api_item_update'=>$api_item_update,
+                    'api_repeat_update'=>$api_repeat_update,
                     'base_url'=>$args['base_url'],
                     'order'=>$rc['order']);
             } else {
