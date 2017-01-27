@@ -199,7 +199,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
             if( ($order['items'][$iid]['flags']&0x02) == 0x02 && $order['order_date_status'] == 30 ) {
                 $order['items'][$iid]['substitutions'] = 'yes';
             }
-            if( $order['order_date_status'] == 10 ) {
+            if( $order['order_date_status'] < 50 ) {
                 $order['items'][$iid]['modifications'] = 'yes';
             } else {
                 $order['items'][$iid]['modifications'] = 'no';

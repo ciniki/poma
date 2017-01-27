@@ -95,7 +95,8 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
     
     $page['breadcrumbs'][] = array('name'=>$item['description'] . ' - ' . $order['order_date_text'], 'url'=>$args['base_url'] . '/substitutions');
 
-    $page['blocks'][] = array('type'=>'content', 'wide'=>'yes', 'content'=>"Remove the items you don't want and choose new items from the list below.");
+    $page['blocks'][] = array('type'=>'content', 'wide'=>'yes', 'content'=>"To customize your basket, adjust item quantities to enable other items to be added."
+        . " Once your basket is full, you will not be able to add any more items.");
 
     //
     // Get the list of available items from modules
