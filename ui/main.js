@@ -363,6 +363,10 @@ function ciniki_poma_main() {
             'autolock_date':{'label':'Auto Lock Date', 'visible':'no', 'type':'date'},
             'autolock_time':{'label':'Auto Lock Time', 'visible':'no', 'type':'text', 'size':'small'},
             }},
+        '_repeats':{'label':'Apply repeats on', 'fields':{
+            'repeats_date':{'label':'Date', 'type':'date'},
+            'repeats_time':{'label':'Time', 'type':'text', 'size':'small'},
+            }},
         '_notices':{'label':'Notices', 'fields':{
             'notices':{'label':'', 'hidelabel':'yes', 'type':'textarea'},
             }},

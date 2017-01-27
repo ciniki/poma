@@ -20,6 +20,8 @@ function ciniki_poma_dateUpdate(&$ciniki) {
         'order_date'=>array('required'=>'no', 'blank'=>'no', 'type'=>'date', 'name'=>'Date'),
         'status'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Status'),
         'flags'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Options'),
+        'repeats_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Repeat Date'),
+        'repeats_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Repeat Time'),
         'autolock_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Auto Lock Date'),
         'autolock_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Auto Lock Time'),
         'notices'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notices'),
@@ -72,6 +74,9 @@ function ciniki_poma_dateUpdate(&$ciniki) {
         . "ciniki_poma_order_dates.display_name, "
         . "ciniki_poma_order_dates.status, "
         . "ciniki_poma_order_dates.flags, "
+        . "ciniki_poma_order_dates.repeats_dt, "
+        . "ciniki_poma_order_dates.repeats_dt AS repeats_date, "
+        . "ciniki_poma_order_dates.repeats_dt AS repeats_time, "
         . "ciniki_poma_order_dates.autolock_dt, "
         . "ciniki_poma_order_dates.autolock_dt AS autolock_date, "
         . "ciniki_poma_order_dates.autolock_dt AS autolock_time, "
@@ -83,9 +88,12 @@ function ciniki_poma_dateUpdate(&$ciniki) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'dates', 'fname'=>'id', 
-            'fields'=>array('order_date', 'display_name', 'status', 'flags', 'autolock_dt', 'autolock_date', 'autolock_time', 'notices'),
+            'fields'=>array('order_date', 'display_name', 'status', 'flags', 'repeats_dt', 'repeats_date', 'repeats_time', 
+                'autolock_dt', 'autolock_date', 'autolock_time', 'notices'),
             'utctotz'=>array(
                 'order_date'=>array('timezone'=>'UTC', 'format'=>$date_format),
+                'repeats_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
+                'repeats_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                 'autolock_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
                 'autolock_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                 ),
@@ -102,6 +110,20 @@ function ciniki_poma_dateUpdate(&$ciniki) {
     //
     // Parse dates
     //
+    if( isset($args['repeats_date']) || isset($args['repeats_time']) ) {
+        $args['repeats_dt'] = (isset($args['repeats_date']) ? $args['repeats_date'] : $date['repeats_date']) . ' ' . (isset($args['repeats_time']) ? $args['repeats_time'] : $date['repeats_time']);
+        if( trim($args['repeats_dt']) != '' ) {
+            $ts = strtotime($args['repeats_dt']);
+            if( $ts === FALSE || $ts < 1 ) {
+                $args['repeats_dt'] = '';
+            } else {
+                $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+                if( $dt->format('Y-m-d H:i:s') != $date['repeats_dt'] ) {
+                    $args['repeats_dt'] = $dt->format('Y-m-d H:i:s');
+                }
+            }
+        }
+    }
     if( isset($args['autolock_date']) || isset($args['autolock_time']) ) {
         $args['autolock_dt'] = (isset($args['autolock_date']) ? $args['autolock_date'] : $date['autolock_date']) . ' ' . (isset($args['autolock_time']) ? $args['autolock_time'] : $date['autolock_time']);
         if( trim($args['autolock_dt']) != '' ) {

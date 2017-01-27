@@ -18,6 +18,7 @@
 # status:           The current status of the date.
 #
 #                       10 - Available to place order, add, remove, modify
+#                       20 - Repeats applied
 #                       30 - Substitions, only allowed to make changes to substitution items
 #                       50 - Locked, no changes or substitutions allowed by customer.
 #                       90 - Closed
@@ -28,6 +29,8 @@
 #                       0x02 - 
 #                       0x04 - 
 #                       0x08 - 
+#
+# repeats_dt:       The UTC date and time the repeat items will be applied to an order.
 #
 # autolock_dt:      The UTC date and time the order will automatically move into status 50.
 #
@@ -45,6 +48,7 @@ create table ciniki_poma_order_dates (
     display_name varchar(100) not null,
     status tinyint unsigned not null,
     flags tinyint unsigned not null,
+    repeats_dt datetime not null,  
     autolock_dt datetime not null,  
     notices varchar(2000) not null,
     date_added datetime not null,

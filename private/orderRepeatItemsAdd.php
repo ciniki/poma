@@ -197,19 +197,19 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
                     }
                 }
             }
-        }
 
-        //
-        // Update the last order date, and next order date
-        //
-        $ndt = clone($odt);
-        $ndt->add(new DateInterval('P' . $item['repeat_days'] . 'D'));
-        $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.customeritem', $item['id'], array(
-            'last_order_date'=>$order_date, 
-            'next_order_date'=>$ndt->format('Y-m-d'),
-            ), 0x04);
-        if( $rc['stat'] != 'ok' ) {
-            return $rc;
+            //
+            // Update the last order date, and next order date
+            //
+            $ndt = clone($odt);
+            $ndt->add(new DateInterval('P' . $item['repeat_days'] . 'D'));
+            $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.customeritem', $item['id'], array(
+                'last_order_date'=>$order_date, 
+                'next_order_date'=>$ndt->format('Y-m-d'),
+                ), 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
         }
     }
 

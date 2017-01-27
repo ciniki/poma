@@ -2,7 +2,7 @@
 //
 // Description
 // -----------
-// This function will lock a dates for a business that autolock has been specified.
+// This function will apply repeats for an order date.
 //
 // Arguments
 // ---------
@@ -16,7 +16,11 @@
 // Returns
 // -------
 //
-function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
+function ciniki_poma_dateRepeatsAdd(&$ciniki, $business_id, $date_id) {
+
+    //
+    // The repeat items will also be added by the dateLock function from cron if missed here
+    //
 
     //
     // Load the date
@@ -25,8 +29,8 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
         . "FROM ciniki_poma_order_dates "
         . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $date_id) . "' "
         . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
-        . "AND status < 50 "
-        . "AND autolock_dt <= UTC_TIMESTAMP() "
+        . "AND status < 20 "
+        . "AND repeats_dt <= UTC_TIMESTAMP() "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
     if( $rc['stat'] != 'ok' ) {
@@ -58,7 +62,6 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
         //
         // Apply the standing order items
         //
-        error_log('applying repeats: ' . $customer_id);
         $rc = ciniki_poma_orderRepeatItemsAdd($ciniki, $business_id, array(
             'date'=>$date,
             'customer_id'=>$customer_id,
@@ -69,41 +72,11 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
     }
 
     //
-    // Get the list of orders for this date
-    //
-    $strsql = "SELECT id, customer_id "
-        . "FROM ciniki_poma_orders "
-        . "WHERE date_id = '" . ciniki_core_dbQuote($ciniki, $date_id) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
-        . "AND status < 30 "
-        . "";
-    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
-    if( $rc['stat'] != 'ok' ) {
-        return $rc;
-    }
-    if( !isset($rc['rows']) || count($rc['rows']) < 1 ) {
-        return array('stat'=>'ok');
-    }
-    $orders = $rc['rows'];
-
-    foreach($orders as $order) {
-        //
-        // Close the order
-        //
-        error_log('locking order: ' . $order['id']);
-        $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $order['id'], array('status'=>30), 0x04);
-        if( $rc['stat'] != 'ok' ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.103', 'msg'=>'Unable to lock order', 'err'=>$rc['err']));
-        }
-    }
-
-    error_log('locking date');
-    //
     // Lock the date
     //
-    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderdate', $date['id'], array('status'=>50), 0x04);
+    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderdate', $date['id'], array('status'=>20), 0x04);
     if( $rc['stat'] != 'ok' ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.103', 'msg'=>'Unable to lock date', 'err'=>$rc['err']));
+        return $rc;
     }
 
     return array('stat'=>'ok');
