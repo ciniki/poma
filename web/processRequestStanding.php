@@ -28,6 +28,7 @@ function ciniki_poma_web_processRequestStanding(&$ciniki, $settings, $business_i
 
     $page['breadcrumbs'][] = array('name'=>'Standing', 'url'=>$args['base_url'] . '/standing');
 
+    $page['blocks'][] = array('type'=>'content', 'content'=>'Coming very soon...');
 
     return array('stat'=>'ok', 'page'=>$page);
 }

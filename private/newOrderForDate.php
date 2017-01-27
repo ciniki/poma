@@ -2,7 +2,7 @@
 //
 // Description
 // -----------
-// This function will add another modules object/objectid as a favourite.
+// This function will add a new order for a date
 //
 // Arguments
 // ---------
