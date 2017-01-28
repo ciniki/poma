@@ -55,6 +55,7 @@ function ciniki_poma_web_orderItemsByObjectID(&$ciniki, $business_id, $args) {
         . "FROM ciniki_poma_orders, ciniki_poma_order_items "
         . "WHERE ciniki_poma_orders.date_id = '" . ciniki_core_dbQuote($ciniki, $ciniki['session']['ciniki.poma']['date']['id']) . "' "
         . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
         . "AND ciniki_poma_orders.id = ciniki_poma_order_items.order_id "
         . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "AND ciniki_poma_order_items.parent_id = 0 "   // Don't load child items, they are only used for product baskets in foodmarket
