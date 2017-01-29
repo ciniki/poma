@@ -23,7 +23,8 @@
 #                           50 - Pending delivery/pickup
 #                           70 - Delivered/picked up
 #                           
-# payment_status:       The current status of payment for the order.
+# payment_status:       The current status of payment for the order. When the payment status is set to 10, then an entry should be added
+#                       to the customers ledger.
 #
 #                           0 - No payment required.
 #                           10 - Payment required.

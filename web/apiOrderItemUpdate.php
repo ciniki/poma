@@ -98,10 +98,33 @@ function ciniki_poma_web_apiOrderItemUpdate(&$ciniki, $settings, $business_id, $
     $new_item = array();
     if( isset($_GET['quantity']) ) {
         if( $_GET['quantity'] == 0 ) {
+            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectDelete');
+            //
+            // Remove any subitems
+            //
+            $strsql = "SELECT id, uuid "
+                . "FROM ciniki_poma_order_items "
+                . "WHERE parent_id = '" . ciniki_core_dbQuote($ciniki, $existing_item['id']) . "' "
+                . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+                . "";
+            $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+            if( isset($rc['rows']) ) {
+                $subitems = $rc['rows'];
+                foreach($subitems as $subitem) {
+                    $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.orderitem', $subitem['id'], $subitem['uuid'], 0x04);
+                    if( $rc['stat'] != 'ok' ) {
+                        ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                        return $rc;
+                    }
+                }
+            }
             //
             // Remove item
             //
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectDelete');
             $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.orderitem', $existing_item['id'], $existing_item['uuid'], 0x04);
             if( $rc['stat'] != 'ok' ) {
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
