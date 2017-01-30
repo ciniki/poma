@@ -85,7 +85,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
     //
     // Get the next order number
     //
-    $strsql = "SELECT MAX(order_number) AS max_order_number "
+    $strsql = "SELECT MAX(CAST(order_number AS UNSIGNED)) AS max_order_number "
         . "FROM ciniki_poma_orders "
         . "WHERE business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "";

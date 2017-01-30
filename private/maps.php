@@ -22,6 +22,20 @@ function ciniki_poma_maps(&$ciniki) {
         '50'=>'Locked',
         '90'=>'Closed',
     ));
+    $maps['customerledger'] = array('source'=>array(
+        '0'=>'',
+        '10'=>'Paypal',
+        '20'=>'Square',
+        '50'=>'Visa',
+        '55'=>'Mastercard',
+        '60'=>'Discover',
+        '65'=>'Amex',
+        '90'=>'Interac',
+        '100'=>'Cash',
+        '105'=>'Cheque',
+        '110'=>'Email',
+        '120'=>'Other',
+    ));
 
     return array('stat'=>'ok', 'maps'=>$maps);
 }

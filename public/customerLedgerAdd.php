@@ -24,12 +24,12 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
         'order_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Order'),
         'transaction_type'=>array('required'=>'yes', 'blank'=>'no', 'validlist'=>array('10', '60'), 'name'=>'Type'),
 //        'transaction_date'=>array('required'=>'yes', 'blank'=>'no', 'type'=>'datetimetoutc', 'name'=>'Date'),
-        'transaction_date_date'=>array('required'=>'yes', 'blank'=>'no', 'type'=>'date', 'name'=>'Date'),
-        'transaction_date_time'=>array('required'=>'yes', 'blank'=>'no', 'type'=>'time', 'name'=>'Time'),
-        'source'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Source'),
-        'customer_amount'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Customer Amount'),
-        'transaction_fees'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Transaction Fees'),
-        'business_amount'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Business Amount'),
+//        'transaction_date_date'=>array('required'=>'yes', 'blank'=>'no', 'type'=>'date', 'name'=>'Date'),
+//        'transaction_date_time'=>array('required'=>'yes', 'blank'=>'no', 'type'=>'time', 'name'=>'Time'),
+        'source'=>array('required'=>'no', 'blank'=>'yes', 'default'=>'0', 'name'=>'Source'),
+        'customer_amount'=>array('required'=>'yes', 'blank'=>'no', 'type'=>'currency', 'name'=>'Customer Amount'),
+        'transaction_fees'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'currency', 'name'=>'Transaction Fees'),
+        'business_amount'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'currency', 'name'=>'Business Amount'),
         'notes'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notes'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -46,12 +46,6 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
         return $rc;
     }
 
-    if( $args['transaction_type'] == 10 ) {
-        $args['description'] = 'Credit';
-    } else {
-        $args['description'] = 'Payment';
-    }
-
     //
     // Load business settings
     //
@@ -62,7 +56,31 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
     }
     $intl_timezone = $rc['settings']['intl-default-timezone'];
 
-    $transaction_date = $args['transaction_date_date'] . ' ' . $args['transaction_date_time'];
+    //
+    // Load maps
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'maps');
+    $rc = ciniki_poma_maps($ciniki, $args['business_id']);
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    $maps = $rc['maps'];
+
+    //
+    // Setup defaults
+    //
+    $dt = new DateTime('now', new DateTimezone('UTC'));
+    $args['transaction_date'] = $dt->format('Y-m-d H:i:s');
+    if( $args['transaction_type'] == 10 ) {
+        $args['description'] = 'Credit';
+    } else {
+        $args['description'] = 'Payment';
+        if( isset($maps['customerledger']['source'][$args['source']]) ) {
+            $args['description'] .= ' - ' . $maps['customerledger']['source'][$args['source']];
+        }
+    }
+
+//    $transaction_date = $args['transaction_date_date'] . ' ' . $args['transaction_date_time'];
     $dt = new DateTime($transaction_date, new DateTimezone($intl_timezone));
     $args['transaction_date'] = $dt->format('Y-m-d H:i:s');
 

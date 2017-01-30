@@ -193,17 +193,18 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
     //
     $strsql = "SELECT ciniki_poma_order_payments.id, "
         . "ciniki_poma_order_payments.payment_type, "
-        . "ciniki_poma_order_payments.amount "
+        . "ciniki_poma_order_payments.amount, "
+        . "IFNULL(ciniki_poma_customer_ledgers.description, '') AS description "
         . "FROM ciniki_poma_order_payments "
-//        . "LEFT JOIN ciniki_poma_customer_ledgers ON ("
-//            . "ciniki_poma_order_payments.ledger_id = ciniki_poma_customer_ledgers.id "
-//            . "AND ciniki_poma_customer_ledgers.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
-//            . ") "
+        . "LEFT JOIN ciniki_poma_customer_ledgers ON ("
+            . "ciniki_poma_order_payments.ledger_id = ciniki_poma_customer_ledgers.id "
+            . "AND ciniki_poma_customer_ledgers.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . ") "
         . "WHERE ciniki_poma_order_payments.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
         . "AND ciniki_poma_order_payments.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "";
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
-        array('container'=>'payments', 'fname'=>'id', 'fields'=>array('id', 'payment_type', 'amount')),
+        array('container'=>'payments', 'fname'=>'id', 'fields'=>array('id', 'payment_type', 'amount', 'description')),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -211,13 +212,13 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
     $order['payments'] = array();
     if( isset($rc['payments']) ) {
         foreach($rc['payments'] as $payment) {
-            if( isset($maps['orderpayment']['payment_type'][$payment['payment_type']]) ) {
-                $payment['payment_type_text'] = $maps['orderpayment']['payment_type'][$payment['payment_type']];
-            } else {
-                $payment['payment_type_text'] = '';
-            }
-            $order['payments'][] = $payment;
+            $order['payments'][] = array('label'=>$payment['description'], 'value'=>'-$' . number_format($payment['amount'], 2));
         }
+    }
+    if( $order['total_amount'] != $order['balance_amount'] || $order['payment_status'] > 0 ) {
+        $order['payments'][] = array('label'=>'Balance', 
+            'status'=>($order['balance_amount'] > 0 ? ($order['balance_amount'] == $order['total_amount'] ? 'red' : 'orange') : 'green'),
+            'value'=>'$' . number_format($order['balance_amount'], 2));
     }
 
     return array('stat'=>'ok', 'order'=>$order);

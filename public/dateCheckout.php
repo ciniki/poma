@@ -278,9 +278,6 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
     }
 
-
-
-
     //
     // Get the list of open & closed orders
     //

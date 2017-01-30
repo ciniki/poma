@@ -18,6 +18,7 @@ function ciniki_poma_accountApplyCredit(&$ciniki, $business_id, $args) {
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
 
     //
     // Load business settings
@@ -49,7 +50,11 @@ function ciniki_poma_accountApplyCredit(&$ciniki, $business_id, $args) {
         $balance = $rc['entry']['balance'];
     }
 
+    //
+    // Apply the credit to the balance
+    //
     $new_balance = bcadd($balance, $args['customer_amount'], 6);
+    $credit_balance = $args['customer_amount'];
 
     //
     // Load any unpaid invoices
@@ -67,7 +72,7 @@ function ciniki_poma_accountApplyCredit(&$ciniki, $business_id, $args) {
     if( $rc['stat'] != 'ok') {
         return $rc;
     }
-    if( !isset($rc['rows']) ) {
+    if( isset($rc['rows']) ) {
         $unpaid_orders = $rc['rows'];
         //
         // Check if orders will get payment amounts
@@ -79,12 +84,17 @@ function ciniki_poma_accountApplyCredit(&$ciniki, $business_id, $args) {
             if( $order['balance_amount'] < 0 ) {    
                 continue;
             }
-            if( $order['balance_amount'] < $new_balance ) {
+            if( $order['balance_amount'] < $credit_balance ) {
                 $unpaid_orders[$oid]['payment_amount'] = $order['balance_amount'];
-                $new_balance = bcsub($new_balance, $order['balance_amount'], 6);
+                $credit_balance = bcsub($credit_balance, $order['balance_amount'], 6);
+//                $new_balance = bcadd($new_balance, $order['balance_amount'], 6);
             } else {
-                $unpaid_orders[$oid]['payment_amount'] = $new_balance;
-                $new_balance = 0;
+                $unpaid_orders[$oid]['payment_amount'] = $credit_balance;
+                $credit_balance = 0;
+//                $new_balance = bcadd($new_balance, $order['balance_amount'], 6);
+            }
+            if( $credit_balance <= 0 ) {
+                break;
             }
         }
     }
@@ -105,7 +115,7 @@ function ciniki_poma_accountApplyCredit(&$ciniki, $business_id, $args) {
     if( isset($unpaid_orders) ) {
         foreach($unpaid_orders as $order) {
             if( isset($order['payment_amount']) && $order['payment_amount'] > 0 ) {
-                $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.customerledger', array(
+                $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderpayment', array(
                     'order_id'=>$order['id'],
                     'ledger_id'=>$entry_id,
                     'payment_type'=>$args['transaction_type'],
