@@ -24,6 +24,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         'order'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'New Order'),
         'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Order'),
         'customer_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Customer'),
+        'action'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Action'),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -48,6 +49,19 @@ function ciniki_poma_dateCheckout($ciniki) {
         return $rc;
     }
     $maps = $rc['maps'];
+
+    //
+    // Load business settings
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
+    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    $intl_timezone = $rc['settings']['intl-default-timezone'];
+
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'users', 'private', 'dateFormat');
+    $date_format = ciniki_users_dateFormat($ciniki, 'php');
 
     $rsp = array('stat'=>'ok', 'dates'=>array(), 'open_orders'=>array(), 'closed_orders'=>array(), 
         'nplists'=>array('orderitems'=>array()),
@@ -142,6 +156,44 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
     }
 
+    if( isset($args['action']) && $args['action'] == 'invoiceorder' && isset($args['order_id']) && $args['order_id'] > 0 ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'invoiceOrder');
+        $rc = ciniki_poma_invoiceOrder($ciniki, $args['business_id'], $args['order_id']);
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+    }
+    
+    if( isset($args['action']) && $args['action'] == 'closeorder' && isset($args['order_id']) && $args['order_id'] > 0 ) {
+        //
+        // Check the current status
+        //
+        $strsql = "SELECT id, status "
+            . "FROM ciniki_poma_orders "
+            . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "";
+        $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( !isset($rc['order']) ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.106', 'msg'=>'Unable to find order.'));
+        }
+        $order = $rc['order'];
+
+        //
+        // Update the Order status in the database
+        //
+        if( $order['status'] < 70 ) {
+            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
+            $rc = ciniki_core_objectUpdate($ciniki, $args['business_id'], 'ciniki.poma.order', $args['order_id'], array('status'=>70), 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+        }
+    }
+
     //
     // Get the order
     //
@@ -155,29 +207,79 @@ function ciniki_poma_dateCheckout($ciniki) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.28', 'msg'=>'Unable to find order'));
         }
         $rsp['order'] = $rc['order'];
-        $rsp['orderitems'] = $rc['order']['items'];
-        $rsp['tallies'] = $rc['order']['tallies'];
+//        $rsp['checkout_orderitems'] = $rc['order']['items'];
+//        $rsp['checkout_tallies'] = $rc['order']['tallies'];
+//        $rsp['checkout_orderpayments'] = $rc['order']['payments'];
 
         //
         // Build the nplists
         //
-        foreach($rsp['orderitems'] as $item) {
+        foreach($rsp['order']['items'] as $item) {
             $rsp['nplists']['orderitems'][] = $item['id'];
         }
     }
 
     if( isset($rsp['order']['customer_id']) && $rsp['order']['customer_id'] > 0 ) {
-        if( $rsp['order']['customer_id'] > 0 ) {
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
-            $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], array('customer_id'=>$rsp['order']['customer_id']));
-            if( $rc['stat'] != 'ok' ) {
-                return $rc;
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
+        $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], array('customer_id'=>$rsp['order']['customer_id']));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( isset($rc['details']) ) {
+            $rsp['customer_details'] = $rc['details'];
+        }
+
+        //
+        // Get the current account balance
+        //
+        $strsql = "SELECT ciniki_poma_customer_ledgers.id, "
+            . "ciniki_poma_customer_ledgers.description, "
+            . "ciniki_poma_customer_ledgers.transaction_date, "
+            . "ciniki_poma_customer_ledgers.transaction_type, "
+            . "ciniki_poma_customer_ledgers.customer_amount, "
+            . "ciniki_poma_customer_ledgers.balance "
+            . "FROM ciniki_poma_customer_ledgers "
+            . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $rsp['order']['customer_id']) . "' "
+            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "ORDER BY transaction_date DESC "
+            . "LIMIT 15 "
+            . "";
+        $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
+            array('container'=>'entries', 'fname'=>'id', 
+                'fields'=>array('id', 'description', 'transaction_date', 'transaction_type', 'customer_amount', 'balance'),
+                'utctotz'=>array('transaction_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format)),
+                ),
+            ));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        $rsp['checkout_recentledger'] = array();
+        if( isset($rc['entries']) ) {
+            foreach($rc['entries'] as $entry) {
+                if( !isset($balance) ) {
+                    $balance = $entry['balance'];
+                }
+                if( $entry['transaction_type'] == 10 ) {
+                    $entry['amount'] = '$' . number_format($entry['customer_amount'], 2);
+                } elseif( $entry['transaction_type'] == 30 ) {
+                    $entry['amount'] = '-$' . number_format($entry['customer_amount'], 2);
+                } elseif( $entry['transaction_type'] == 60 ) {
+                    $entry['amount'] = '$' . number_format($entry['customer_amount'], 2);
+                }
+                $entry['balance_text'] = ($entry['balance'] < 0 ? '-':'') . '$' . number_format(abs($entry['balance']), 2);
+                array_unshift($rsp['checkout_recentledger'], $entry);
             }
-            if( isset($rc['details']) ) {
-                $rsp['customer_details'] = $rc['details'];
+            if( isset($balance) ) {
+                $rsp['customer_details'][] = array('detail'=>array(
+                    'label'=>'Balance',
+                    'value'=>($balance < 0 ? '-' : '') . '$' . number_format(abs($balance), 2),
+                ));
             }
         }
     }
+
+
+
 
     //
     // Get the list of open & closed orders

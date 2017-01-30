@@ -57,6 +57,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
         . "WHERE ciniki_poma_orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
         . "AND ciniki_poma_orders.date_id = '" . ciniki_core_dbQuote($ciniki, $date_id) . "' "
         . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "GROUP BY ciniki_poma_orders.id "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
     if( $rc['stat'] != 'ok' ) {
@@ -179,7 +180,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
             //
             $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', $object_item, 0x04);
             if( $rc['stat'] != 'ok' ) {
-                return $rc;
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.114', 'msg'=>'Unable to add repeat item', 'err'=>$rc['err']));
             }
             $parent_id = $rc['id'];
 
@@ -192,8 +193,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
                     $subitem['parent_id'] = $parent_id;
                     $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', $subitem, 0x04);
                     if( $rc['stat'] != 'ok' ) {
-                        ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
-                        return $rc;
+                        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.115', 'msg'=>'Unable to add repeat subitem', 'err'=>$rc['err']));
                     }
                 }
             }
@@ -208,7 +208,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
                 'next_order_date'=>$ndt->format('Y-m-d'),
                 ), 0x04);
             if( $rc['stat'] != 'ok' ) {
-                return $rc;
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.116', 'msg'=>'Unable to update last order date', 'err'=>$rc['err']));
             }
         }
     }
@@ -219,7 +219,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
     $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $business_id, $order['id']);
     if( $rc['stat'] != 'ok' ) {
-        return $rc;
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.117', 'msg'=>'Unable to update update order status', 'err'=>$rc['err']));
     }
 
     return array('stat'=>'ok');

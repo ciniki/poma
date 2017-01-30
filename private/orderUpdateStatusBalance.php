@@ -205,6 +205,26 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     //
     // FIXME: Calculate payments for this order
     //
+    $strsql = "SELECT id, ledger_id, payment_type, amount "
+        . "FROM ciniki_poma_order_payments "
+        . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $order_id) . "' "
+        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'payment');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( isset($rc['rows']) ) {
+        $payments = $rc['rows'];
+    } else {
+        $payments = array();
+    }
+
+    $new_order['paid_amount'] = 0;
+    foreach($payments as $payment) {
+        $new_order['paid_amount'] = bcadd($new_order['paid_amount'], $payment['amount'], 6);
+    }
+    $new_order['balance_amount'] = bcsub($new_order['total_amount'], $new_order['paid_amount'], 6);
 
     //
     // Update the order

@@ -1,0 +1,76 @@
+#
+# Description
+# -----------
+# This table stores the ledgers and balance sheet for customers.
+#
+# Fields
+# ------
+# id:                   The ID assigned to the order.
+# uuid:                 The Universal Unique ID.
+# business_id:          The business the product is attached to.
+#
+# customer_id:          The ID of the customer the order is for.
+#
+# order_id:             The ID of the order the transaction is attached to for transaction_type 30.
+#
+# transaction_type:     The type of transaction. These should match the payment_type in ciniki_poma_order_payments.
+#
+#                           0 - unknown
+#                           10 - Credit given to customer
+#                           30 - Invoice for an order
+#                           60 - Payment from customer
+#
+# transaction_date:     The UTC date and time for the entry.
+#
+# source:               The source of the payment/credit.
+#
+#                           0 - Unknown
+#                           10 - Paypal
+#                           20 - Square
+#                           50 - Visa
+#                           55 - Mastercard
+#                           60 - Discover
+#                           65 - Amex
+#                           90 - Interac
+#                           100 - Cash
+#                           105 - Check
+#                           110 - Email Transfer
+#                           120 - Other
+#
+# description:          The description of the action performed on the ledger, autofilled by the type of entry.
+#
+# customer_amount:      The amount the customer, and is used for the balance.
+#
+# transaction_fees:     If there are transaction fees, they can be entered here.
+#
+# business_amount:      The amount the business receives if there are transaction fees.
+#
+# balance:              The account balance after the transaction.
+#
+# notes:                Any notes about the transaction.
+#
+# date_added:           The UTC date and time the record was added.
+# last_updated:         The UTC date and time the record was last updated.
+#
+create table ciniki_poma_customer_ledgers (
+    id int not null auto_increment,
+    uuid char(36) not null,
+    business_id int not null,
+    customer_id int not null,
+    order_id int not null,
+    transaction_type tinyint unsigned not null,
+    transaction_date datetime not null,
+    source tinyint unsigned not null,
+    description varchar(150) not null,
+    customer_amount decimal(19,4) not null,
+    transaction_fees decimal(19,4) not null,
+    business_amount decimal(19,4) not null,
+    balance decimal(19,4) not null,
+    notes varchar(250) not null,
+    date_added datetime not null,
+    last_updated datetime not null,
+    primary key (id),
+    unique index (uuid),
+    index (customer_id, transaction_date),
+    index sync (business_id, uuid, last_updated)
+) ENGINE='InnoDB', COMMENT='v1.01';

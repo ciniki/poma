@@ -115,6 +115,41 @@ function ciniki_poma_objects(&$ciniki) {
             ),
         'history_table'=>'ciniki_poma_history',
         );
+    $objects['orderpayment'] = array(
+        'name'=>'Order Payment',
+        'sync'=>'yes',
+        'o_name'=>'payment',
+        'o_container'=>'payments',
+        'table'=>'ciniki_poma_order_payments',
+        'fields'=>array(
+            'order_id'=>array('name'=>'Date', 'ref'=>'ciniki.poma.order'),
+            'ledger_id'=>array('name'=>'Ledger', 'ref'=>'ciniki.poma.customerledger', 'default'=>'0'),
+            'payment_type'=>array('name'=>'Payment Type'),
+            'amount'=>array('name'=>'Amount'),
+            ),
+        'history_table'=>'ciniki_poma_history',
+        );
+    $objects['customerledger'] = array(
+        'name'=>'Customer Ledger Entry',
+        'sync'=>'yes',
+        'o_name'=>'entry',
+        'o_container'=>'entries',
+        'table'=>'ciniki_poma_customer_ledgers',
+        'fields'=>array(
+            'customer_id'=>array('name'=>'Customer', 'ref'=>'ciniki.customers.customer'),
+            'order_id'=>array('name'=>'Order', 'ref'=>'ciniki.poma.order', 'default'=>'0'),
+            'transaction_type'=>array('name'=>'Type'),
+            'transaction_date'=>array('name'=>'Date'),
+            'source'=>array('name'=>'Source', 'default'=>'0'),
+            'description'=>array('name'=>'Description'),
+            'customer_amount'=>array('name'=>'Customer Amount'),
+            'transaction_fees'=>array('name'=>'Transaction Fees', 'default'=>'0'),
+            'business_amount'=>array('name'=>'Business Amount'),
+            'balance'=>array('name'=>'Balance'),
+            'notes'=>array('name'=>'Notes', 'default'=>''),
+            ),
+        'history_table'=>'ciniki_poma_history',
+        );
     return array('stat'=>'ok', 'objects'=>$objects);
 }
 ?>

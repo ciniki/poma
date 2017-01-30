@@ -188,6 +188,38 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         $order['tallies'][] = array('label'=>'Savings', 'value'=>'$' . number_format($order['total_savings'], 2));
     }
 
+    //
+    // Load any payments for this order
+    //
+    $strsql = "SELECT ciniki_poma_order_payments.id, "
+        . "ciniki_poma_order_payments.payment_type, "
+        . "ciniki_poma_order_payments.amount "
+        . "FROM ciniki_poma_order_payments "
+//        . "LEFT JOIN ciniki_poma_customer_ledgers ON ("
+//            . "ciniki_poma_order_payments.ledger_id = ciniki_poma_customer_ledgers.id "
+//            . "AND ciniki_poma_customer_ledgers.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+//            . ") "
+        . "WHERE ciniki_poma_order_payments.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
+        . "AND ciniki_poma_order_payments.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "";
+    $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
+        array('container'=>'payments', 'fname'=>'id', 'fields'=>array('id', 'payment_type', 'amount')),
+        ));
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    $order['payments'] = array();
+    if( isset($rc['payments']) ) {
+        foreach($rc['payments'] as $payment) {
+            if( isset($maps['orderpayment']['payment_type'][$payment['payment_type']]) ) {
+                $payment['payment_type_text'] = $maps['orderpayment']['payment_type'][$payment['payment_type']];
+            } else {
+                $payment['payment_type_text'] = '';
+            }
+            $order['payments'][] = $payment;
+        }
+    }
+
     return array('stat'=>'ok', 'order'=>$order);
 }
 ?>

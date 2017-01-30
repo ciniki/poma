@@ -1,0 +1,40 @@
+#
+# Description
+# -----------
+# This table stores the payments for orders.
+#
+# Fields
+# ------
+# id:                   The ID assigned to the order.
+# uuid:                 The Universal Unique ID.
+# business_id:          The business the product is attached to.
+#
+# order_id:             The ID of the order the payment is for.
+#
+# ledger_id:            The ID of the ledger entry for the source of the payment.
+#
+# payment_type:         The type of transaction. These should be a subset of the transaction types in ciniki_poma_customer_ledgers.
+#
+#                           10 - Credit
+#                           60 - Payment
+#
+# amount:               The amount for the payment
+#
+# date_added:           The UTC date and time the record was added.
+# last_updated:         The UTC date and time the record was last updated.
+#
+create table ciniki_poma_order_payments (
+    id int not null auto_increment,
+    uuid char(36) not null,
+    business_id int not null,
+    order_id int not null,
+    ledger_id int not null,
+    payment_type tinyint unsigned not null,
+    amount decimal(19,4) not null,
+    date_added datetime not null,
+    last_updated datetime not null,
+    primary key (id),
+    unique index (uuid),
+    index (order_id, ledger_id),
+    index sync (business_id, uuid, last_updated)
+) ENGINE='InnoDB', COMMENT='v1.01';

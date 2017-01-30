@@ -51,6 +51,7 @@ function ciniki_poma_dateRepeatsAdd(&$ciniki, $business_id, $date_id) {
     $strsql = "SELECT DISTINCT customer_id "
         . "FROM ciniki_poma_customer_items "
         . "WHERE next_order_date <= '" . ciniki_core_dbQuote($ciniki, $date['order_date']) . "' "
+        . "AND itype = 40 "
         . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "";
     $rc = ciniki_core_dbQueryList($ciniki, $strsql, 'ciniki.poma', 'customers', 'customer_id');
