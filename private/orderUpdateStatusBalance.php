@@ -225,12 +225,15 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
         $new_order['paid_amount'] = bcadd($new_order['paid_amount'], $payment['amount'], 6);
     }
     $new_order['balance_amount'] = bcsub($new_order['total_amount'], $new_order['paid_amount'], 6);
+    if( $new_order['total_amount'] > 0 && $new_order['balance_amount'] <= 0 && $new_order['payment_status'] != 50 ) {
+        $new_order['payment_status'] = 50;
+    }
 
     //
     // Update the order
     //
     $update_args = array();
-    foreach(['subtotal_amount', 'discount_amount', 'total_amount', 'total_savings', 'paid_amount', 'balance_amount'] as $field) {
+    foreach(['payment_status', 'subtotal_amount', 'discount_amount', 'total_amount', 'total_savings', 'paid_amount', 'balance_amount'] as $field) {
         if( $order[$field] != $new_order[$field] ) {
             $update_args[$field] = $new_order[$field];
             $order[$field] = $new_order[$field];

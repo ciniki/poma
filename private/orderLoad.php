@@ -29,13 +29,25 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
     $intl_timezone = $rc['settings']['intl-default-timezone'];
 
     //
+    // Load maps
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'maps');
+    $rc = ciniki_poma_maps($ciniki, $args['business_id']);
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    $maps = $rc['maps'];
+
+    //
     // Get the order information
     //
     $strsql = "SELECT ciniki_poma_orders.id, "
+        . "ciniki_poma_orders.order_number, "
         . "ciniki_poma_orders.customer_id, "
         . "ciniki_poma_orders.status, "
         . "ciniki_poma_orders.payment_status, "
         . "ciniki_poma_orders.order_date, "
+        . "ciniki_poma_orders.billing_name, "
         . "ciniki_poma_orders.subtotal_amount, "
         . "ciniki_poma_orders.subtotal_discount_amount, "
         . "ciniki_poma_orders.subtotal_discount_percentage, "
@@ -58,6 +70,9 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.53', 'msg'=>"Invalid order."));
     } else {
         $order = $rc['order'];
+        if( isset($maps['order']['payment_status'][$order['payment_status']]) ) {
+            $order['payment_status_text'] = $maps['order']['payment_status'][$order['payment_status']];
+        }
 
         //
         // FIXME: Add query to get taxes
