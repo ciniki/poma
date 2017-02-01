@@ -99,7 +99,7 @@ function ciniki_poma_invoiceOrder(&$ciniki, $business_id, $order_id) {
             $order_balance = 0;
         }
         if( isset($credit_applied) && $credit_applied > 0 ) {
-            $new_balance = bcadd($new_balance, $credit_applied, 6);
+//            $new_balance = bcadd($new_balance, $credit_applied, 6);
             $paid_amount = bcadd($paid_amount, $credit_applied, 6);
         }
     }

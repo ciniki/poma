@@ -87,11 +87,9 @@ function ciniki_poma_accountApplyCredit(&$ciniki, $business_id, $args) {
             if( $order['balance_amount'] < $credit_balance ) {
                 $unpaid_orders[$oid]['payment_amount'] = $order['balance_amount'];
                 $credit_balance = bcsub($credit_balance, $order['balance_amount'], 6);
-//                $new_balance = bcadd($new_balance, $order['balance_amount'], 6);
             } else {
                 $unpaid_orders[$oid]['payment_amount'] = $credit_balance;
                 $credit_balance = 0;
-//                $new_balance = bcadd($new_balance, $order['balance_amount'], 6);
             }
             if( $credit_balance <= 0 ) {
                 break;
