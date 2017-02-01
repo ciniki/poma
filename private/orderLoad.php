@@ -32,7 +32,7 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
     // Load maps
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'maps');
-    $rc = ciniki_poma_maps($ciniki, $args['business_id']);
+    $rc = ciniki_poma_maps($ciniki, $business_id);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }

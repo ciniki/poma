@@ -17,7 +17,7 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
     // Load business details
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'hooks', 'businessDetails');
-    $rc = ciniki_businesses_hooks_businessDetails($ciniki, $business_id);
+    $rc = ciniki_businesses_hooks_businessDetails($ciniki, $business_id, array());
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -430,7 +430,7 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
         $pdf->SetFont('', 'B');
         $pdf->Cell($w[0], $lh, 'Bill To:', 1, 0, 'L', 1);
         $border = 1;
-        if( $order['shipping_status'] > 0 ) {
+/*        if( $order['shipping_status'] > 0 ) {
             $pdf->Cell($w[1], $lh, 'Ship To:', 1, 0, 'L', 1);
             $border = 1;
             $diff_lines = (count($baddr) - count($saddr));
@@ -444,7 +444,7 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
                     $baddr[] = " ";
                 }
             }
-        }
+        } */
         $pdf->Ln($lh);  
         $pdf->SetFont('');
         $pdf->setCellPaddings(2, 4, 2, 2);
@@ -478,7 +478,7 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
     $fill=0;
     foreach($order['items'] as $item) {
         $discount = '';
-        if( $item['discount_amount'] != 0 ) {
+/*        if( $item['discount_amount'] != 0 ) {
             if( $item['unit_discount_amount'] > 0 ) {
                 $discount .= '-' . $item['unit_discount_amount_display'] . (($item['quantity']>0&&$item['quantity']!=1)?('x'.$item['quantity']):'');
             }
@@ -489,8 +489,8 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
                 $discount .= '-' . $item['unit_discount_percentage'] . '%';
             }
             $discount .= ' (-' . $item['discount_amount_display'] . ')';
-        }
-        $lh = ($discount!=''&&($order['flags']&0x01)==0)?13:6;
+        } */
+//        $lh = ($discount!=''&&($order['flags']&0x01)==0)?13:6;
 //      $pdf->Cell($w[0], $lh, $item['description'], 1, 0, 'L', $fill, '', 0, false, 'T', 'T');
         if( isset($item['code']) && $item['code'] != '' ) {
             $item['description'] = $item['code'] . ' - ' . $item['description'];

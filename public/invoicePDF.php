@@ -57,55 +57,40 @@ function ciniki_poma_invoicePDF(&$ciniki) {
         $pdf = $rc['pdf'];
 
         //
-        // FIXME: Get the customer emails
+        // Get the customer emails
         //
+        if( !isset($order['customer_id']) || $order['customer_id'] == '' || $order['customer_id'] < 1 ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.82', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
+        }
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
+        $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], 
+            array('customer_id'=>$order['customer_id'], 'phones'=>'no', 'emails'=>'yes', 'addresses'=>'no', 'subscriptions'=>'no'));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( !isset($rc['customer']) ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.101', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
+        }
+        $customer = $rc['customer'];
 
         //
         // if customer is set
         //
-/*        if( !isset($order['customer']) ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.82', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
-        }
-        if( !isset($order['customer']['emails'][0]['email']['address']) ) {
+        if( !isset($customer['emails'][0]['email']['address']) ) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.83', 'msg'=>"The customer doesn't have an email address, we are unable to send the email."));
         }
 
         if( isset($args['subject']) && isset($args['textmsg']) ) {
             $subject = $args['subject'];
             $textmsg = $args['textmsg'];
-        } else {
+        } /*else {
             $subject = 'Invoice #' . $invoice['invoice_number'];
             if( isset($poma_settings['invoice-email-message']) && $poma_settings['invoice-email-message'] != '' ) {
                 $textmsg = $poma_settings['invoice-email-message'];
             } else {
                 $textmsg = 'Please find your invoice attached.';
             }
-            if( $invoice['invoice_type'] == '20' ) {
-                $subject = 'Order #' . $invoice['invoice_number'];
-                $textmsg = 'Your order receipt is attached.';
-                if( isset($poma_settings['cart-email-message']) && $poma_settings['cart-email-message'] != '' ) {
-                    $textmsg = $poma_settings['cart-email-message'];
-                }
-            } elseif( $invoice['invoice_type'] == '30' ) {
-                $subject = 'Receipt #' . $invoice['invoice_number'];
-                $textmsg = 'Your receipt is attached.';
-                if( isset($poma_settings['pos-email-message']) && $poma_settings['pos-email-message'] != '' ) {
-                    $textmsg = $poma_settings['pos-email-message'];
-                }
-            } elseif( $invoice['invoice_type'] == '40' ) {
-                $subject = 'Order #' . $invoice['invoice_number'];
-                $textmsg = 'Thank you for your order. Your order details are attached.';
-                if( isset($poma_settings['order-email-message']) && $poma_settings['order-email-message'] != '' ) {
-                    $textmsg = $poma_settings['order-email-message'];
-                }
-            } elseif( $invoice['invoice_type'] == '90' ) {
-                $subject = 'Quote #' . $invoice['invoice_number'];
-                $textmsg = 'Here is the quote you requested.';
-                if( isset($poma_settings['quote-email-message']) && $poma_settings['quote-email-message'] != '' ) {
-                    $textmsg = $poma_settings['quote-email-message'];
-                }
-            }
-        }
+        } */
 
         //
         // Start transaction
@@ -122,16 +107,17 @@ function ciniki_poma_invoicePDF(&$ciniki) {
         // Add to the mail module
         //
         ciniki_core_loadMethod($ciniki, 'ciniki', 'mail', 'hooks', 'addMessage');
+        $test = $pdf->Output('invoice', 'S');
         $rc = ciniki_mail_hooks_addMessage($ciniki, $args['business_id'], array(
-            'object'=>'ciniki.poma.invoice',
-            'object_id'=>$args['invoice_id'],
-            'customer_id'=>$invoice['customer_id'],
-            'customer_email'=>$invoice['customer']['emails'][0]['email']['address'],
-            'customer_name'=>(isset($invoice['customer']['display_name'])?$invoice['customer']['display_name']:''),
+            'object'=>'ciniki.poma.order',
+            'object_id'=>$args['order_id'],
+            'customer_id'=>$order['customer_id'],
+            'customer_email'=>$customer['emails'][0]['email']['address'],
+            'customer_name'=>(isset($customer['display_name'])?$customer['display_name']:''),
             'subject'=>$subject,
             'html_content'=>$textmsg,
             'text_content'=>$textmsg,
-            'attachments'=>array(array('content'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename)),
+            'attachments'=>array(array('content'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename . '.pdf')),
             ));
         if( $rc['stat'] != 'ok' ) {
             ciniki_core_dbTransactionRollback($ciniki, 'ciniki.mail');
@@ -148,15 +134,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
             return $rc;
         }
 
-//        $ciniki['emailqueue'][] = array('to'=>$invoice['customer']['emails'][0]['email']['address'],
-//            'to_name'=>(isset($invoice['customer']['display_name'])?$invoice['customer']['display_name']:''),
-//            'business_id'=>$args['business_id'],
-//            'subject'=>$subject,
-//            'textmsg'=>$textmsg,
-//            'attachments'=>array(array('string'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename)),
-//            );
         return array('stat'=>'ok');
-        */
     }
 
     $rc = $fn($ciniki, $args['business_id'], $args['order_id']);
