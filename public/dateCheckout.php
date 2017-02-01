@@ -283,6 +283,8 @@ function ciniki_poma_dateCheckout($ciniki) {
     //
     $strsql = "SELECT ciniki_poma_orders.id, "
         . "IF(ciniki_poma_orders.status < 70, 'open', 'closed') AS state, "
+        . "ciniki_poma_orders.status, "
+        . "ciniki_poma_orders.payment_status, "
         . "ciniki_poma_orders.billing_name "
         . "FROM ciniki_poma_orders "
         . "WHERE date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
@@ -291,7 +293,9 @@ function ciniki_poma_dateCheckout($ciniki) {
         . "";
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'states', 'fname'=>'state', 'fields'=>array('state')),
-        array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id', 'state', 'billing_name')),
+        array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id', 'state', 'status', 'payment_status', 'billing_name'),
+            'maps'=>array('payment_status'=>$maps['order']['payment_status']),
+            ),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
