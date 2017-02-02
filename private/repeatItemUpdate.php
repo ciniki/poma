@@ -96,7 +96,6 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
             $repeat_days = $args['repeat_days'];
             $existing_item['repeat_days'] = $args['repeat_days'];
             // Calculate the next date
-            error_log($existing_item['last_order_date']);
             if( $existing_item['last_order_date'] != '0000-00-00' ) {
                 $dt = new DateTime($existing_item['last_order_date'], new DateTimezone($intl_timezone));
                 $dt->add(new DateInterval('P' . $repeat_days . 'D'));
@@ -121,7 +120,6 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
                 //
                 // Add the repeat_days to the next_date and find the next date
                 //
-                error_log('ADD0129');
                 $dt = new DateTime($existing_item['next_order_date'], new DateTimezone($intl_timezone));
                 $dt->add(new DateInterval('P' . $repeat_days . 'D'));
                 $update_args['next_order_date'] = $dt->format('Y-m-d');

@@ -220,9 +220,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         //
         // Check if there are any messages for this order
         //
-        error_log('check mail');
         if( isset($ciniki['business']['modules']['ciniki.mail']) ) {
-            error_log('oeasdf: ' . $args['order_id']);
             ciniki_core_loadMethod($ciniki, 'ciniki', 'mail', 'hooks', 'objectMessages');
             $rc = ciniki_mail_hooks_objectMessages($ciniki, $args['business_id'], array('object'=>'ciniki.poma.order', 'object_id'=>$args['order_id']));
             if( $rc['stat'] != 'ok' ) {
@@ -244,6 +242,19 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
         if( isset($rc['details']) ) {
             $rsp['customer_details'] = $rc['details'];
+        }
+        if( isset($rc['customer']['member_status_text']) && $rc['customer']['member_status_text'] != '' ) {
+            if( isset($rc['customer']['member_lastpaid']) && $rc['customer']['member_lastpaid'] != '' ) {
+                $rsp['customer_details'][] = array('detail'=>array(
+                    'label'=>'Membership',
+                    'value'=>$rc['customer']['member_status_text'] . ' <span class="subdue">[' . $rc['customer']['member_lastpaid'] . ']</span>',
+                    ));
+            } else {
+                $rsp['customer_details'][] = array('detail'=>array(
+                    'label'=>'Membership',
+                    'value'=>$rc['customer']['member_status_text'],
+                    ));
+            }
         }
 
         //
