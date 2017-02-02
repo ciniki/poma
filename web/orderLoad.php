@@ -121,10 +121,10 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
                 . "";
             $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
             if( $rc['stat'] != 'ok' ) {
-                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.51', 'msg'=>"Oops, we seem to have trouble loading your order. Please try again or contact us for help."));
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.118', 'msg'=>"Oops, we seem to have trouble loading your order. Please try again or contact us for help."));
             }
             if( !isset($rc['date']) ) {
-                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.52', 'msg'=>"Oops, we seem to have trouble loading your order. Please try again or contact us for help."));
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.123', 'msg'=>"Oops, we seem to have trouble loading your order. Please try again or contact us for help."));
             }
             $odate = $rc['date'];
             $order['order_date_status'] = $odate['status'];

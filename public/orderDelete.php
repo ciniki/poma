@@ -66,8 +66,38 @@ function ciniki_poma_orderDelete(&$ciniki) {
     }
 
     //
-    // FIXME: Check for any dependencies before deleting
+    // Check there are no payments for this order
     //
+    $strsql = "SELECT COUNT(id) AS num_payments "
+        . "FROM ciniki_poma_order_payments "
+        . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+        . "AND ciniki_poma_order_payments.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "";
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbSingleCount');
+    $rc = ciniki_core_dbSingleCount($ciniki, $strsql, 'ciniki.poma', 'num');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( $rc['num'] > 0 ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.101', 'msg'=>'This order has been invoiced and cannot be removed'));
+    }
+
+    //
+    // Check the order was not invoiced
+    //
+    $strsql = "SELECT COUNT(id) AS num_ledgers "
+        . "FROM ciniki_poma_customer_ledgers "
+        . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+        . "AND ciniki_poma_customer_ledgers.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "";
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbSingleCount');
+    $rc = ciniki_core_dbSingleCount($ciniki, $strsql, 'ciniki.poma', 'num');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( $rc['num'] > 0 ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.126', 'msg'=>'This order has been invoiced and cannot be removed'));
+    }
 
     //
     // Check if any modules are currently using this object

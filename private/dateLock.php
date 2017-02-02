@@ -94,7 +94,7 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
         error_log('locking order: ' . $order['id']);
         $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $order['id'], array('status'=>30), 0x04);
         if( $rc['stat'] != 'ok' ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.103', 'msg'=>'Unable to lock order', 'err'=>$rc['err']));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.124', 'msg'=>'Unable to lock order', 'err'=>$rc['err']));
         }
     }
 

@@ -47,7 +47,7 @@ function ciniki_poma_orderUpdate(&$ciniki) {
         return $rc;
     }
     if( !isset($rc['order']) ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.106', 'msg'=>'Unable to find order.'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.125', 'msg'=>'Unable to find order.'));
     }
     $order = $rc['order'];
 

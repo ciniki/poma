@@ -60,7 +60,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
         // Get the customer emails
         //
         if( !isset($order['customer_id']) || $order['customer_id'] == '' || $order['customer_id'] < 1 ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.82', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.119', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
         }
         ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
         $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], 
@@ -69,7 +69,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
             return $rc;
         }
         if( !isset($rc['customer']) ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.101', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.120', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
         }
         $customer = $rc['customer'];
 
@@ -77,7 +77,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
         // if customer is set
         //
         if( !isset($customer['emails'][0]['email']['address']) ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.83', 'msg'=>"The customer doesn't have an email address, we are unable to send the email."));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.121', 'msg'=>"The customer doesn't have an email address, we are unable to send the email."));
         }
 
         if( isset($args['subject']) && isset($args['textmsg']) ) {
@@ -121,7 +121,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
             ));
         if( $rc['stat'] != 'ok' ) {
             ciniki_core_dbTransactionRollback($ciniki, 'ciniki.mail');
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.84', 'msg'=>'Unable to create mail message.', 'err'=>$rc['err']));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.122', 'msg'=>'Unable to create mail message.', 'err'=>$rc['err']));
         }
         $ciniki['emailqueue'][] = array('mail_id'=>$rc['id'], 'business_id'=>$args['business_id']);
 
