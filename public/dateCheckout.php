@@ -160,20 +160,17 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
     }
 
-        error_log($args['new_object']);
-        error_log($args['new_object_id']);
     if( isset($args['new_object']) && $args['new_object'] != '' 
         && isset($args['new_object_id']) && $args['new_object_id'] != ''
         && isset($args['order_id']) && $args['order_id'] != ''
         ) {
-        error_log('add');
         //
         // Get the details for the item
         //
         list($pkg, $mod, $obj) = explode('.', $args['new_object']);
         $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemLookup');
         if( $rc['stat'] != 'ok' ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.129', 'msg'=>'Unable to add favourite.'));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.71', 'msg'=>'Unable to add favourite.'));
         }
         $fn = $rc['function_call'];
         $rc = $fn($ciniki, $args['business_id'], array('object'=>$args['new_object'], 'object_id'=>$args['new_object_id']));
@@ -181,7 +178,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             return $rc;
         }
         if( !isset($rc['item']) ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.130', 'msg'=>'Unable to add item.'));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.72', 'msg'=>'Unable to add item.'));
         }
         $item = $rc['item'];
         //
