@@ -22,7 +22,7 @@ function ciniki_poma_orderItemSearch($ciniki) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
         'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
-        'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Order'),
+//        'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Order'),
         'start_needle'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Search String'),
         'limit'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Limit'),
         ));
@@ -69,7 +69,7 @@ function ciniki_poma_orderItemSearch($ciniki) {
         $fn = $rc['function_call'];
         $rc = $fn($ciniki, $args['business_id'], array(
             'start_needle'=>$args['start_needle'], 
-            'order_id'=>$args['order_id'],
+//            'order_id'=>$args['order_id'],
             'limit'=>$args['limit']));
         if( $rc['stat'] != 'ok' ) {
             continue;
@@ -83,7 +83,7 @@ function ciniki_poma_orderItemSearch($ciniki) {
     // Check existing items in invoices, but only if owner/employee
     //
     if( count($items) == 0 ) {
-        $strsql = "SELECT DISTINCT "    
+/*        $strsql = "SELECT DISTINCT "    
             . "CONCAT_WS('-', ciniki_poma_order_items.description, ciniki_poma_order_items.unit_amount) AS id, "
             . "ciniki_poma_order_items.object, "
             . "ciniki_poma_order_items.object_id, "
@@ -123,7 +123,7 @@ function ciniki_poma_orderItemSearch($ciniki) {
         }
         if( isset($rc['items']) ) {
             $items = array_merge($rc['items'], $items);
-        }
+        } */
     }
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'formatItems');

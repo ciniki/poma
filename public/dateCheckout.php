@@ -24,6 +24,10 @@ function ciniki_poma_dateCheckout($ciniki) {
         'order'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'New Order'),
         'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Order'),
         'customer_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Customer'),
+        'new_object'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'New Object'),
+        'new_object_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'new Object ID'),
+        'item_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Item'),
+        'new_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Quantity'),
         'action'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Action'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -156,6 +160,184 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
     }
 
+        error_log($args['new_object']);
+        error_log($args['new_object_id']);
+    if( isset($args['new_object']) && $args['new_object'] != '' 
+        && isset($args['new_object_id']) && $args['new_object_id'] != ''
+        && isset($args['order_id']) && $args['order_id'] != ''
+        ) {
+        error_log('add');
+        //
+        // Get the details for the item
+        //
+        list($pkg, $mod, $obj) = explode('.', $args['new_object']);
+        $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemLookup');
+        if( $rc['stat'] != 'ok' ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.129', 'msg'=>'Unable to add favourite.'));
+        }
+        $fn = $rc['function_call'];
+        $rc = $fn($ciniki, $args['business_id'], array('object'=>$args['new_object'], 'object_id'=>$args['new_object_id']));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( !isset($rc['item']) ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.130', 'msg'=>'Unable to add item.'));
+        }
+        $item = $rc['item'];
+        //
+        // Start transaction
+        //
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
+        $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+
+        //
+        // Add the order item to the database
+        //
+        $item['order_id'] = $args['order_id'];
+        if( $item['itype'] == 10 ) {
+            $item['weight_quantity'] = 1;
+        } else {
+            $item['unit_quantity'] = 1;
+        }
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
+        $rc = ciniki_core_objectAdd($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $item, 0x04);
+        if( $rc['stat'] != 'ok' ) {
+            ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+            return $rc;
+        }
+        $item_id = $rc['id'];
+
+        //
+        // Check if there are subitems
+        //
+        if( isset($item['subitems']) ) {
+            foreach($item['subitems'] as $subitem) {
+                $subitem['order_id'] = $args['order_id'];
+                $subitem['parent_id'] = $item_id;
+                $rc = ciniki_core_objectAdd($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $subitem, 0x04);
+                if( $rc['stat'] != 'ok' ) {
+                    ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                    return $rc;
+                }
+            }
+        }
+
+        //
+        // Update the order
+        //
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
+        $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $args['business_id'], $args['order_id']);
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+
+        //
+        // Commit the transaction
+        //
+        $rc = ciniki_core_dbTransactionCommit($ciniki, 'ciniki.poma');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+    }
+
+    if( isset($args['item_id']) && $args['item_id'] != '' && $args['item_id'] > 0 
+        && isset($args['new_quantity']) && $args['new_quantity'] != '' 
+        ) {
+        //
+        // Get the order item
+        //
+        $strsql = "SELECT id, uuid, order_id, itype, weight_quantity, unit_quantity "
+            . "FROM ciniki_poma_order_items "
+            . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
+            . "AND order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "";
+        $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( !isset($rc['item']) ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.128', 'msg'=>'Unable to find item.'));
+        }
+        $item = $rc['item'];
+
+        $update_args = array();
+        $delete = 'no';
+        if( $item['itype'] == 10 ) {
+            if( $item['weight_quantity'] != $args['new_quantity'] ) {
+                if( $args['new_quantity'] > 0 ) {
+                    $update_args['weight_quantity'] = $args['new_quantity'];
+                } else {
+                    $delete = 'yes';
+                }
+            }
+        } else {
+            if( $item['unit_quantity'] != $args['new_quantity'] ) {
+                if( $args['new_quantity'] > 0 ) {
+                    $update_args['unit_quantity'] = $args['new_quantity'];
+                } else {
+                    $delete = 'yes';
+                }
+            }
+        }
+
+        //
+        // Start transaction
+        //
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
+        $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+
+        //
+        // Update the Order Item in the database
+        //
+        if( $delete == 'yes' ) {
+            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectDelete');
+            $rc = ciniki_core_objectDelete($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $item['id'], $item['uuid'], 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+        } elseif( count($update_args) > 0 ) {
+            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
+            $rc = ciniki_core_objectUpdate($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $args['item_id'], $update_args, 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+        }
+
+        if( $delete == 'yes' || count($update_args) > 0 ) {
+            //
+            // Update the order
+            //
+            ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
+            $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $args['business_id'], $item['order_id']);
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+        }
+
+        //
+        // Commit the transaction
+        //
+        $rc = ciniki_core_dbTransactionCommit($ciniki, 'ciniki.poma');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+    }
+
     if( isset($args['action']) && $args['action'] == 'invoiceorder' && isset($args['order_id']) && $args['order_id'] > 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'invoiceOrder');
         $rc = ciniki_poma_invoiceOrder($ciniki, $args['business_id'], $args['order_id']);
@@ -183,6 +365,18 @@ function ciniki_poma_dateCheckout($ciniki) {
         $order = $rc['order'];
 
         //
+        // Start transaction
+        //
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
+        $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+
+        //
         // Update the Order status in the database
         //
         if( $order['status'] < 70 ) {
@@ -191,6 +385,14 @@ function ciniki_poma_dateCheckout($ciniki) {
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
+        }
+
+        //
+        // Commit the transaction
+        //
+        $rc = ciniki_core_dbTransactionCommit($ciniki, 'ciniki.poma');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
         }
     }
 
