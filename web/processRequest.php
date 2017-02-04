@@ -26,6 +26,13 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $business_id, $args
     }
 
     //
+    // Check to make sure the module is enabled
+    //
+    if( !isset($ciniki['session']['customer']['id']) ) {
+        return array('stat'=>'404', 'err'=>array('code'=>'ciniki.poma.127', 'msg'=>"I'm sorry, you must be logged in to access this page."));
+    }
+
+    //
     // Load any customer details, session information, settings, etc,
     //
 

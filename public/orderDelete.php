@@ -100,18 +100,6 @@ function ciniki_poma_orderDelete(&$ciniki) {
     }
 
     //
-    // Check if any modules are currently using this object
-    //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectCheckUsed');
-    $rc = ciniki_core_objectCheckUsed($ciniki, $args['business_id'], 'ciniki.poma.order', $args['order_id']);
-    if( $rc['stat'] != 'ok' ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.71', 'msg'=>'Unable to check if the order is still being used.', 'err'=>$rc['err']));
-    }
-    if( $rc['used'] != 'no' ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.72', 'msg'=>'The order is still in use. ' . $rc['msg']));
-    }
-
-    //
     // Start transaction
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');

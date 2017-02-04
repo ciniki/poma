@@ -101,7 +101,7 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
                 $dt->add(new DateInterval('P' . $repeat_days . 'D'));
                 $update_args['next_order_date'] = $dt->format('Y-m-d');
                 $existing_item['next_order_date'] = $dt->format('Y-m-d');
-                $existing_item['next_order_date_text'] = $dt->format('M j, Y');
+                $existing_item['next_order_date_text'] = ($existing_item['quantity'] > 0 ? $dt->format('M j, Y') : 'Never');
             }
         } else {
             $repeat_days = $existing_item['repeat_days'];
@@ -124,11 +124,11 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
                 $dt->add(new DateInterval('P' . $repeat_days . 'D'));
                 $update_args['next_order_date'] = $dt->format('Y-m-d');
                 $existing_item['next_order_date'] = $dt->format('Y-m-d');
-                $existing_item['next_order_date_text'] = $dt->format('M j, Y');
+                $existing_item['next_order_date_text'] = ($existing_item['quantity'] > 0 ? $dt->format('M j, Y') : 'Never');
             }
         } else {
             $dt = new DateTime($existing_item['next_order_date'], new DateTimezone($intl_timezone));
-            $existing_item['next_order_date_text'] = $dt->format('M j, Y');
+            $existing_item['next_order_date_text'] = ($existing_item['quantity'] > 0 ? $dt->format('M j, Y') : 'Never');
         }
 
         //
@@ -245,7 +245,7 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
         $item = array(
             'quantity'=>$args['quantity'],
             'repeat_days'=>$args['repeat_days'],
-            'next_order_date_text'=>$ndt->format('M j, Y'),
+            'next_order_date_text'=>($args['quantity']>0 ? $ndt->format('M j, Y') : 'Never'),
             );
     }
 
