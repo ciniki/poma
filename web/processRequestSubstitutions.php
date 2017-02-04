@@ -142,9 +142,6 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
     //
     // Show the list of available substitution items
     //
-//    $page['blocks'][] = array('type'=>'content', 'title'=>'Subs', 'html'=>"<pre>" . print_r($item, true) . "</pre>");
-//    $page['blocks'][] = array('type'=>'content', 'title'=>'Subs', 'html'=>"<pre>" . print_r($item['subitems'], true) . "</pre>");
-//    $page['blocks'][] = array('type'=>'content', 'title'=>'Subs', 'html'=>"<pre>" . print_r($substitutions, true) . "</pre>");
     $page['blocks'][] = array('type'=>'ordersubstitutions', 
         'size'=>'wide',
         'subitems'=>$item['subitems'], 
