@@ -17,10 +17,10 @@ function ciniki_poma_main() {
     this.menu.nplists = {'orderitems':[]};
     this.menu.date_nplist = [];
     this.menu.sections = {
-        '_tabs':{'label':'', 'type':'menutabs', 'selected':'checkout', 'tabs':{
-            'checkout':{'label':'Checkout', 'fn':'M.ciniki_poma_main.menu.open(null,"checkout");'},
-            'repeats':{'label':'Standing', 'fn':'M.ciniki_poma_main.menu.open(null,"repeats");'},
-            'queue':{'label':'Queue', 'fn':'M.ciniki_poma_main.menu.open(null,"queue");'},
+        '_tabs':{'label':'', 'type':'menutabs', 'selected':'dates', 'tabs':{
+//            'checkout':{'label':'Checkout', 'fn':'M.ciniki_poma_main.menu.open(null,"checkout");'},
+//            'repeats':{'label':'Standing', 'fn':'M.ciniki_poma_main.menu.open(null,"repeats");'},
+//            'queue':{'label':'Queue', 'fn':'M.ciniki_poma_main.menu.open(null,"queue");'},
             'dates':{'label':'Dates', 'fn':'M.ciniki_poma_main.menu.open(null,"dates");'},
             'history':{'label':'History', 'fn':'M.ciniki_poma_main.menu.open(null,"history");'},
 //            'favourites':{'label':'Favourites', 'fn':'M.ciniki_poma_main.menu.open(null,"favourites");'}, // MOVED TO foodmarket
