@@ -53,6 +53,20 @@ function ciniki_poma_orderItemSearch($ciniki) {
     $intl_currency = $rc['settings']['intl-default-currency'];
 
     //
+    // Prepare the search string
+    //
+    $uwords = explode(' ', $args['start_needle']);
+    $kwords = array();
+    foreach($uwords as $word) {
+        if( trim($word) == '' ) {
+            continue;
+        }
+        $kwords[] = $word;
+    }
+    sort($kwords);
+    $keywords = implode(' ', array_unique($kwords));
+
+    //
     // Setup the array for the items
     //
     $items = array();
@@ -68,7 +82,7 @@ function ciniki_poma_orderItemSearch($ciniki) {
         }
         $fn = $rc['function_call'];
         $rc = $fn($ciniki, $args['business_id'], array(
-            'start_needle'=>$args['start_needle'], 
+            'keywords'=>$keywords,
 //            'order_id'=>$args['order_id'],
             'limit'=>$args['limit']));
         if( $rc['stat'] != 'ok' ) {

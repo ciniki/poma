@@ -52,6 +52,18 @@ function ciniki_poma_repeatItemSearch($ciniki) {
     $intl_currency = $rc['settings']['intl-default-currency'];
 
     //
+    // Prepare the search string
+    //
+    $words = explode(' ', $args['start_needle']);
+    $keywords = '';
+    foreach($words as $word) {
+        if( trim($word) == '' ) {
+            continue;
+        }
+        $keywords .= ($keywords != '' ? ' ' : '') . $word;
+    }
+
+    //
     // Setup the array for the items
     //
     $items = array();
@@ -67,7 +79,7 @@ function ciniki_poma_repeatItemSearch($ciniki) {
         }
         $fn = $rc['function_call'];
         $rc = $fn($ciniki, $args['business_id'], array(
-            'start_needle'=>$args['start_needle'], 
+            'keywords'=>$keywords,
             'order_id'=>$args['order_id'],
             'limit'=>$args['limit']));
         if( $rc['stat'] != 'ok' ) {
