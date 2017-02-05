@@ -86,7 +86,7 @@ function ciniki_poma_objects(&$ciniki) {
         'table'=>'ciniki_poma_customer_items',
         'fields'=>array(
             'parent_id'=>array('name'=>'Parent', 'ref'=>'ciniki.poma.customeritem', 'default'=>'0'),
-            'customer_id'=>array('name'=>'Customer'),
+            'customer_id'=>array('name'=>'Customer', 'ref'=>'ciniki.customers.customer'),
             'itype'=>array('name'=>'Type'),
             'object'=>array('name'=>'Item'),
             'object_id'=>array('name'=>'Item ID'),
