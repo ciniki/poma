@@ -75,6 +75,8 @@ function ciniki_poma_orderItemGet($ciniki) {
             'unit_amount'=>'',
             'unit_discount_amount'=>'',
             'unit_discount_percentage'=>'',
+            'cdeposit_description'=>'',
+            'cdeposit_amount'=>'0',
             'subtotal_amount'=>'0',
             'discount_amount'=>'0',
             'total_amount'=>'0',
@@ -105,6 +107,8 @@ function ciniki_poma_orderItemGet($ciniki) {
             . "ciniki_poma_order_items.unit_amount, "
             . "ciniki_poma_order_items.unit_discount_amount, "
             . "ciniki_poma_order_items.unit_discount_percentage, "
+            . "ciniki_poma_order_items.cdeposit_description, "
+            . "ciniki_poma_order_items.cdeposit_amount, "
             . "ciniki_poma_order_items.subtotal_amount, "
             . "ciniki_poma_order_items.discount_amount, "
             . "ciniki_poma_order_items.total_amount, "
@@ -119,7 +123,7 @@ function ciniki_poma_orderItemGet($ciniki) {
             array('container'=>'items', 'fname'=>'id', 
                 'fields'=>array('order_id', 'parent_id', 'line_number', 'flags', 'object', 'object_id', 
                     'code', 'description', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 
-                    'packing_order', 'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 
+                    'packing_order', 'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'cdeposit_description', 'cdeposit_amount',
                     'subtotal_amount', 'discount_amount', 'total_amount', 'taxtype_id', 'notes'),
                 ),
             ));
@@ -154,6 +158,11 @@ function ciniki_poma_orderItemGet($ciniki) {
             $item['unit_discount_percentage'] = (float)number_format($item['unit_discount_percentage'], 2);
         } else {
             $item['unit_discount_percentage'] = '';
+        }
+        if( $item['cdeposit_amount'] != 0 ) {
+            $item['cdeposit_amount'] = '$' . number_format($item['cdeposit_amount'], 2);
+        } else {
+            $item['cdeposit_amount'] = '';
         }
     }
 

@@ -31,12 +31,11 @@ function ciniki_poma_orderItemUpdate(&$ciniki) {
         'unit_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Unit Quantity'),
         'unit_suffix'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Unit Suffix'),
         'packing_order'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Packing Order'),
-        'unit_amount'=>array('required'=>'no', 'blank'=>'no', 'type'=>'currency', 'name'=>'Amount'),
+        'unit_amount'=>array('required'=>'no', 'blank'=>'no', 'name'=>'Amount'),
         'unit_discount_amount'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'currency', 'name'=>'Discount Amount'),
         'unit_discount_percentage'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Discount Percentage'),
-        'subtotal_amount'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Subtotal Amount'),
-        'discount_amount'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Discount Amount'),
-        'total_amount'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Total Amount'),
+        'cdeposit_description'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Container Deposit Description'),
+        'cdeposit_amount'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Container Deposit Amount'),
         'taxtype_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Tax Type'),
         'notes'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notes'),
         ));
@@ -44,6 +43,13 @@ function ciniki_poma_orderItemUpdate(&$ciniki) {
         return $rc;
     }
     $args = $rc['args'];
+
+    $fields = array('unit_amount', 'unit_discount_amount', 'cdeposit_amount');
+    foreach($fields as $field) {
+        if( isset($args[$field]) ) {
+            $args[$field] = preg_replace("/[\$,]/", '', $args[$field]);
+        }
+    }
 
     //
     // Make sure this module is activated, and

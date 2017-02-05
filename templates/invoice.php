@@ -490,7 +490,14 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
             }
             $discount .= ' (-$' . number_format($item['discount_amount'], 2) . ')';
         } */
-        $lh = ($item['discount_text']!='')?13:6;
+        if( $item['discount_text'] != '' && $item['deposit_text'] != '' ) {
+            $lh = 17.5;
+        } elseif( $item['discount_text'] != '' || $item['deposit_text'] != '' ) {
+            $lh = 13;
+        } else {
+            $lh = 6;
+        }
+//        $lh = ($item['discount_text']!='')?13:6;
         if( isset($item['code']) && $item['code'] != '' ) {
             $item['description'] = $item['code'] . ' - ' . $item['description'];
         }
@@ -499,9 +506,13 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
         }
         $nlines = $pdf->getNumLines($item['description'], $w[0]);
         if( $nlines == 2 ) {
-            $lh = 3+($nlines*5);
+            if( (3+($nlines*5)) > $lh ) {
+                $lh = 3+($nlines*5);
+            }
         } elseif( $nlines > 2 ) {
-            $lh = 2+($nlines*5);
+            if( (2+($nlines*5)) > $lh ) {
+                $lh = 2+($nlines*5);
+            }
         }
         // Check if we need a page break
         if( $pdf->getY() > ($pdf->getPageHeight() - 30) ) {
@@ -519,11 +530,18 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
         $pdf->MultiCell($w[0], $lh, $item['description'], 1, 'L', $fill, 
             0, '', '', true, 0, false, true, 0, 'T', false);
         $quantity = (($item['quantity']>0&&$item['quantity']!=1)?($item['quantity'].' @ '):'');
-        if( $item['discount_text'] == '' ) {
+        if( $item['discount_text'] != '' && $item['deposit_text'] != '' ) {
+            $pdf->MultiCell($w[1], $lh, $quantity . '$' . number_format($item['unit_amount'], 2) 
+                . "\n" . $item['discount_text'] . "\n" . $item['deposit_text'], 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
+        } elseif( $item['discount_text'] != '' ) {
+            $pdf->MultiCell($w[1], $lh, $quantity . '$' . number_format($item['unit_amount'], 2) 
+                . "\n" . $item['discount_text'], 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
+        } elseif( $item['deposit_text'] != '' ) {
+            $pdf->MultiCell($w[1], $lh, $quantity . '$' . number_format($item['unit_amount'], 2) 
+                . "\n" . $item['deposit_text'], 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
+        } else {
             $pdf->MultiCell($w[1], $lh, $quantity . '$' . number_format($item['unit_amount'], 2), 1, 'R', $fill, 
                 0, '', '', true, 0, false, true, 0, 'T', false);
-        } else {
-            $pdf->MultiCell($w[1], $lh, $quantity . '$' . number_format($item['unit_amount'], 2) . (($item['discount_text']!='')?"\n" . $item['discount_text']:""), 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
         }
         $pdf->MultiCell($w[2], $lh, '$' . number_format($item['total_amount'], 2), 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
         $pdf->Ln(); 

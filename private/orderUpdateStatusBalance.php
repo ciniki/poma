@@ -56,6 +56,9 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
         $subitemcount = 0;  // The basket items that have substitutions on them, not the individual count of subd items
         $subfeeitem = null;
         foreach($order['items'] as $iid => $item) {
+            if( $item['unit_amount'] > 1 ) {
+                $item['unit_amount'] = round($item['unit_amount'], 2);
+            }
             $unit_amount = $item['unit_amount'];
             if( isset($item['unit_discount_amount']) && $item['unit_discount_amount'] > 0 ) {
                 $unit_amount = bcsub($unit_amount, $item['unit_discount_amount'], 6);
@@ -76,9 +79,20 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                 $quantity = $item['unit_quantity'];
             }
             $new_item = array();
+            //
+            // Use different rounding depending on the price
+            //
             $new_item['subtotal_amount'] = round(bcmul($quantity, $item['unit_amount'], 6), 2);
             $new_item['total_amount'] = round(bcmul($quantity, $unit_amount, 6), 2);
             $new_item['discount_amount'] = bcsub(bcmul($quantity, $item['unit_amount'], 6), $new_item['total_amount'], 2);
+
+            //
+            // Check if there is a container deposit for this item
+            //
+            if( ($item['flags']&0x08) == 0x08 && $item['cdeposit_amount'] > 0 ) {
+                $deposit = bcmul($quantity, $item['cdeposit_amount'], 2);
+                $new_item['total_amount'] = bcadd($new_item['total_amount'], $deposit, 2);
+            }
 
             $new_order['subtotal_amount'] = bcadd($new_order['subtotal_amount'], $new_item['total_amount'], 2);
             if( $new_item['discount_amount'] > 0 ) {

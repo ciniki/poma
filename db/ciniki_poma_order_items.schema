@@ -25,7 +25,7 @@
 #                               0x10 - Altered subitem, triggers the substitution fee
 #                               0x20 - Locked item, no customer modifications allowed
 #                               0x40 - 
-#                               0x80 - 
+#                               0x80 - Deposit amount on item.
 #
 # object:                   The object for the item in the order. This is the reference to package.module.object. When 
 #                           combined with object_id it can be linked to modules information.
@@ -67,6 +67,10 @@
 # unit_amount:              The price of a single unit or unit of weight.
 # unit_discount_amount:     The amount to deduct from the item as a discount.
 # unit_discount_percentage: The percentage to apply as a discount to this item.
+#
+# cdeposit_description:     The description for the container deposit.
+# cdeposit_amount:          The amount for the container deposit.
+#
 # subtotal_amount:          The subtotal before taxes/shipping for this item.
 # discount_amount:          The amount of discount applied to this item.
 # total_amount:             The total amount for this item after quantity and discounts have been applied.
@@ -99,6 +103,8 @@ create table ciniki_poma_order_items (
     unit_amount decimal(19,4) not null,
     unit_discount_amount decimal(19,4) not null,
     unit_discount_percentage decimal(19,4) not null,
+    cdeposit_description varchar(250) not null,
+    cdeposit_amount decimal(19,4) not null,
     subtotal_amount decimal(19,4) not null,
     discount_amount decimal(19,4) not null,
     total_amount decimal(19,4) not null,

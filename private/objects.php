@@ -68,6 +68,8 @@ function ciniki_poma_objects(&$ciniki) {
             'unit_amount'=>array('name'=>'Amount'),
             'unit_discount_amount'=>array('name'=>'Discount Amount', 'default'=>'0'),
             'unit_discount_percentage'=>array('name'=>'Discount Percentage', 'default'=>'0'),
+            'cdeposit_description'=>array('name'=>'Container Deposit Description', 'default'=>''),
+            'cdeposit_amount'=>array('name'=>'Container Deposit Amount', 'default'=>'0'),
             'subtotal_amount'=>array('name'=>'Subtotal Amount', 'default'=>'0'),
             'discount_amount'=>array('name'=>'Discount Amount', 'default'=>'0'),
             'total_amount'=>array('name'=>'Total Amount', 'default'=>'0'),

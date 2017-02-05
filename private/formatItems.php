@@ -18,9 +18,12 @@
 //
 function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
 
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'formatAmount');
+
     $defaults = array(
         'code'=>'',
         'itype'=>'30',
+        'flags'=>0,
 //        'weight_quantity'=>0,
         'weight_units'=>0,
 //        'unit_quantity'=>0,
@@ -28,6 +31,8 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
         'packing_order'=>'10',
         'unit_discount_amount'=>'',
         'unit_discount_percentage'=>'',
+        'cdeposit_description'=>'',
+        'cdeposit_amount'=>0,
         'taxtype_id'=>0,
         'notes'=>'',
         'subtotal_amount'=>0,
@@ -117,7 +122,7 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
             $items[$iid]['unit_price_text'] = $items[$iid]['unit_amount_text'] . ($items[$iid]['unit_suffix'] != '' ? ' ' . $items[$iid]['unit_suffix'] : '');
             $items[$iid]['price_text'] = (float)$items[$iid]['unit_quantity'] . " @ " . $items[$iid]['unit_amount_text']
                 . ($items[$iid]['unit_suffix'] != '' ? ' ' . $items[$iid]['unit_suffix'] : '');
-            $items[$iid]['total_text'] = "$" . number_format($items[$iid]['total_amount'], 2, '.', ',');
+            $items[$iid]['total_text'] = ciniki_poma_formatAmount($ciniki, $items[$iid]['total_amount']);
         }
         //
         // Setup discount text
@@ -138,6 +143,12 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
                     . (float)$items[$iid]['unit_discount_percentage'] . '%';
             }
             $items[$iid]['discount_text'] .= ' (-$' . number_format($items[$iid]['discount_amount'], 2) . ')';
+        }
+        $items[$iid]['deposit_text'] = '';
+        if( ($items[$iid]['flags']&0x08) == 0x08 && $items[$iid]['cdeposit_amount'] > 0 ) {
+            $items[$iid]['deposit_text'] = $items[$iid]['cdeposit_description'];
+            $items[$iid]['deposit_text'] .= ($items[$iid]['deposit_text'] != '' ? ': ' : '')
+                . '$' . number_format(bcmul($items[$iid]['quantity'], $items[$iid]['cdeposit_amount'], 2), 2);
         }
     }
 

@@ -101,6 +101,8 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         . "ciniki_poma_order_items.unit_amount, "
         . "ciniki_poma_order_items.unit_discount_amount, "
         . "ciniki_poma_order_items.unit_discount_percentage, "
+        . "ciniki_poma_order_items.cdeposit_description, "
+        . "ciniki_poma_order_items.cdeposit_amount, "
         . "ciniki_poma_order_items.subtotal_amount, "
         . "ciniki_poma_order_items.discount_amount, "
         . "ciniki_poma_order_items.total_amount, "
@@ -117,7 +119,8 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         array('container'=>'items', 'fname'=>'id', 
             'fields'=>array('id', 'line_number', 'flags', 'object', 'object_id', 'code', 'description', 
                 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix',
-                'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'subtotal_amount', 'discount_amount', 'total_amount', 'taxtype_id', 'notes')),
+                'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'cdeposit_description', 'cdeposit_amount',
+                'subtotal_amount', 'discount_amount', 'total_amount', 'taxtype_id', 'notes')),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
