@@ -119,8 +119,26 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
                 . ($items[$iid]['unit_suffix'] != '' ? ' ' . $items[$iid]['unit_suffix'] : '');
             $items[$iid]['total_text'] = "$" . number_format($items[$iid]['total_amount'], 2, '.', ',');
         }
-        // FIXME: Setup discount text
+        //
+        // Setup discount text
+        //
         $items[$iid]['discount_text'] = '';
+        if( $items[$iid]['discount_amount'] > 0 ) {
+            if( $items[$iid]['unit_discount_amount'] > 0 ) {
+                if( $items[$iid]['quantity'] != 1 ) {
+                    $items[$iid]['discount_text'] .= '-$' . number_format($items[$iid]['unit_discount_amount'], 2) . 'x' . $items[$iid]['quantity'];
+                } else {
+                    if( $items[$iid]['unit_discount_percentage'] > 0 ) {
+                        $items[$iid]['discount_text'] .= '-$' . number_format($items[$iid]['unit_discount_amount'], 2);
+                    }
+                }
+            }
+            if( $items[$iid]['unit_discount_percentage'] > 0 ) {
+                $items[$iid]['discount_text'] .= ($items[$iid]['discount_text'] != '' ? ', ' : '')
+                    . (float)$items[$iid]['unit_discount_percentage'] . '%';
+            }
+            $items[$iid]['discount_text'] .= ' (-$' . number_format($items[$iid]['discount_amount'], 2) . ')';
+        }
     }
 
     return array('stat'=>'ok', 'items'=>$items);

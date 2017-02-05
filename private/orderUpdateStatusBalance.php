@@ -78,7 +78,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
             $new_item = array();
             $new_item['subtotal_amount'] = round(bcmul($quantity, $item['unit_amount'], 6), 2);
             $new_item['total_amount'] = round(bcmul($quantity, $unit_amount, 6), 2);
-            $new_item['discount_amount'] = bcsub(bcmul($quantity, $item['unit_amount'], 2), $new_item['total_amount'], 2);
+            $new_item['discount_amount'] = bcsub(bcmul($quantity, $item['unit_amount'], 6), $new_item['total_amount'], 2);
 
             $new_order['subtotal_amount'] = bcadd($new_order['subtotal_amount'], $new_item['total_amount'], 2);
             if( $new_item['discount_amount'] > 0 ) {

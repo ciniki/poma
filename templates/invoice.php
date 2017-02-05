@@ -480,7 +480,7 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
         $discount = '';
 /*        if( $item['discount_amount'] != 0 ) {
             if( $item['unit_discount_amount'] > 0 ) {
-                $discount .= '-' . $item['unit_discount_amount_display'] . (($item['quantity']>0&&$item['quantity']!=1)?('x'.$item['quantity']):'');
+                $discount .= '-$' . number_format($item['unit_discount_amount'], 2) . (($item['quantity']>0&&$item['quantity']!=1)?('x'.$item['quantity']):'');
             }
             if( $item['unit_discount_percentage'] > 0 ) {
                 if( $discount != '' ) { 
@@ -488,10 +488,9 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
                 }
                 $discount .= '-' . $item['unit_discount_percentage'] . '%';
             }
-            $discount .= ' (-' . $item['discount_amount_display'] . ')';
+            $discount .= ' (-$' . number_format($item['discount_amount'], 2) . ')';
         } */
-//        $lh = ($discount!=''&&($order['flags']&0x01)==0)?13:6;
-//      $pdf->Cell($w[0], $lh, $item['description'], 1, 0, 'L', $fill, '', 0, false, 'T', 'T');
+        $lh = ($item['discount_text']!='')?13:6;
         if( isset($item['code']) && $item['code'] != '' ) {
             $item['description'] = $item['code'] . ' - ' . $item['description'];
         }
@@ -520,17 +519,12 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
         $pdf->MultiCell($w[0], $lh, $item['description'], 1, 'L', $fill, 
             0, '', '', true, 0, false, true, 0, 'T', false);
         $quantity = (($item['quantity']>0&&$item['quantity']!=1)?($item['quantity'].' @ '):'');
-//        if( ($order['flags']&0x01) > 0 ) {
-//            $pdf->MultiCell($w[1], $lh, $quantity . $item['unit_discounted_amount_display'], 1, 'R', $fill, 
-//                0, '', '', true, 0, false, true, 0, 'T', false);
-//        } else if( $discount == '' ) {
-//          $pdf->Cell($w[1], $lh, $quantity . $item['unit_amount_display'], 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
+        if( $item['discount_text'] == '' ) {
             $pdf->MultiCell($w[1], $lh, $quantity . '$' . number_format($item['unit_amount'], 2), 1, 'R', $fill, 
                 0, '', '', true, 0, false, true, 0, 'T', false);
-//        } else {
-//            $pdf->MultiCell($w[1], $lh, $quantity . '' . $item['unit_amount_display'] . (($discount!='')?"\n" . $discount:""), 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
-//        }
-//      $pdf->Cell($w[2], $lh, $item['total_amount_display'], 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
+        } else {
+            $pdf->MultiCell($w[1], $lh, $quantity . '$' . number_format($item['unit_amount'], 2) . (($item['discount_text']!='')?"\n" . $item['discount_text']:""), 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
+        }
         $pdf->MultiCell($w[2], $lh, '$' . number_format($item['total_amount'], 2), 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
         $pdf->Ln(); 
         $fill=!$fill;
@@ -604,11 +598,20 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
         $pdf->Cell($w[2], $lh, '$' . number_format($order['balance_amount'], 2), 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
         $pdf->Ln();
         $fill=!$fill;
+       
     } else {
         $pdf->SetFont('', 'B');
         $pdf->Cell($w[0], $lh, '', (($blank_border!='')?'LB':''));
         $pdf->Cell($w[1], $lh, 'Total:', 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
         $pdf->Cell($w[2], $lh, '$' . number_format($order['total_amount'], 2), 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
+        $pdf->Ln();
+        $fill=!$fill;
+    }
+    if( $order['total_savings'] > 0 ) {
+        $pdf->SetFont('', '');
+        $pdf->Cell($w[0], $lh, '', (($blank_border!='')?'LB':''));
+        $pdf->Cell($w[1], $lh, 'Savings:', 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
+        $pdf->Cell($w[2], $lh, '$' . number_format($order['total_savings'], 2), 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
         $pdf->Ln();
         $fill=!$fill;
     }

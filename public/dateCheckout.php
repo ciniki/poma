@@ -264,6 +264,26 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
         $item = $rc['item'];
 
+        //
+        // Get any subitems
+        //
+        $strsql = "SELECT id, uuid, order_id, itype, weight_quantity, unit_quantity "
+            . "FROM ciniki_poma_order_items "
+            . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
+            . "AND order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+            . "AND parent_id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
+            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "";
+        $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        $subitems = array();
+        if( isset($rc['rows']) ) {
+            $subitems = $rc['rows'];
+        }
+
+
         $update_args = array();
         $delete = 'no';
         if( $item['itype'] == 10 ) {
@@ -301,6 +321,21 @@ function ciniki_poma_dateCheckout($ciniki) {
         //
         if( $delete == 'yes' ) {
             ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectDelete');
+            //
+            // Remove the subitems if any
+            //
+            if( isset($subitems) && count($subitems) > 0 ) {
+                foreach($subitems as $subitem) {
+                    $rc = ciniki_core_objectDelete($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $subitem['id'], $subitem['uuid'], 0x04);
+                    if( $rc['stat'] != 'ok' ) {
+                        ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                        return $rc;
+                    }
+                }
+            }
+            //
+            // Delete the item
+            //
             $rc = ciniki_core_objectDelete($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $item['id'], $item['uuid'], 0x04);
             if( $rc['stat'] != 'ok' ) {
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
