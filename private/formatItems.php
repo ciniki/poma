@@ -45,7 +45,7 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
                 $items[$iid][$field] = $v;
             }
         }
-        $items[$iid]['unit_amount_text'] = '$' . number_format($item['unit_amount'], 2, '.', ',');
+        $items[$iid]['unit_amount_text'] = ciniki_poma_formatAmount($ciniki, $items[$iid]['unit_amount']);
          
         $items[$iid]['quantity_single'] = '';
         $items[$iid]['quantity_plural'] = '';
@@ -90,7 +90,7 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
             $items[$iid]['price_text'] = (float)$items[$iid]['weight_quantity'] 
                 . ' ' . ($items[$iid]['weight_quantity'] > 1 ? $items[$iid]['quantity_plural'] : $items[$iid]['quantity_single'])
                 . ' @ ' . $items[$iid]['unit_amount_text'] . '/' . $items[$iid]['quantity_single'];
-            $items[$iid]['total_text'] = "$" . number_format($items[$iid]['total_amount'], 2, '.', ',');
+            $items[$iid]['total_text'] = ciniki_poma_formatAmount($ciniki, $items[$iid]['total_amount']);
         } elseif( $items[$iid]['itype'] == 20 ) {
             if( !isset($items[$iid]['unit_quantity']) ) {
                 $items[$iid]['unit_quantity'] = 1;
@@ -105,7 +105,7 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
                     . (float)$items[$iid]['weight_quantity'] 
                     . ($items[$iid]['weight_quantity'] > 1 ? $items[$iid]['quantity_plural'] : $items[$iid]['quantity_single'])
                     . ' @ ' . $items[$iid]['unit_amount_text'] . '/' . $items[$iid]['weight_unit_text'];
-                $items[$iid]['total_text'] = "$" . number_format($items[$iid]['total_amount'], 2, '.', ',');
+                $items[$iid]['total_text'] = ciniki_poma_formatAmount($ciniki, $items[$iid]['total_amount']);
             } else {
                 $items[$iid]['price_text'] = (float)$items[$iid]['unit_quantity'] . ' - '
                     . $items[$iid]['unit_amount_text'] . '/' . $items[$iid]['weight_unit_text'];
