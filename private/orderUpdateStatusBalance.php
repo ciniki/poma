@@ -89,7 +89,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
             //
             // Check if there is a container deposit for this item
             //
-            if( ($item['flags']&0x08) == 0x08 && $item['cdeposit_amount'] > 0 ) {
+            if( ($item['flags']&0x80) == 0x80 && $item['cdeposit_amount'] > 0 ) {
                 $deposit = bcmul($quantity, $item['cdeposit_amount'], 2);
                 $new_item['total_amount'] = bcadd($new_item['total_amount'], $deposit, 2);
             }

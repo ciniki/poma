@@ -145,7 +145,7 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
             $items[$iid]['discount_text'] .= ' (-$' . number_format($items[$iid]['discount_amount'], 2) . ')';
         }
         $items[$iid]['deposit_text'] = '';
-        if( ($items[$iid]['flags']&0x08) == 0x08 && $items[$iid]['cdeposit_amount'] > 0 ) {
+        if( ($items[$iid]['flags']&0x80) == 0x80 && $items[$iid]['cdeposit_amount'] > 0 ) {
             $items[$iid]['deposit_text'] = $items[$iid]['cdeposit_description'];
             $items[$iid]['deposit_text'] .= ($items[$iid]['deposit_text'] != '' ? ': ' : '')
                 . '$' . number_format(bcmul($items[$iid]['quantity'], $items[$iid]['cdeposit_amount'], 2), 2);
