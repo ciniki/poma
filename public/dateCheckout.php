@@ -164,6 +164,10 @@ function ciniki_poma_dateCheckout($ciniki) {
         && isset($args['new_object_id']) && $args['new_object_id'] != ''
         && isset($args['order_id']) && $args['order_id'] != ''
         ) {
+        if( !isset($args['new_quantity']) || $args['new_quantity'] == '' || $args['new_quantity'] == '0' ) {
+            $args['new_quantity'] = 1;
+        }
+
         //
         // Get the details for the item
         //
@@ -198,9 +202,9 @@ function ciniki_poma_dateCheckout($ciniki) {
         //
         $item['order_id'] = $args['order_id'];
         if( $item['itype'] == 10 ) {
-            $item['weight_quantity'] = 1;
+            $item['weight_quantity'] = $args['new_quantity'];
         } else {
-            $item['unit_quantity'] = 1;
+            $item['unit_quantity'] = $args['new_quantity'];
         }
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
         $rc = ciniki_core_objectAdd($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $item, 0x04);
