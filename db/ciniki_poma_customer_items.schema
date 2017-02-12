@@ -70,6 +70,6 @@ create table ciniki_poma_customer_items (
     primary key (id),
     unique index (uuid),
     unique index (customer_id, itype, object, object_id),
-    index (last_order_date_id, next_order_date_id),
+    index (last_order_date, next_order_date),
     index sync (business_id, uuid, last_updated)
 ) ENGINE='InnoDB', COMMENT='v1.01';
