@@ -65,6 +65,33 @@ function ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $item
         $item['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
     }
 
+    //
+    // Setup discount text (taken from private/formatItems.php)
+    //
+    $item['discount_text'] = '';
+    if( $item['discount_amount'] > 0 ) {
+        if( $item['unit_discount_amount'] > 0 ) {
+            if( $item['quantity'] != 1 ) {
+                $item['discount_text'] .= '-$' . number_format($item['unit_discount_amount'], 2) . 'x' . $item['quantity'];
+            } else {
+                if( $item['unit_discount_percentage'] > 0 ) {
+                    $item['discount_text'] .= '-$' . number_format($item['unit_discount_amount'], 2);
+                }
+            }
+        }
+        if( $item['unit_discount_percentage'] > 0 ) {
+            $item['discount_text'] .= ($item['discount_text'] != '' ? ', ' : '')
+                . (float)$item['unit_discount_percentage'] . '%';
+        }
+        $item['discount_text'] .= ' (-$' . number_format($item['discount_amount'], 2) . ')';
+    }
+    $item['deposit_text'] = '';
+    if( ($item['flags']&0x80) == 0x80 && $item['cdeposit_amount'] > 0 ) {
+        $item['deposit_text'] = $item['cdeposit_description'];
+        $item['deposit_text'] .= ($item['deposit_text'] != '' ? ': ' : '')
+            . '$' . number_format(bcmul($item['quantity'], $item['cdeposit_amount'], 2), 2);
+    }
+
     return array('stat'=>'ok', 'item'=>$item);
 }
 ?>

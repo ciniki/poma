@@ -166,6 +166,8 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         . "ciniki_poma_order_items.unit_amount, "
         . "ciniki_poma_order_items.unit_discount_amount, "
         . "ciniki_poma_order_items.unit_discount_percentage, "
+        . "ciniki_poma_order_items.cdeposit_description, "
+        . "ciniki_poma_order_items.cdeposit_amount, "
         . "ciniki_poma_order_items.subtotal_amount, "
         . "ciniki_poma_order_items.discount_amount, "
         . "ciniki_poma_order_items.total_amount, "
@@ -180,7 +182,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'items', 'fname'=>'id', 
             'fields'=>array('id', 'parent_id', 'line_number', 'object', 'object_id', 'code', 'description', 
-                'flags', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix',
+                'flags', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'cdeposit_description', 'cdeposit_amount',
                 'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'subtotal_amount', 'discount_amount', 'total_amount', 'taxtype_id')),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -214,6 +216,33 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
                 $order['items'][$item['parent_id']]['subitems'][$iid] = $order['items'][$iid];
                 unset($order['items'][$iid]);
             }
+
+/*            //
+            // Setup discount text (taken from private/formatItems.php)
+            //
+            $order['items'][$iid]['discount_text'] = '';
+            if( $order['items'][$iid]['discount_amount'] > 0 ) {
+                if( $order['items'][$iid]['unit_discount_amount'] > 0 ) {
+                    if( $order['items'][$iid]['quantity'] != 1 ) {
+                        $order['items'][$iid]['discount_text'] .= '-$' . number_format($order['items'][$iid]['unit_discount_amount'], 2) . 'x' . $order['items'][$iid]['quantity'];
+                    } else {
+                        if( $order['items'][$iid]['unit_discount_percentage'] > 0 ) {
+                            $order['items'][$iid]['discount_text'] .= '-$' . number_format($order['items'][$iid]['unit_discount_amount'], 2);
+                        }
+                    }
+                }
+                if( $order['items'][$iid]['unit_discount_percentage'] > 0 ) {
+                    $order['items'][$iid]['discount_text'] .= ($order['items'][$iid]['discount_text'] != '' ? ', ' : '')
+                        . (float)$order['items'][$iid]['unit_discount_percentage'] . '%';
+                }
+                $order['items'][$iid]['discount_text'] .= ' (-$' . number_format($order['items'][$iid]['discount_amount'], 2) . ')';
+            }
+            $order['items'][$iid]['deposit_text'] = '';
+            if( ($order['items'][$iid]['flags']&0x80) == 0x80 && $order['items'][$iid]['cdeposit_amount'] > 0 ) {
+                $order['items'][$iid]['deposit_text'] = $order['items'][$iid]['cdeposit_description'];
+                $order['items'][$iid]['deposit_text'] .= ($order['items'][$iid]['deposit_text'] != '' ? ': ' : '')
+                    . '$' . number_format(bcmul($order['items'][$iid]['quantity'], $order['items'][$iid]['cdeposit_amount'], 2), 2);
+            } */
         }
     } else {
         $order['items'] = array();
