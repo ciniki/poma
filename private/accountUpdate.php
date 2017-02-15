@@ -91,7 +91,6 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
         if( !isset($rc['entry']) ) {
             $prev_balance = 0;
         } else {
-            error_log(print_r($rc['entry'], true));
             $prev_balance = $rc['entry']['balance'];
         }
         
