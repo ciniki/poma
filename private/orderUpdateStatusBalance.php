@@ -239,8 +239,20 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
         $new_order['paid_amount'] = bcadd($new_order['paid_amount'], $payment['amount'], 6);
     }
     $new_order['balance_amount'] = bcsub($new_order['total_amount'], $new_order['paid_amount'], 6);
-    if( $new_order['total_amount'] > 0 && $new_order['balance_amount'] <= 0 && $new_order['payment_status'] != 50 ) {
+    //
+    // Check if fully paid
+    //
+    if( $new_order['total_amount'] > 0 && $new_order['balance_amount'] <= 0 && $order['payment_status'] != 50 ) {
         $new_order['payment_status'] = 50;
+    } 
+    //
+    // Check if partial paid
+    //
+    elseif( $new_order['total_amount'] > 0 && $new_order['balance_amount'] > 0 && $new_order['balance_amount'] < $new_order['total_amount'] 
+        && $order['payment_status'] > 0         // Order has been invoiced
+        && $order['payment_status'] != 40       // Order is not already in partial payment status
+        ) {
+        $new_order['payment_status'] = 40;
     }
 
     //
@@ -255,6 +267,17 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     }
     if( count($update_args) > 0 ) {
         $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.order', $order['id'], $update_args, 0x04);
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+    }
+
+    //
+    // Update accounting
+    //
+    if( isset($update_args['total_amount']) ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'accountUpdate');
+        $rc = ciniki_poma_accountUpdate($ciniki, $business_id, array('order_id'=>$order['id']));
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }

@@ -185,6 +185,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.72', 'msg'=>'Unable to add item.'));
         }
         $item = $rc['item'];
+
         //
         // Start transaction
         //
