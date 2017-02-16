@@ -126,7 +126,11 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
                 }
             }
             foreach($substitutions as $sid => $sub) {
-                $sub['unit_quantity'] = 1;
+                if( $sub['itype'] == 10 ) {
+                    $sub['weight_quantity'] = 1;
+                } else {
+                    $sub['unit_quantity'] = 1;
+                }
                 $sub['total_amount'] = $sub['unit_amount'];
                 $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $sub);
                 if( $rc['stat'] != 'ok' ) {
