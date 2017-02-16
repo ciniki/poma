@@ -177,7 +177,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.71', 'msg'=>'Unable to add favourite.'));
         }
         $fn = $rc['function_call'];
-        $rc = $fn($ciniki, $args['business_id'], array('object'=>$args['new_object'], 'object_id'=>$args['new_object_id']));
+        $rc = $fn($ciniki, $args['business_id'], array('object'=>$args['new_object'], 'object_id'=>$args['new_object_id'], 'date_id'=>$args['date_id']));
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -274,8 +274,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         //
         $strsql = "SELECT id, uuid, order_id, itype, weight_quantity, unit_quantity "
             . "FROM ciniki_poma_order_items "
-            . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
-            . "AND order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+            . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
             . "AND parent_id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
             . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
             . "";

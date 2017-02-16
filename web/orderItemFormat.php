@@ -69,7 +69,7 @@ function ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $item
     // Setup discount text (taken from private/formatItems.php)
     //
     $item['discount_text'] = '';
-    if( $item['discount_amount'] > 0 ) {
+    if( isset($item['discount_amount']) && $item['discount_amount'] > 0 ) {
         if( $item['unit_discount_amount'] > 0 ) {
             if( $item['quantity'] != 1 ) {
                 $item['discount_text'] .= '-$' . number_format($item['unit_discount_amount'], 2) . 'x' . $item['quantity'];

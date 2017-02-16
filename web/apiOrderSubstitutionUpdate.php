@@ -84,12 +84,6 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $busine
                 $update_args = array();
                 if( $subitems[$args['subitem_id']]['itype'] == 10 ) {
                     $update_args['weight_quantity'] = $new_quantity;
-                    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
-                    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $subitem['id'], array('weight_quantity'=>$new_quantity), 0x04);
-                    if( $rc['stat'] != 'ok' ) {
-                        ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
-                        return $rc;
-                    }
                 } else {
                     $update_args['unit_quantity'] = $new_quantity;
                 }
@@ -142,6 +136,7 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $busine
         . "ciniki_poma_order_items.description, "
         . "ciniki_poma_order_items.object, "
         . "ciniki_poma_order_items.object_id, "
+        . "ciniki_poma_order_items.flags, "
         . "ciniki_poma_order_items.itype, "
         . "ciniki_poma_order_items.weight_units, "
         . "ciniki_poma_order_items.weight_quantity, "
@@ -157,7 +152,7 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $busine
         . "";
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'subitems', 'fname'=>'id', 'fields'=>array('id', 'uuid', 'description', 'object', 'object_id', 
-            'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'unit_amount', 'total_amount')),
+            'flags', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'unit_amount', 'total_amount')),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -187,6 +182,8 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $busine
     //
     // Get the list of available items from modules
     //
+//    error_log($existing_item['object']);
+//    error_log(print_r($existing_item, true));
     list($pkg, $mod, $obj) = explode('.', $existing_item['object']);
     $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemSubstitutions');
     $existing_item['subs'] = array();

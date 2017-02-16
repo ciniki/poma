@@ -183,7 +183,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
             //
             // No sub fees, remove the sub fee item
             //
-            $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.orderitem', $subfeeitem['id'], $subfeeitem['uuid'], 0x04);
+            $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.orderitem', $subfeeitem['id'], null, 0x04);
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
