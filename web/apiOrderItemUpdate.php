@@ -35,6 +35,7 @@ function ciniki_poma_web_apiOrderItemUpdate(&$ciniki, $settings, $business_id, $
         . "ciniki_poma_order_items.order_id, "
         . "ciniki_poma_order_items.object, "
         . "ciniki_poma_order_items.object_id, "
+        . "ciniki_poma_order_items.flags, "
         . "ciniki_poma_order_items.itype, "
         . "ciniki_poma_order_items.weight_quantity, "
         . "ciniki_poma_order_items.unit_quantity "

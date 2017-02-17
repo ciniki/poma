@@ -79,6 +79,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                 $quantity = $item['unit_quantity'];
             }
             $new_item = array();
+
             //
             // Use different rounding depending on the price
             //

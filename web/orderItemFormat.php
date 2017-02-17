@@ -92,6 +92,14 @@ function ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $item
             . '$' . number_format(bcmul($item['quantity'], $item['cdeposit_amount'], 2), 2);
     }
 
+    $item['price_html'] = $item['price_text'];
+    if( $item['discount_text'] != '' ) {
+        $item['price_html'] .= '<span class="discount-text">' . $item['discount_text'] . '</span>';
+    }
+    if( $item['deposit_text'] != '' ) {
+        $item['price_html'] .= '<span class="deposit-text">' . $item['deposit_text'] . '</span>';
+    }
+
     return array('stat'=>'ok', 'item'=>$item);
 }
 ?>
