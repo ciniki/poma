@@ -18,6 +18,9 @@
 # invoice-bottom-message:       The text to show before the footer.
 # invoice-footer-message:       The text to show in the footer of the invoice.
 #
+# email-repeats-added-subject:
+# email-repeats-added-message:
+#
 # Fields
 # ======
 # business_id:  The id of the business the detail is for.
