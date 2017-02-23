@@ -95,6 +95,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
         . "FROM ciniki_poma_customer_items "
         . "WHERE ciniki_poma_customer_items.customer_id = '". ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
         . "AND ciniki_poma_customer_items.itype = 40 "
+        . "AND next_order_date <= '" . ciniki_core_dbQuote($ciniki, $order_date) . "' "
         . "AND ciniki_poma_customer_items.business_id = '". ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryIDTree');
