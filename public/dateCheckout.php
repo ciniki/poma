@@ -187,6 +187,24 @@ function ciniki_poma_dateCheckout($ciniki) {
         $item = $rc['item'];
 
         //
+        // Get the next line number
+        //
+        $strsql = "SELECT MAX(line_number) AS max_line_number "
+            . "FROM ciniki_poma_order_items "
+            . "WHERE ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+            . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "";
+        $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( isset($rc['order']) ) {
+            $item['line_number'] = $rc['order']['max_line_number'] + 1;
+        } else {
+            $item['line_number'] = 1;
+        }
+
+        //
         // Start transaction
         //
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');

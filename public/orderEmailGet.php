@@ -52,7 +52,7 @@ function ciniki_poma_orderEmailGet(&$ciniki) {
     // Load the customer
     //
     if( !isset($order['customer_id']) || $order['customer_id'] == '' || $order['customer_id'] < 1 ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.119', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.136', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
     }
     ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
     $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], 
@@ -61,7 +61,7 @@ function ciniki_poma_orderEmailGet(&$ciniki) {
         return $rc;
     }
     if( !isset($rc['customer']) ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.120', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.137', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
     }
     $customer = $rc['customer'];
 

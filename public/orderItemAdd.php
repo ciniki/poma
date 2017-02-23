@@ -22,7 +22,7 @@ function ciniki_poma_orderItemAdd(&$ciniki) {
         'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
         'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Order'),
         'parent_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Parent'),
-        'line_number'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Line'),
+//        'line_number'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Line'),
         'flags'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Options'),
         'object'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Object'),
         'object_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Object ID'),
@@ -66,10 +66,18 @@ function ciniki_poma_orderItemAdd(&$ciniki) {
     //
     // Load the order
     //
-    $strsql = "SELECT id, uuid, date_id "
+    $strsql = "SELECT ciniki_poma_orders.id, "
+        . "ciniki_poma_orders.uuid, "
+        . "ciniki_poma_orders.status, "
+        . "IFNULL(MAX(line_number), 0) AS max_line_number "
         . "FROM ciniki_poma_orders "
-        . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "LEFT JOIN ciniki_poma_order_items ON ("
+            . "ciniki_poma_orders.id = ciniki_poma_order_items.order_id "
+            . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . ") "
+        . "WHERE ciniki_poma_orders.id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+        . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "GROUP BY ciniki_poma_orders.id "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
     if( $rc['stat'] != 'ok' ) {
@@ -80,6 +88,7 @@ function ciniki_poma_orderItemAdd(&$ciniki) {
     }
     $order = $rc['order'];
     $args['date_id'] = $order['date_id'];
+    $args['line_number'] = $order['max_line_number'] + 1;
 
     //
     // Check for object and lookup
