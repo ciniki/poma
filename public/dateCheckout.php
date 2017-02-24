@@ -27,7 +27,8 @@ function ciniki_poma_dateCheckout($ciniki) {
         'new_object'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'New Object'),
         'new_object_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'new Object ID'),
         'item_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Item'),
-        'new_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Quantity'),
+        'new_unit_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Unit Quantity'),
+        'new_weight_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Weight Quantity'),
         'action'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Action'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -164,8 +165,11 @@ function ciniki_poma_dateCheckout($ciniki) {
         && isset($args['new_object_id']) && $args['new_object_id'] != ''
         && isset($args['order_id']) && $args['order_id'] != ''
         ) {
-        if( !isset($args['new_quantity']) || $args['new_quantity'] == '' || $args['new_quantity'] == '0' ) {
-            $args['new_quantity'] = 1;
+        if( !isset($args['new_unit_quantity']) || $args['new_unit_quantity'] == '' || $args['new_unit_quantity'] == '0' ) {
+            $args['new_unit_quantity'] = 1;
+        }
+        if( !isset($args['new_weight_quantity']) || $args['new_weight_quantity'] == '' || $args['new_weight_quantity'] == '0' ) {
+            $args['new_weight_quantity'] = 0;
         }
 
         //
@@ -221,9 +225,12 @@ function ciniki_poma_dateCheckout($ciniki) {
         //
         $item['order_id'] = $args['order_id'];
         if( $item['itype'] == 10 ) {
-            $item['weight_quantity'] = $args['new_quantity'];
+            $item['weight_quantity'] = $args['new_weight_quantity'];
+        } elseif( $item['itype'] == 20 ) {
+            $item['unit_quantity'] = $args['new_unit_quantity'];
+            $item['weight_quantity'] = $args['new_weight_quantity'];
         } else {
-            $item['unit_quantity'] = $args['new_quantity'];
+            $item['unit_quantity'] = $args['new_unit_quantity'];
         }
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
         $rc = ciniki_core_objectAdd($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $item, 0x04);
@@ -267,7 +274,7 @@ function ciniki_poma_dateCheckout($ciniki) {
     }
 
     if( isset($args['item_id']) && $args['item_id'] != '' && $args['item_id'] > 0 
-        && isset($args['new_quantity']) && $args['new_quantity'] != '' 
+        && ((isset($args['new_unit_quantity']) && $args['new_unit_quantity'] != '') || (isset($args['new_weight_quantity']) && $args['new_weight_quantity'] != ''))
         ) {
         //
         // Get the order item
@@ -309,17 +316,24 @@ function ciniki_poma_dateCheckout($ciniki) {
         $update_args = array();
         $delete = 'no';
         if( $item['itype'] == 10 ) {
-            if( $item['weight_quantity'] != $args['new_quantity'] ) {
-                if( $args['new_quantity'] > 0 ) {
-                    $update_args['weight_quantity'] = $args['new_quantity'];
+            if( isset($args['new_weight_quantity']) && $item['weight_quantity'] != $args['new_weight_quantity'] ) {
+                if( $args['new_weight_quantity'] > 0 ) {
+                    $update_args['weight_quantity'] = $args['new_weight_quantity'];
                 } else {
                     $delete = 'yes';
                 }
             }
         } else {
-            if( $item['unit_quantity'] != $args['new_quantity'] ) {
-                if( $args['new_quantity'] > 0 ) {
-                    $update_args['unit_quantity'] = $args['new_quantity'];
+            if( $item['itype'] == 20 ) {
+                if( isset($args['new_weight_quantity']) && $item['weight_quantity'] != $args['new_weight_quantity'] ) {
+                    if( $args['new_weight_quantity'] > 0 ) {
+                        $update_args['weight_quantity'] = $args['new_weight_quantity'];
+                    }
+                }
+            }
+            if( isset($args['new_unit_quantity']) && $item['unit_quantity'] != $args['new_unit_quantity'] ) {
+                if( $args['new_unit_quantity'] > 0 ) {
+                    $update_args['unit_quantity'] = $args['new_unit_quantity'];
                 } else {
                     $delete = 'yes';
                 }
