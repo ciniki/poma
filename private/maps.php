@@ -46,7 +46,13 @@ function ciniki_poma_maps(&$ciniki) {
         '110'=>'Email',
         '120'=>'Other',
         ));
-
+    $maps['note'] = array(
+        'status'=>array(
+            '0'=>'',
+            '10'=>'Active',
+            '60'=>'Archived',
+        ),
+    );
     return array('stat'=>'ok', 'maps'=>$maps);
 }
 ?>

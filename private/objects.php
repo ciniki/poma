@@ -152,6 +152,20 @@ function ciniki_poma_objects(&$ciniki) {
             ),
         'history_table'=>'ciniki_poma_history',
         );
+    $objects['note'] = array(
+        'name'=>'Note',
+        'sync'=>'yes',
+        'o_name'=>'note',
+        'o_container'=>'notes',
+        'table'=>'ciniki_poma_notes',
+        'fields'=>array(
+            'note_date'=>array('name'=>'Date', 'type'=>'date'),
+            'status'=>array('name'=>'Status', 'default'=>'10'),
+            'customer_id'=>array('name'=>'Customer', 'ref'=>'ciniki.customers.customer', 'default'=>'0'),
+            'content'=>array('name'=>'Content'),
+            ),
+        'history_table'=>'ciniki_poma_history',
+        );
     return array('stat'=>'ok', 'objects'=>$objects);
 }
 ?>
