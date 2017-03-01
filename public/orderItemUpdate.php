@@ -175,6 +175,17 @@ function ciniki_poma_orderItemUpdate(&$ciniki) {
     }
 
     //
+    // Update the order the item was moved to
+    //
+    if( isset($args['order_id']) && $args['order_id'] > 0 ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
+        $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $args['business_id'], $args['order_id']);
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+    }
+
+    //
     // Commit the transaction
     //
     $rc = ciniki_core_dbTransactionCommit($ciniki, 'ciniki.poma');

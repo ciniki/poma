@@ -234,7 +234,7 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         }
     }
     if( $order['total_amount'] != $order['balance_amount'] || $order['payment_status'] > 0 ) {
-        $order['payments'][] = array('label'=>'Balance', 
+        $order['payments'][] = array('label'=>'Order Balance', 
             'status'=>($order['balance_amount'] > 0 ? ($order['balance_amount'] == $order['total_amount'] ? 'red' : 'orange') : 'green'),
             'value'=>'$' . number_format($order['balance_amount'], 2));
     }

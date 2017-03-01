@@ -477,6 +477,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.28', 'msg'=>'Unable to find order'));
         }
         $rsp['order'] = $rc['order'];
+        $rsp['order']['default_payment_amount'] = $rc['order']['balance_amount'];
 //        $rsp['checkout_orderitems'] = $rc['order']['items'];
 //        $rsp['checkout_tallies'] = $rc['order']['tallies'];
 //        $rsp['checkout_orderpayments'] = $rc['order']['payments'];
@@ -569,9 +570,22 @@ function ciniki_poma_dateCheckout($ciniki) {
             }
             if( isset($balance) ) {
                 $rsp['customer_details'][] = array('detail'=>array(
-                    'label'=>'Balance',
+                    'label'=>'Account',
                     'value'=>($balance < 0 ? '-' : '') . '$' . number_format(abs($balance), 2),
                 ));
+                if( $balance < 0 && $balance != $rsp['order']['balance_amount'] ) {
+//                    $rsp['order']['payments'][] = array('label'=>'Account Balance', 
+//                        'value'=>($balance < 0 ? '-' : '') . '$' . number_format(abs($balance), 2),
+//                        );
+                    $rsp['order']['default_payment_amount'] = abs($balance);
+                }
+                $rsp['order']['account_balance'] = $balance;
+                if( $balance < 0 ) {
+                    $rsp['checkout_account'] = array(
+                        array('label'=>'Account Balance Owing', 'status'=>'red', 'value'=>'$' . number_format(abs($balance), 2)),
+                        );
+                } else {
+                }
             }
         }
     }

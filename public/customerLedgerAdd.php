@@ -81,8 +81,8 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
     }
 
 //    $transaction_date = $args['transaction_date_date'] . ' ' . $args['transaction_date_time'];
-    $dt = new DateTime($transaction_date, new DateTimezone($intl_timezone));
-    $args['transaction_date'] = $dt->format('Y-m-d H:i:s');
+//    $dt = new DateTime($transaction_date, new DateTimezone($intl_timezone));
+//    $args['transaction_date'] = $dt->format('Y-m-d H:i:s');
 
     if( !isset($args['transaction_fees']) ) {
         $args['transaction_fees'] = 0;
