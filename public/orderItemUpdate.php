@@ -17,6 +17,7 @@ function ciniki_poma_orderItemUpdate(&$ciniki) {
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
         'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
         'item_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Order Item'),
+        'date_id'=>array('required'=>'no', 'blank'=>'no', 'name'=>'Order Date'),
         'order_id'=>array('required'=>'no', 'blank'=>'no', 'name'=>'Order'),
         'parent_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Parent'),
         'line_number'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Line'),
@@ -64,10 +65,12 @@ function ciniki_poma_orderItemUpdate(&$ciniki) {
     //
     // Get the order item
     //
-    $strsql = "SELECT id, order_id "
-        . "FROM ciniki_poma_order_items "
-        . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+    $strsql = "SELECT items.id, items.order_id, orders.date_id, orders.customer_id "
+        . "FROM ciniki_poma_order_items AS items, ciniki_poma_orders AS orders "
+        . "WHERE items.id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
+        . "AND items.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "AND items.order_id = orders.id "
+        . "AND orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
     if( $rc['stat'] != 'ok' ) {
@@ -85,15 +88,77 @@ function ciniki_poma_orderItemUpdate(&$ciniki) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
     $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
 
     //
+    // Check if new date_id is specified
+    //
+    if( isset($args['date_id']) && $args['date_id'] > 0 && $args['date_id'] != $item['date_id'] ) {
+        //
+        // Check for an order for the customer on that date, and unpaid
+        //
+        $strsql = "SELECT id "
+            . "FROM ciniki_poma_orders "
+            . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $item['customer_id']) . "' "
+            . "AND date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
+            . "AND payment_status < 50 "
+            . "";
+        $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
+        if( $rc['stat'] != 'ok' ) {
+            ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+            return $rc;
+        }
+        if( isset($rc['rows'][0]['id']) ) {
+            $args['order_id'] = $rc['rows'][0]['id'];
+        } else {
+            ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'newOrderForDate');
+            $rc = ciniki_poma_newOrderForDate($ciniki, $args['business_id'], array(
+                'customer_id'=>$item['customer_id'],
+                'date_id'=>$args['date_id'],
+                'checkdate'=>'no',
+                ));
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+            $args['order_id'] = $rc['order']['id'];
+        }
+
+        //
+        // Check for any subitems
+        //
+        if( isset($args['order_id']) && $args['order_id'] > 0 ) {
+            $strsql = "SELECT items.id, items.order_id "
+                . "FROM ciniki_poma_order_items AS items "
+                . "WHERE items.parent_id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
+                . "AND items.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+                . "AND items.order_id = '" . ciniki_core_dbQuote($ciniki, $item['order_id']) . "' "
+                . "";
+            $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+            if( isset($rc['rows']) && count($rc['rows']) > 0 ) {
+                $subitems = $rc['rows'];
+                foreach($subitems as $subitem) {
+                    $rc = ciniki_core_objectUpdate($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $subitem['id'], array('order_id'=>$args['order_id']), 0x04);
+                    if( $rc['stat'] != 'ok' ) {
+                        ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                        return $rc;
+                    }
+                }
+            }
+        }
+    }
+
+    //
     // Update the Order Item in the database
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
     $rc = ciniki_core_objectUpdate($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $args['item_id'], $args, 0x04);
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');

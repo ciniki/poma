@@ -54,11 +54,21 @@ function ciniki_poma_orderItemGet($ciniki) {
     $date_format = ciniki_users_dateFormat($ciniki, 'php');
 
     //
+    // Load poma maps
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'maps');
+    $rc = ciniki_poma_maps($ciniki);
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    $maps = $rc['maps'];
+
+    //
     // Return default for new Order Item
     //
     if( $args['item_id'] == 0 ) {
         $item = array('id'=>0,
-            'order_id'=>'',
+            'order_id'=>0,
             'parent_id'=>'0',
             'line_number'=>'1',
             'flags'=>'0',
@@ -166,6 +176,54 @@ function ciniki_poma_orderItemGet($ciniki) {
         }
     }
 
-    return array('stat'=>'ok', 'item'=>$item);
+    $rsp =  array('stat'=>'ok', 'item'=>$item, 'orderdates'=>array());
+
+    //
+    // Get the list of dates available to move this item to
+    //
+    if( $item['order_id'] > 0 ) {
+        $strsql = "SELECT date_id "
+            . "FROM ciniki_poma_orders "
+            . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $item['order_id']) . "' "
+            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "";
+        $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        $date_id = 0;
+        if( isset($rc['order']['date_id']) ) {
+            $date_id = $rc['order']['date_id'];
+        }
+
+        $dt = new DateTime('now', new DateTimezone($intl_timezone));
+
+        $strsql = "SELECT ciniki_poma_order_dates.id, "
+            . "ciniki_poma_order_dates.order_date, "
+            . "ciniki_poma_order_dates.display_name, "
+            . "ciniki_poma_order_dates.status, "
+            . "ciniki_poma_order_dates.flags "
+            . "FROM ciniki_poma_order_dates "
+            . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND order_date >= '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
+            . "AND id <> '" . ciniki_core_dbQuote($ciniki, $date_id) . "' "
+            . "ORDER BY ciniki_poma_order_dates.order_date ASC "
+            . "LIMIT 15"
+            . "";
+        $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
+            array('container'=>'dates', 'fname'=>'id', 'fields'=>array('id', 'order_date', 'display_name', 'status', 'flags')),
+            ));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( isset($rc['dates']) ) {
+            $rsp['orderdates'] = $rc['dates'];
+            foreach($rsp['orderdates'] as $did => $date) {
+                $rsp['orderdates'][$did]['name_status'] = $date['display_name'] . ' - ' . $maps['orderdate']['status'][$date['status']];
+            }
+        }
+    }
+
+    return $rsp;
 }
 ?>
