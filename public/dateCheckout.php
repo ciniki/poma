@@ -593,19 +593,26 @@ function ciniki_poma_dateCheckout($ciniki) {
     //
     // Get the list of open & closed orders
     //
-    $strsql = "SELECT ciniki_poma_orders.id, "
-        . "IF(ciniki_poma_orders.status < 70, 'open', 'closed') AS state, "
-        . "ciniki_poma_orders.status, "
-        . "ciniki_poma_orders.payment_status, "
-        . "ciniki_poma_orders.billing_name "
-        . "FROM ciniki_poma_orders "
-        . "WHERE date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
-        . "ORDER BY state, billing_name "
+    $strsql = "SELECT orders.id, "
+        . "IF(orders.status < 70, 'open', 'closed') AS state, "
+        . "orders.status, "
+        . "orders.payment_status, "
+        . "orders.billing_name, "
+        . "COUNT(notes.id) AS num_notes "
+        . "FROM ciniki_poma_orders AS orders "
+        . "LEFT JOIN ciniki_poma_notes AS notes ON ("
+            . "orders.customer_id = notes.customer_id "
+            . "AND notes.status = 10 "
+            . "AND notes.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . ") "
+        . "WHERE orders.date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
+        . "AND orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "GROUP BY state, orders.id "
+        . "ORDER BY state, orders.billing_name "
         . "";
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'states', 'fname'=>'state', 'fields'=>array('state')),
-        array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id', 'state', 'status', 'payment_status', 'billing_name'),
+        array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id', 'state', 'status', 'payment_status', 'billing_name', 'num_notes'),
             'maps'=>array('payment_status'=>$maps['order']['payment_status']),
             ),
         ));
