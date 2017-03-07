@@ -305,8 +305,6 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
         }
     }
 
-
-//    $new_order['total_amount'] = $new_order['subtotal_amount'];
     $new_order['total_amount'] = bcadd($new_order['subtotal_amount'], $order_tax_amount, 6);
     if( isset($order['subtotal_discount_amount']) && $order['subtotal_discount_amount'] > 0 ) {
         $new_order['total_amount'] = bcsub($new_order['total_amount'], $order['subtotal_discount_amount'], 2);
