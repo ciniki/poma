@@ -78,6 +78,19 @@ function ciniki_poma_objects(&$ciniki) {
             ),
         'history_table'=>'ciniki_poma_history',
         );
+    $objects['ordertax'] = array(
+        'name'=>'Order Tax',
+        'sync'=>'yes',
+        'table'=>'ciniki_poma_order_taxes',
+        'fields'=>array(
+            'order_id'=>array('ref'=>'ciniki.poma.order'),
+            'taxrate_id'=>array('ref'=>'ciniki.taxes.rate'),
+            'line_number'=>array(),
+            'description'=>array(),
+            'amount'=>array(),
+            ),
+        'history_table'=>'ciniki_poma_history',
+        );
     $objects['customeritem'] = array(
         'name'=>'Customer Item',
         'sync'=>'yes',

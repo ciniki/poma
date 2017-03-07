@@ -492,7 +492,7 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
         } */
         if( $item['discount_text'] != '' && $item['deposit_text'] != '' ) {
             $lh = 17.5;
-        } elseif( $item['discount_text'] != '' || $item['deposit_text'] != '' ) {
+        } elseif( $item['discount_text'] != '' || $item['deposit_text'] != '' || $item['taxtype_name'] != '' ) {
             $lh = 13;
         } else {
             $lh = 6;
@@ -543,7 +543,12 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
             $pdf->MultiCell($w[1], $lh, $quantity . '$' . number_format($item['unit_amount'], 2), 1, 'R', $fill, 
                 0, '', '', true, 0, false, true, 0, 'T', false);
         }
-        $pdf->MultiCell($w[2], $lh, '$' . number_format($item['total_amount'], 2), 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
+        if( isset($item['taxtype_name']) && $item['taxtype_name'] != '' ) {
+            $pdf->MultiCell($w[2], $lh, '$' . number_format($item['total_amount'], 2)
+                . "\n" . $item['taxtype_name'], 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
+        } else {
+            $pdf->MultiCell($w[2], $lh, '$' . number_format($item['total_amount'], 2), 1, 'R', $fill, 0, '', '', true, 0, false, true, 0, 'T', false);
+        }
         $pdf->Ln(); 
         $fill=!$fill;
     }
@@ -584,8 +589,8 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
     if( isset($order['taxes']) && count($order['taxes']) > 0 ) {
         foreach($order['taxes'] as $tax) {
             $pdf->Cell($w[0], $lh, '', $blank_border);
-            $pdf->Cell($w[1], $lh, $tax['tax']['description'], 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
-            $pdf->Cell($w[2], $lh, $tax['tax']['amount_display'], 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
+            $pdf->Cell($w[1], $lh, $tax['description'], 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
+            $pdf->Cell($w[2], $lh, $tax['amount_display'], 1, 0, 'R', $fill, '', 0, false, 'T', 'T');
             $pdf->Ln();
             $fill=!$fill;
         }

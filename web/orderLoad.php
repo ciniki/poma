@@ -171,8 +171,13 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         . "ciniki_poma_order_items.subtotal_amount, "
         . "ciniki_poma_order_items.discount_amount, "
         . "ciniki_poma_order_items.total_amount, "
-        . "ciniki_poma_order_items.taxtype_id "
+        . "ciniki_poma_order_items.taxtype_id, "
+        . "IFNULL(taxtypes.name, '') AS taxtype_name "
         . "FROM ciniki_poma_order_items "
+        . "LEFT JOIN ciniki_tax_types AS taxtypes ON ("
+            . "ciniki_poma_order_items.taxtype_id = taxtypes.id "
+            . "AND taxtypes.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . ") "
         . "WHERE ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
         . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
 //        . "AND ciniki_poma_order_items.parent_id = 0 "   // Don't load child items, they are only used for product baskets in foodmarket
@@ -183,7 +188,8 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         array('container'=>'items', 'fname'=>'id', 
             'fields'=>array('id', 'parent_id', 'line_number', 'object', 'object_id', 'code', 'description', 
                 'flags', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'cdeposit_description', 'cdeposit_amount',
-                'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'subtotal_amount', 'discount_amount', 'total_amount', 'taxtype_id')),
+                'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'subtotal_amount', 'discount_amount', 'total_amount', 
+                'taxtype_id', 'taxtype_name')),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -253,6 +259,39 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         }
         return $a['line_number'] < $b['line_number'] ? -1 : 1;
         });
+
+    // 
+    // Get the taxes
+    //
+    $strsql = "SELECT id, " 
+        . "line_number, "
+        . "description, "
+        . "ROUND(amount, 2) AS amount "
+        . "FROM ciniki_poma_order_taxes "
+        . "WHERE ciniki_poma_order_taxes.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
+        . "AND ciniki_poma_order_taxes.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "ORDER BY line_number, date_added "
+        . "";
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryTree');
+    $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
+        array('container'=>'taxes', 'fname'=>'id', 'name'=>'tax',
+            'fields'=>array('id', 'line_number', 'description', 'amount')),
+        ));
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( !isset($rc['taxes']) ) {
+        $order['taxes'] = array();
+        $order['taxes_amount'] = 0;
+    } else {
+        $order['taxes'] = $rc['taxes'];
+        $order['taxes_amount'] = 0;
+        foreach($rc['taxes'] as $tid => $tax) {
+            if( $tax['amount'] > 0 ) {
+                $order['taxes_amount'] = bcadd($order['taxes_amount'], $tax['amount'], 2);
+            } 
+        }
+    }
 
     return array('stat'=>'ok', 'order'=>$order);
 }

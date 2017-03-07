@@ -44,12 +44,14 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     // Recalculate the totals
     //
     $new_order = array(
+        'date'=>$order['order_date'],
         'subtotal_amount'=>0,
         'discount_amount'=>0,
         'total_amount'=>0,
         'total_savings'=>0,
         'paid_amount'=>0,
         'balance_amount'=>0,
+        'items'=>array(),
         );
     $max_line_number = 0;
     if( isset($order['items']) && count($order['items']) > 0 ) {
@@ -195,7 +197,117 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
         }
     }
 
-    $new_order['total_amount'] = $new_order['subtotal_amount'];
+    //
+    // Build the hash of invoice details and items to pass to ciniki.taxes for tax calculations
+    //
+    if( count($order['items']) > 0 ) {
+        foreach($order['items'] as $iid => $item) {
+            if( $item['taxtype_id'] > 0 ) {
+                if( $item['itype'] == 10 || $item['itype'] == 20 ) {
+                    $quantity = $item['weight_quantity'];
+                } else {
+                    $quantity = $item['unit_quantity'];
+                }
+                $new_order['items'][] = array(
+                    'id'=>$item['id'],
+                    'amount'=>$item['total_amount'],
+                    'quantity'=>$quantity,
+                    'taxtype_id'=>$item['taxtype_id'],
+                    );
+            }
+        }
+    }
+    
+    //
+    // Pass to the taxes module to calculate the taxes
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'taxes', 'private', 'calcInvoiceTaxes');
+    $rc = ciniki_taxes_calcInvoiceTaxes($ciniki, $business_id, $new_order);
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    $new_taxes = $rc['taxes'];
+
+    //
+    // Get the existing taxes for the order
+    //
+    $strsql = "SELECT id, uuid, taxrate_id, description, amount "
+        . "FROM ciniki_poma_order_taxes "
+        . "WHERE ciniki_poma_order_taxes.order_id = '" . ciniki_core_dbQuote($ciniki, $order_id) . "' "
+        . "AND ciniki_poma_order_taxes.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "";
+    $rc = ciniki_core_dbHashIDQuery($ciniki, $strsql, 'ciniki.poma', 'taxes', 'taxrate_id');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( isset($rc['taxes']) ) {
+        $old_taxes = $rc['taxes'];
+    } else {
+        $old_taxes = array();
+    }
+    
+    //
+    // Check if order taxes need to be updated or added 
+    //
+    $order_tax_amount = 0;
+    $included_tax_amount = 0;
+    foreach($new_taxes as $tid => $tax) {
+        $tax_amount = bcadd($tax['calculated_items_amount'], $tax['calculated_invoice_amount'], 4);
+        if( isset($old_taxes[$tid]) ) {
+            $args = array();
+            if( $tax_amount != $old_taxes[$tid]['amount'] ) {
+                $args['amount'] = $tax_amount;
+            }
+            // Check if the name is different, perhaps it was updated
+            if( $tax['name'] != $old_taxes[$tid]['description'] ) {
+                $args['description'] = $tax['name'];
+            }
+            if( count($args) > 0 ) {
+                $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.ordertax', $old_taxes[$tid]['id'], $args, 0x04);
+                if( $rc['stat'] != 'ok' ) {
+                    return $rc;
+                }
+            }
+        } else {
+            $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.ordertax', 
+                array(
+                    'order_id'=>$order_id,
+                    'taxrate_id'=>$tid,
+                    'flags'=>$tax['flags'],
+                    'line_number'=>1,
+                    'description'=>$tax['name'],
+                    'amount'=>$tax_amount,
+                    ), 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+        }
+        //
+        // Keep track of the total taxes for the order
+        //
+        if( ($tax['flags']&0x01) == 0x01 ) {
+            $included_tax_amount = bcadd($included_tax_amount, $tax_amount, 4);
+        } else {
+            $order_tax_amount = bcadd($order_tax_amount, $tax_amount, 4);
+        }
+    }
+
+    //
+    // Check if any taxes are no longer applicable
+    //
+    foreach($old_taxes as $tid => $tax) {
+        if( !isset($new_taxes[$tid]) ) {
+            // Remove the tax
+            $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.ordertax', $tax['id'], $tax['uuid'], 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+        }
+    }
+
+
+//    $new_order['total_amount'] = $new_order['subtotal_amount'];
+    $new_order['total_amount'] = bcadd($new_order['subtotal_amount'], $order_tax_amount, 6);
     if( isset($order['subtotal_discount_amount']) && $order['subtotal_discount_amount'] > 0 ) {
         $new_order['total_amount'] = bcsub($new_order['total_amount'], $order['subtotal_discount_amount'], 2);
         if( $new_order['total_amount'] < 0 ) {

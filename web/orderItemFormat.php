@@ -99,6 +99,14 @@ function ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $item
     if( $item['deposit_text'] != '' ) {
         $item['price_html'] .= '<span class="deposit-text">' . $item['deposit_text'] . '</span>';
     }
+    $item['tax_text'] = '';
+    if( $item['taxtype_id'] > 0 ) {
+        if( isset($item['taxtype_name']) && $item['taxtype_name'] != '' ) {
+            $item['tax_text'] = $item['taxtype_name'];
+        } else {
+            $item['tax_text'] = 'Taxable';
+        }
+    }
 
     return array('stat'=>'ok', 'item'=>$item);
 }
