@@ -6,6 +6,53 @@ function ciniki_poma_main() {
     this.unitFlags = {'9':{'name':'Each'}, '10':{'name':'Pair'}, '11':{'name':'Bunch'}, '12':{'name':'Bag'}};
     this.caseFlags = {'17':{'name':'Case'}, '18':{'name':'Bushel'}, };
 
+    this.taxreport = new M.panel('Tax Report', 'ciniki_sapos_invoicereports', 'taxreport', 'mc', 'large', 'sectioned', 'ciniki.sapos.invoicereports.taxreport');
+    this.taxreport.year = null;
+    this.taxreport.quarter = 0;
+    this.taxreport.data = {};
+    this.taxreport.sections = {
+        'quarters':{'label':'', 'type':'simplegrid', 'num_cols':2,
+            'noData':'No taxes found',
+            },
+    };
+    this.taxreport.sectionData = function(s) {
+        return this.data[s];
+    };
+    this.taxreport.headerValue = function(s, i, d) {
+        if( i == 0 ) { return 'Quarter'; }
+        if( i > 1 && i == (this.sections.quarters.num_cols - 1) ) { return 'Total'; }
+        return this.data.taxrates[(i-1)].name;
+    };
+    this.taxreport.cellValue = function(s, i, j, d) {
+        if( j == 0 ) { return d.start_date + ' - ' + d.end_date; }
+        if( j > 1 && j == (this.sections.quarters.num_cols - 1) ) { return d.total_amount_display; }
+        return d.taxrates[this.data.taxrates[(j-1)].id].amount_display;
+    };
+    this.taxreport.setup = function() {
+    };
+    this.taxreport.open = function(cb, report) {
+        var method = '';
+        switch (report) {
+            case 'taxreport': method = 'ciniki.sapos.reportInvoicesTaxes'; break;
+        }
+        M.api.getJSONCb(method, {'business_id':M.curBusinessID}, function(rsp) {
+            if( rsp.stat != 'ok' ) {
+                M.api.err(rsp);
+                return false;
+            }
+            var p = M.ciniki_sapos_invoicereports[report];
+            p.data = rsp;
+            console.log(p.data.taxrates.length);
+            if( p.data.taxrates.length > 1 ) {
+                p.sections.quarters.num_cols = p.data.taxrates.length + 2;
+            } else {
+                p.sections.quarters.num_cols = 2;
+            }
+            p.refresh();
+            p.show(cb);
+        });
+    };
+    this.taxreport.addClose('Back');
     //
     // The panel to list the orderdate
     //
@@ -22,8 +69,8 @@ function ciniki_poma_main() {
 //            'repeats':{'label':'Standing', 'fn':'M.ciniki_poma_main.menu.open(null,"repeats");'},
 //            'queue':{'label':'Queue', 'fn':'M.ciniki_poma_main.menu.open(null,"queue");'},
             'dates':{'label':'Dates', 'fn':'M.ciniki_poma_main.menu.open(null,"dates");'},
+            'taxes':{'label':'Taxes', 'fn':'M.ciniki_poma_main.menu.open(null,"taxes");'},
             'history':{'label':'History', 'fn':'M.ciniki_poma_main.menu.open(null,"history");'},
-//            'favourites':{'label':'Favourites', 'fn':'M.ciniki_poma_main.menu.open(null,"favourites");'}, // MOVED TO foodmarket
             }},
         '_dates':{'label':'Change Date', 'aside':'yes',
             'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'checkout') ? 'yes':'no'; },
@@ -102,6 +149,10 @@ function ciniki_poma_main() {
                     'fn':'M.ciniki_poma_main.menu.orderRemove()',
                     },
             }},
+        'tax_quarters':{'label':'', 'type':'simplegrid', 'num_cols':2,
+            'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'taxes') ? 'yes':'no'; },
+            'noData':'No taxes found',
+            },
     }
     this.menu.fieldValue = function(s, i, d) {
         return this.date_id;
@@ -136,6 +187,13 @@ function ciniki_poma_main() {
             return 'highlight';
         }
     }
+    this.menu.headerValue = function(s, i, d) {
+        if( s == 'tax_quarters' ) {
+            if( i == 0 ) { return 'Quarter'; }
+            if( i > 1 && i == (this.sections.tax_quarters.num_cols - 1) ) { return 'Total'; }
+            return this.data.taxrates[(i-1)].name;
+        }
+    };
     this.menu.cellValue = function(s, i, j, d) {
         if( s == 'open_orders' ) { return d.billing_name; }
         if( s == 'closed_orders' ) { return d.billing_name; }
@@ -195,6 +253,11 @@ function ciniki_poma_main() {
                 case 0: return d.description;
                 case 1: return d.num_orders;
             }
+        }
+        if( s == 'tax_quarters' ) {
+            if( j == 0 ) { return d.start_date + ' - ' + d.end_date; }
+            if( j > 1 && j == (this.sections.tax_quarters.num_cols - 1) ) { return d.total_amount_display; }
+            return d.taxrates[this.data.taxrates[(j-1)].id].amount_display;
         }
     }
     this.menu.rowFn = function(s, i, d) {
@@ -307,6 +370,25 @@ function ciniki_poma_main() {
                 var p = M.ciniki_poma_main.menu;
                 p.size = 'medium';
                 p.data = rsp;
+                p.date_nplist = (rsp.date_nplist != null ? rsp.date_nplist : null);
+                p.refresh();
+                p.show(cb);
+            });
+        }
+        else if( this.sections._tabs.selected == 'taxes' ) {
+            M.api.getJSONCb('ciniki.poma.reportOrderTaxes', {'business_id':M.curBusinessID}, function(rsp) {
+                if( rsp.stat != 'ok' ) {
+                    M.api.err(rsp);
+                    return false;
+                }
+                var p = M.ciniki_poma_main.menu;
+                p.size = 'large';
+                p.data = rsp;
+                if( p.data.taxrates.length > 1 ) {
+                    p.sections.tax_quarters.num_cols = p.data.taxrates.length + 2;
+                } else {
+                    p.sections.tax_quarters.num_cols = 2;
+                }
                 p.date_nplist = (rsp.date_nplist != null ? rsp.date_nplist : null);
                 p.refresh();
                 p.show(cb);
