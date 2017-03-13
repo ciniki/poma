@@ -26,7 +26,7 @@ function ciniki_poma_web_apiOrderItemUpdate(&$ciniki, $settings, $business_id, $
     if( !isset($ciniki['session']['customer']['id']) || $ciniki['session']['customer']['id'] < 1 ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.55', 'msg'=>'No customer specified.'));
     }
-    
+
     //
     // Load the detail for the item in the order
     //
@@ -167,6 +167,16 @@ function ciniki_poma_web_apiOrderItemUpdate(&$ciniki, $settings, $business_id, $
     }
     if( isset($rc['order']) ) {
         $order = $rc['order'];
+        //
+        // Update the flag to mail the order to the customer
+        //
+        if( ($order['flags']&0x10) == 0 ) {
+            $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.order', $existing_item['order_id'], array('flags'=>$order['flags'] |= 0x10), 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+        }
     }
 
     //

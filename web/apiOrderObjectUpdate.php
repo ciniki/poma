@@ -84,6 +84,7 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
     // Check if there is already an order
     //
     $strsql = "SELECT ciniki_poma_orders.id, "
+        . "ciniki_poma_orders.flags, "
         . "ciniki_poma_orders.status, "
         . "IFNULL(MAX(line_number), 0) AS max_line_number "
         . "FROM ciniki_poma_orders "
@@ -246,6 +247,17 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $business_id,
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
         return $rc;
+    }
+
+    //
+    // Update the flag to mail the order to the customer
+    //
+    if( isset($order['flags']) && ($order['flags']&0x10) == 0 ) {
+        $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.order', $order['id'], array('flags'=>$order['flags'] |= 0x10), 0x04);
+        if( $rc['stat'] != 'ok' ) {
+            ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+            return $rc;
+        }
     }
 
     //

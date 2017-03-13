@@ -236,6 +236,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
         . "WHERE ciniki_poma_order_taxes.order_id = '" . ciniki_core_dbQuote($ciniki, $order_id) . "' "
         . "AND ciniki_poma_order_taxes.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "";
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashIDQuery');
     $rc = ciniki_core_dbHashIDQuery($ciniki, $strsql, 'ciniki.poma', 'taxes', 'taxrate_id');
     if( $rc['stat'] != 'ok' ) {
         return $rc;

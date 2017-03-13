@@ -18,6 +18,15 @@ function ciniki_poma_cron_jobs(&$ciniki) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQuery');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'dateRepeatsAdd');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'dateLock');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'emailUpdatedOrder');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
+
+    //
+    // FIXME: Check business for orders dates < 4 weeks out
+    //
 
     //
     // Get the list of businesses with dates that need to have repeats applied
@@ -37,10 +46,6 @@ function ciniki_poma_cron_jobs(&$ciniki) {
             //
             // Start transaction
             //
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
             $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
@@ -85,10 +90,6 @@ function ciniki_poma_cron_jobs(&$ciniki) {
             //
             // Start transaction
             //
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
-            ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
             $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
@@ -98,6 +99,50 @@ function ciniki_poma_cron_jobs(&$ciniki) {
             $rc = ciniki_poma_dateLock($ciniki, $row['business_id'], $row['id']);
             if( $rc['stat'] != 'ok' ) {
                 ciniki_cron_logMsg($ciniki, $row['business_id'], array('code'=>'ciniki.poma.98', 'msg'=>'Unable to lock date.',
+                    'cron_id'=>0, 'severity'=>50, 'err'=>$rc['err'],
+                    ));
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+
+            //
+            // Commit the transaction
+            //
+            $rc = ciniki_core_dbTransactionCommit($ciniki, 'ciniki.poma');
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+        }
+    }
+
+    //
+    // Check for orders that are marked for email and last modified more than 30 minutes ago
+    //
+    $dt = new DateTime('now', new DateTimezone('UTC'));
+    $dt->sub(new DateInterval('PT30M'));
+
+    $strsql = "SELECT id, business_id "
+        . "FROM ciniki_poma_orders "
+        . "WHERE (flags&0x10) = 0x10 "
+        . "AND last_updated < '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d H:i:s')) . "' "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'orders');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( isset($rc['rows']) ) {
+        foreach($rc['rows'] as $row) {
+            //
+            // Start transaction
+            //
+            $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+
+            $rc = ciniki_poma_emailUpdatedOrder($ciniki, $row['business_id'], $row['id']);
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_cron_logMsg($ciniki, $row['business_id'], array('code'=>'ciniki.poma.144', 'msg'=>'Unable to email order.',
                     'cron_id'=>0, 'severity'=>50, 'err'=>$rc['err'],
                     ));
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');

@@ -107,7 +107,6 @@ function ciniki_poma_invoicePDF(&$ciniki) {
         // Add to the mail module
         //
         ciniki_core_loadMethod($ciniki, 'ciniki', 'mail', 'hooks', 'addMessage');
-        $test = $pdf->Output('invoice', 'S');
         $rc = ciniki_mail_hooks_addMessage($ciniki, $args['business_id'], array(
             'object'=>'ciniki.poma.order',
             'object_id'=>$args['order_id'],

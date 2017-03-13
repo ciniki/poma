@@ -45,6 +45,7 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
         . "ciniki_poma_orders.order_number, "
         . "ciniki_poma_orders.customer_id, "
         . "ciniki_poma_orders.status, "
+        . "ciniki_poma_orders.flags, "
         . "ciniki_poma_orders.payment_status, "
         . "ciniki_poma_orders.order_date, "
         . "ciniki_poma_orders.billing_name, "
@@ -126,8 +127,8 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'formatItems');
     if( isset($rc['items']) ) {
-        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'formatItems');
         $rc = ciniki_poma_formatItems($ciniki, $business_id, $rc['items']);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
@@ -189,7 +190,11 @@ function ciniki_poma_orderLoad(&$ciniki, $business_id, $order_id) {
     if( isset($rc['parents']) ) {
         foreach($order['items'] as $iid => $item) {
             if( isset($rc['parents'][$item['id']]['items']) ) {
-                $order['items'][$iid]['subitems'] = $rc['parents'][$item['id']]['items'];
+                $rc = ciniki_poma_formatItems($ciniki, $business_id, $rc['parents'][$item['id']]['items']);
+                if( $rc['stat'] != 'ok' ) {
+                    return $rc;
+                }
+                $order['items'][$iid]['subitems'] = $rc['items'];
             }
         }
     }
