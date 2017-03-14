@@ -116,7 +116,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
             'subject'=>$subject,
             'html_content'=>$textmsg,
             'text_content'=>$textmsg,
-            'attachments'=>array(array('content'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename . '.pdf')),
+            'attachments'=>array(array('content'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename)),
             ));
         if( $rc['stat'] != 'ok' ) {
             ciniki_core_dbTransactionRollback($ciniki, 'ciniki.mail');
@@ -142,7 +142,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
     }
 
     if( isset($rc['pdf']) ) {
-        $rc['pdf']->Output($rc['filename'] . '.pdf', 'D');
+        $rc['pdf']->Output($rc['filename'], 'D');
     }
 
     return array('stat'=>'exit');

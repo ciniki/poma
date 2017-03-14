@@ -659,7 +659,7 @@ function ciniki_poma_templates_invoice(&$ciniki, $business_id, $order_id) {
         $pdf->MultiCell(180, 5, $poma_settings['invoice-bottom-message'], 0, 'L');
     }
 
-    $filename = preg_replace("/[^a-zA-Z0-9_]/", '_', 'invoice_' . $order['order_number']);
+    $filename = preg_replace("/[^a-zA-Z0-9_]/", '_', 'invoice_' . $order['order_number']) . '.pdf';
 
     //
     // Let the calling function decide how they want to send the file

@@ -84,6 +84,7 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $business_id, $date_id) {
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderLoad');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'templates', 'invoice');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'mail', 'hooks', 'addMessage');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
 
@@ -96,11 +97,14 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $business_id, $date_id) {
         //
         // Load the order
         //
-        $rc = ciniki_poma_orderLoad($ciniki, $business_id, $order_id);
+        $rc = ciniki_poma_templates_invoice($ciniki, $business_id, $order_id);
+//        $rc = ciniki_poma_orderLoad($ciniki, $business_id, $order_id);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
         $order = $rc['order'];
+        $pdf = $rc['pdf'];
+        $filename = $rc['filename'];
     
         //
         // Skip this order if it's already been emailed
@@ -164,20 +168,6 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $business_id, $date_id) {
         $text_message = $settings['email-pickup-reminder-message'];
 
         //
-        // If the {_orderitems_} was not specified in the message, attach to bottom of message
-        //
-        if( strpos($html_message, '{_orderitems_}') !== FALSE ) {
-            $html_message = str_replace('{_orderitems_}', $html_items, $html_message);
-        } else {
-            $html_message .= "<br/>" . $html_items;
-        }
-        if( strpos($text_message, '{_orderitems_}') !== FALSE ) {
-            $text_message = str_replace('{_orderitems_}', $text_items, $text_message);
-        } else {
-            $text_message .= "\n" . $text_items;
-        }
-
-        //
         // Load the customer
         //
         if( !isset($order['customer_id']) || $order['customer_id'] == '' || $order['customer_id'] < 1 ) {
@@ -203,10 +193,12 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $business_id, $date_id) {
         $html_message = str_ireplace('{_firstname_}', $customer['first'], $html_message);
         $html_message = str_ireplace('{_orderdate_}', $order['order_date_text'], $html_message);
         $html_message = str_ireplace('{_ordernumber_}', $order['order_number'], $html_message);
+        $html_message = str_ireplace('{_orderitems_}', $html_items, $html_message);
 
         $text_message = str_ireplace('{_firstname_}', $customer['first'], $text_message);
         $text_message = str_ireplace('{_orderdate_}', $order['order_date_text'], $text_message);
         $text_message = str_ireplace('{_ordernumber_}', $order['order_number'], $text_message);
+        $text_message = str_ireplace('{_orderitems_}', $text_items, $text_message);
 
         //
         // Add the message to the outgoing queue
@@ -220,6 +212,7 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $business_id, $date_id) {
             'subject'=>$subject,
             'html_content'=>$html_message,
             'text_content'=>$text_message,
+            'attachments'=>array(array('content'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename)),
             ));
         if( $rc['stat'] != 'ok' ) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.157', 'msg'=>'Unable to create mail message.', 'err'=>$rc['err']));
@@ -237,7 +230,7 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $business_id, $date_id) {
     //
     // All was successful, mark the date as done for pickup reminders
     //
-    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderdate', $date_id, array('flags'=>(int)($order['flags']&~0x40)), 0x04);
+    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderdate', $date_id, array('flags'=>(int)($date['flags']&~0x40)), 0x04);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
