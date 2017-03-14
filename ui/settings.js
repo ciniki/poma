@@ -108,10 +108,10 @@ function ciniki_poma_settings() {
     this.emails.selected = 'repeats';
     this.emails.sections = {
         '_menu':{'label':'Email Templates', 'aside':'yes', 'list':{
-            'repeats':{'label':'Standing Order Added', 'fn':'M.ciniki_poma_settings.emails.switchTab("repeats");'},
+//            'repeats':{'label':'Standing Order Added', 'fn':'M.ciniki_poma_settings.emails.switchTab("repeats");'},
 //            'subs':{'label':'Substitutions Enabled', 'fn':'M.ciniki_poma_settings.emails.switchTab("subs");'},
             'locking':{'label':'Locking Notice 24 Hours', 'fn':'M.ciniki_poma_settings.emails.switchTab("locking");'},
-            'locked':{'label':'Order Locked', 'fn':'M.ciniki_poma_settings.emails.switchTab("locked");'},
+//            'locked':{'label':'Order Locked', 'fn':'M.ciniki_poma_settings.emails.switchTab("locked");'},
             'pickup':{'label':'Pickup Reminder', 'fn':'M.ciniki_poma_settings.emails.switchTab("pickup");'},
             'updated':{'label':'Order Updated', 'fn':'M.ciniki_poma_settings.emails.switchTab("updated");'},
             'order':{'label':'Email Order', 'fn':'M.ciniki_poma_settings.emails.switchTab("order");'},
@@ -162,7 +162,7 @@ function ciniki_poma_settings() {
             }},
         '_pickup_help':{'label':'Pickup Reminder', 'type':'htmlcontent', 'aside':'yes',
             'visible':function() { return (M.ciniki_poma_settings.emails.selected == 'pickup' ? 'yes' : 'hidden'); },
-            'html':'This email will be sent on pickup day to remind the customer of their order.'
+            'html':'This email will be sent typically on the pickup date to remind the customer of their order.'
             },
         '_pickup_subject':{'label':'Subject', 
             'visible':function() { return (M.ciniki_poma_settings.emails.selected == 'pickup' ? 'yes' : 'hidden'); },
@@ -176,7 +176,7 @@ function ciniki_poma_settings() {
             }},
         '_updated_help':{'label':'Order Updated', 'type':'htmlcontent', 'aside':'yes',
             'visible':function() { return (M.ciniki_poma_settings.emails.selected == 'updated' ? 'yes' : 'hidden'); },
-            'html':'This email will be sent 1 hour after their order was changed.'
+            'html':'This email will be sent 30 minutes after their order was changed.'
             },
         '_updated_subject':{'label':'Subject', 
             'visible':function() { return (M.ciniki_poma_settings.emails.selected == 'updated' ? 'yes' : 'hidden'); },

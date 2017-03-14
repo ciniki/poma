@@ -126,6 +126,8 @@ function ciniki_poma_objects(&$ciniki) {
             'flags'=>array('name'=>'Options', 'default'=>'0'),
             'repeats_dt'=>array('name'=>'Repeats Date', 'default'=>''),
             'autolock_dt'=>array('name'=>'Auto Lock Date', 'default'=>''),
+            'lockreminder_dt'=>array('name'=>'Lock Reminder Date', 'default'=>''),
+            'pickupreminder_dt'=>array('name'=>'Pickup Reminder Date', 'default'=>''),
             'notices'=>array('name'=>'Notices', 'default'=>''),
             ),
         'history_table'=>'ciniki_poma_history',

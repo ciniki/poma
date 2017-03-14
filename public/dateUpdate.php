@@ -24,6 +24,10 @@ function ciniki_poma_dateUpdate(&$ciniki) {
         'repeats_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Repeat Time'),
         'autolock_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Auto Lock Date'),
         'autolock_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Auto Lock Time'),
+        'lockreminder_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Auto Lock Date'),
+        'lockreminder_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Auto Lock Time'),
+        'pickupreminder_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Pickup Reminder Date'),
+        'pickupreminder_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup Reminder Time'),
         'notices'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notices'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -80,6 +84,12 @@ function ciniki_poma_dateUpdate(&$ciniki) {
         . "ciniki_poma_order_dates.autolock_dt, "
         . "ciniki_poma_order_dates.autolock_dt AS autolock_date, "
         . "ciniki_poma_order_dates.autolock_dt AS autolock_time, "
+        . "ciniki_poma_order_dates.lockreminder_dt, "
+        . "ciniki_poma_order_dates.lockreminder_dt AS lockreminder_date, "
+        . "ciniki_poma_order_dates.lockreminder_dt AS lockreminder_time, "
+        . "ciniki_poma_order_dates.pickupreminder_dt, "
+        . "ciniki_poma_order_dates.pickupreminder_dt AS pickupreminder_date, "
+        . "ciniki_poma_order_dates.pickupreminder_dt AS pickupreminder_time, "
         . "ciniki_poma_order_dates.notices "
         . "FROM ciniki_poma_order_dates "
         . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
@@ -89,13 +99,20 @@ function ciniki_poma_dateUpdate(&$ciniki) {
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'dates', 'fname'=>'id', 
             'fields'=>array('order_date', 'display_name', 'status', 'flags', 'repeats_dt', 'repeats_date', 'repeats_time', 
-                'autolock_dt', 'autolock_date', 'autolock_time', 'notices'),
+                'autolock_dt', 'autolock_date', 'autolock_time', 
+                'lockreminder_dt', 'lockreminder_date', 'lockreminder_time', 
+                'pickupreminder_dt', 'pickupreminder_date', 'pickupreminder_time', 
+                'notices'),
             'utctotz'=>array(
                 'order_date'=>array('timezone'=>'UTC', 'format'=>$date_format),
                 'repeats_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
                 'repeats_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                 'autolock_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
                 'autolock_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
+                'lockreminder_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
+                'lockreminder_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
+                'pickupreminder_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
+                'pickupreminder_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                 ),
             ),
         ));
@@ -134,6 +151,34 @@ function ciniki_poma_dateUpdate(&$ciniki) {
                 $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
                 if( $dt->format('Y-m-d H:i:s') != $date['autolock_dt'] ) {
                     $args['autolock_dt'] = $dt->format('Y-m-d H:i:s');
+                }
+            }
+        }
+    }
+    if( isset($args['lockreminder_date']) || isset($args['lockreminder_time']) ) {
+        $args['lockreminder_dt'] = (isset($args['lockreminder_date']) ? $args['lockreminder_date'] : $date['lockreminder_date']) . ' ' . (isset($args['lockreminder_time']) ? $args['lockreminder_time'] : $date['lockreminder_time']);
+        if( trim($args['lockreminder_dt']) != '' ) {
+            $ts = strtotime($args['lockreminder_dt']);
+            if( $ts === FALSE || $ts < 1 ) {
+                $args['lockreminder_dt'] = '';
+            } else {
+                $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+                if( $dt->format('Y-m-d H:i:s') != $date['lockreminder_dt'] ) {
+                    $args['lockreminder_dt'] = $dt->format('Y-m-d H:i:s');
+                }
+            }
+        }
+    }
+    if( isset($args['pickupreminder_date']) || isset($args['pickupreminder_time']) ) {
+        $args['pickupreminder_dt'] = (isset($args['pickupreminder_date']) ? $args['pickupreminder_date'] : $date['pickupreminder_date']) . ' ' . (isset($args['pickupreminder_time']) ? $args['pickupreminder_time'] : $date['pickupreminder_time']);
+        if( trim($args['pickupreminder_dt']) != '' ) {
+            $ts = strtotime($args['pickupreminder_dt']);
+            if( $ts === FALSE || $ts < 1 ) {
+                $args['pickupreminder_dt'] = '';
+            } else {
+                $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+                if( $dt->format('Y-m-d H:i:s') != $date['pickupreminder_dt'] ) {
+                    $args['pickupreminder_dt'] = $dt->format('Y-m-d H:i:s');
                 }
             }
         }

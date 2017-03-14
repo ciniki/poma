@@ -29,10 +29,18 @@
 #                       0x02 - 
 #                       0x04 - 
 #                       0x08 - 
+#                       0x10 - 
+#                       0x20 - Lock Reminder
+#                       0x40 - Pickup Reminder
+#                       0x80 - 
 #
 # repeats_dt:       The UTC date and time the repeat items will be applied to an order.
 #
 # autolock_dt:      The UTC date and time the order will automatically move into status 50.
+# 
+# lockreminder_dt:  The UTC date and time the order will be sent to the customers.
+#
+# pickupreminder_dt:    The UTC date and time the pickup reminder will be sent to customers.
 #
 # notices:          Any public notices that should be displayed to the customer on their orders for this date.
 #                   Allows for reminders, etc. **future**
@@ -50,10 +58,12 @@ create table ciniki_poma_order_dates (
     flags tinyint unsigned not null,
     repeats_dt datetime not null,  
     autolock_dt datetime not null,  
+    lockreminder_dt datetime not null,  
+    pickupreminder_dt datetime not null,  
     notices varchar(2000) not null,
     date_added datetime not null,
     last_updated datetime not null,
     primary key (id),
     unique index (uuid),
     index sync (business_id, uuid, last_updated)
-) ENGINE='InnoDB', COMMENT='v1.01';
+) ENGINE='InnoDB', COMMENT='v1.02';

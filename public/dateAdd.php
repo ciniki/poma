@@ -27,6 +27,10 @@ function ciniki_poma_dateAdd(&$ciniki) {
         'autolock_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Auto Lock Time'),
         'repeats_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Repeat Date'),
         'repeats_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Repeat Time'),
+        'lockreminder_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Lock Reminder Date'),
+        'lockreminder_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Lock Reminder Time'),
+        'pickupreminder_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Pickup Reminder Date'),
+        'pickupreminder_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup Reminder Time'),
         'notices'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notices'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -80,6 +84,26 @@ function ciniki_poma_dateAdd(&$ciniki) {
         } else {
             $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
             $args['autolock_dt'] = $dt->format('Y-m-d H:i:s');
+        }
+    }
+    $args['lockreminder_dt'] = (isset($args['lockreminder_date']) ? $args['lockreminder_date'] : '') . ' ' . (isset($args['lockreminder_time']) ? $args['lockreminder_time'] : '');
+    if( trim($args['lockreminder_dt']) != '' ) {
+        $ts = strtotime($args['lockreminder_dt']);
+        if( $ts === FALSE || $ts < 1 ) {
+            $args['lockreminder_dt'] = '';
+        } else {
+            $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+            $args['lockreminder_dt'] = $dt->format('Y-m-d H:i:s');
+        }
+    }
+    $args['pickupreminder_dt'] = (isset($args['pickupreminder_date']) ? $args['pickupreminder_date'] : '') . ' ' . (isset($args['pickupreminder_time']) ? $args['pickupreminder_time'] : '');
+    if( trim($args['pickupreminder_dt']) != '' ) {
+        $ts = strtotime($args['pickupreminder_dt']);
+        if( $ts === FALSE || $ts < 1 ) {
+            $args['pickupreminder_dt'] = '';
+        } else {
+            $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+            $args['pickupreminder_dt'] = $dt->format('Y-m-d H:i:s');
         }
     }
 

@@ -19,6 +19,7 @@ function ciniki_poma_cron_jobs(&$ciniki) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'dateRepeatsAdd');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'dateLock');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'emailUpdatedOrder');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'emailPickupReminders');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionRollback');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionCommit');
@@ -158,6 +159,50 @@ function ciniki_poma_cron_jobs(&$ciniki) {
             }
         }
     }
+
+    //
+    // Check for order dates where pickup reminder should be sent
+    //
+    $strsql = "SELECT id, business_id "
+        . "FROM ciniki_poma_order_dates "
+        . "WHERE status = 50 "
+        . "AND (flags&0x40) = 0x40 "
+        . "AND pickupreminder_dt <= UTC_TIMESTAMP() "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+
+    if( isset($rc['rows']) ) {
+        foreach($rc['rows'] as $row) {
+            //
+            // Start transaction
+            //
+            $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+
+            $rc = ciniki_poma_emailPickupReminders($ciniki, $row['business_id'], $row['id']);
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_cron_logMsg($ciniki, $row['business_id'], array('code'=>'ciniki.poma.148', 'msg'=>'Unable to email pickup reminders.',
+                    'cron_id'=>0, 'severity'=>50, 'err'=>$rc['err'],
+                    ));
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+
+            //
+            // Commit the transaction
+            //
+            $rc = ciniki_core_dbTransactionCommit($ciniki, 'ciniki.poma');
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+        }
+    }
+
 
     return array('stat'=>'ok');
 }

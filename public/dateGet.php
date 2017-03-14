@@ -89,17 +89,23 @@ function ciniki_poma_dateGet($ciniki) {
         }
         $adt = clone $dt;
         $adt->add(new DateInterval('P5D'));
+        $ldt = clone $dt;
+        $ldt->add(new DateInterval('P4D'));
         $dt->add(new DateInterval('P7D'));
         $rdt = clone($dt);
         $rdt->sub(new DateInterval('P6D'));
         $date = array('id'=>0,
             'order_date'=>$dt->format($date_format),
             'status'=>'10',
-            'flags'=>'0x03',
+            'flags'=>'0x43',
             'repeats_date'=>$rdt->format($date_format),
             'repeats_time'=>'1:00 AM',
             'autolock_date'=>$adt->format($date_format),
             'autolock_time'=>'9:00 AM',
+            'lockreminder_date'=>$ldt->format($date_format),
+            'lockreminder_time'=>'9:00 AM',
+            'pickupreminder_date'=>$dt->format($date_format),
+            'pickupreminder_time'=>'9:00 AM',
             'notices'=>'',
         );
     }
@@ -117,6 +123,10 @@ function ciniki_poma_dateGet($ciniki) {
             . "ciniki_poma_order_dates.repeats_dt AS repeats_time, "
             . "ciniki_poma_order_dates.autolock_dt AS autolock_date, "
             . "ciniki_poma_order_dates.autolock_dt AS autolock_time, "
+            . "ciniki_poma_order_dates.lockreminder_dt AS lockreminder_date, "
+            . "ciniki_poma_order_dates.lockreminder_dt AS lockreminder_time, "
+            . "ciniki_poma_order_dates.pickupreminder_dt AS pickupreminder_date, "
+            . "ciniki_poma_order_dates.pickupreminder_dt AS pickupreminder_time, "
             . "ciniki_poma_order_dates.notices "
             . "FROM ciniki_poma_order_dates "
             . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
@@ -125,13 +135,19 @@ function ciniki_poma_dateGet($ciniki) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
         $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
             array('container'=>'dates', 'fname'=>'id', 
-                'fields'=>array('order_date', 'display_name', 'status', 'flags', 'repeats_date', 'repeats_time', 'autolock_date', 'autolock_time', 'notices'),
+                'fields'=>array('order_date', 'display_name', 'status', 'flags', 'repeats_date', 'repeats_time', 
+                    'autolock_date', 'autolock_time', 'lockreminder_date', 'lockreminder_time', 'pickupreminder_date', 'pickupreminder_time', 
+                    'notices'),
                 'utctotz'=>array(
                     'order_date'=>array('timezone'=>'UTC', 'format'=>$date_format),
                     'repeats_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
                     'repeats_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                     'autolock_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
                     'autolock_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
+                    'lockreminder_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
+                    'lockreminder_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
+                    'pickupreminder_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
+                    'pickupreminder_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                     ),
                 ),
             ));
