@@ -97,14 +97,14 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $business_id, $date_id) {
         //
         // Load the order
         //
-        $rc = ciniki_poma_templates_invoice($ciniki, $business_id, $order_id);
-//        $rc = ciniki_poma_orderLoad($ciniki, $business_id, $order_id);
+//        $rc = ciniki_poma_templates_invoice($ciniki, $business_id, $order_id);
+        $rc = ciniki_poma_orderLoad($ciniki, $business_id, $order_id);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
         $order = $rc['order'];
-        $pdf = $rc['pdf'];
-        $filename = $rc['filename'];
+//        $pdf = $rc['pdf'];
+//        $filename = $rc['filename'];
     
         //
         // Skip this order if it's already been emailed
@@ -212,7 +212,7 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $business_id, $date_id) {
             'subject'=>$subject,
             'html_content'=>$html_message,
             'text_content'=>$text_message,
-            'attachments'=>array(array('content'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename)),
+//            'attachments'=>array(array('content'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename)),
             ));
         if( $rc['stat'] != 'ok' ) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.157', 'msg'=>'Unable to create mail message.', 'err'=>$rc['err']));

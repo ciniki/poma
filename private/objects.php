@@ -113,6 +113,22 @@ function ciniki_poma_objects(&$ciniki) {
             ),
         'history_table'=>'ciniki_poma_history',
         );
+    $objects['queueditem'] = array(
+        'name'=>'Queued Item',
+        'sync'=>'yes',
+        'o_name'=>'item',
+        'o_container'=>'items',
+        'table'=>'ciniki_poma_queued_items',
+        'fields'=>array(
+            'customer_id'=>array('name'=>'Customer', 'ref'=>'ciniki.customers.customer'),
+            'status'=>array('name'=>'Status'),
+            'object'=>array('name'=>'Item'),
+            'object_id'=>array('name'=>'Item ID'),
+            'description'=>array('name'=>'Description'),
+            'quantity'=>array('name'=>'Quantity'),
+            ),
+        'history_table'=>'ciniki_poma_history',
+        );
     $objects['orderdate'] = array(
         'name'=>'Order Date',
         'sync'=>'yes',
