@@ -103,9 +103,9 @@ function ciniki_poma_dateGet($ciniki) {
             'autolock_date'=>$adt->format($date_format),
             'autolock_time'=>'9:00 AM',
             'lockreminder_date'=>$ldt->format($date_format),
-            'lockreminder_time'=>'9:00 AM',
+            'lockreminder_time'=>'6:00 AM',
             'pickupreminder_date'=>$dt->format($date_format),
-            'pickupreminder_time'=>'9:00 AM',
+            'pickupreminder_time'=>'6:00 AM',
             'notices'=>'',
         );
     }

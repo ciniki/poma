@@ -27,6 +27,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         'new_object'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'New Object'),
         'new_object_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'new Object ID'),
         'item_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Item'),
+        'new_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Quantity'),
         'new_unit_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Unit Quantity'),
         'new_weight_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Weight Quantity'),
         'action'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Action'),
@@ -166,7 +167,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         && isset($args['order_id']) && $args['order_id'] != ''
         ) {
         if( !isset($args['new_unit_quantity']) || $args['new_unit_quantity'] == '' || $args['new_unit_quantity'] == '0' ) {
-            $args['new_unit_quantity'] = 1;
+            $args['new_unit_quantity'] = (isset($args['new_quantity']) ? $args['new_quantity'] : 1);
         }
         if( !isset($args['new_weight_quantity']) || $args['new_weight_quantity'] == '' || $args['new_weight_quantity'] == '0' ) {
             $args['new_weight_quantity'] = 0;
@@ -225,7 +226,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         //
         $item['order_id'] = $args['order_id'];
         if( $item['itype'] == 10 ) {
-            $item['weight_quantity'] = $args['new_weight_quantity'];
+            $item['weight_quantity'] = (isset($args['new_quantity']) ? $args['new_quantity'] : $args['new_weight_quantity']);
         } elseif( $item['itype'] == 20 ) {
             $item['unit_quantity'] = $args['new_unit_quantity'];
             $item['weight_quantity'] = $args['new_weight_quantity'];
