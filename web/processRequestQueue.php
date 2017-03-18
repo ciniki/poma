@@ -87,11 +87,11 @@ function ciniki_poma_web_processRequestQueue(&$ciniki, $settings, $business_id, 
     }
 
     if( count($ordered) > 0 ) {
-        $page['blocks'][] = array('type'=>'orderqueue', 'size'=>'wide',
+        $page['blocks'][] = array('type'=>'orderqueue', 'size'=>'wide', 'ordered'=>'yes',
             'api_queue_update'=>$api_queue_update,
             'intro'=>"Here is the list of items from your queue on order.",
-            'pretext'=>'There are ',
-            'posttext'=>' on order for you',
+//            'pretext'=>'There are ',
+//            'posttext'=>' on order for you',
             'queue'=>$ordered);
     }
     if( count($active) > 0 ) {
@@ -99,8 +99,9 @@ function ciniki_poma_web_processRequestQueue(&$ciniki, $settings, $business_id, 
             'title'=>(count($ordered) > 0 ? 'Queued Items' : ''),
             'api_queue_update'=>$api_queue_update,
             'intro'=>"Here is the list of items you have in your queue.",
-            'pretext'=>'You have ',
-            'posttext'=>' in your queue',
+//            'type'=>'queued',
+//            'pretext'=>'You have ',
+//            'posttext'=>' in your queue',
             'queue'=>$active);
     }
     if( count($active) == 0 && count($ordered) == 0 ) {
