@@ -110,6 +110,17 @@ function ciniki_poma_web_processAPI(&$ciniki, $settings, $business_id, $args) {
             'subitem_id'=>$args['uri_split'][2],
             ));
     }
+
+    //
+    // queueObjectUpdate/object/object_id
+    //
+    elseif( isset($args['uri_split'][2]) && $args['uri_split'][0] == 'queueObjectUpdate' ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'apiQueueObjectUpdate');
+        return ciniki_poma_web_apiQueueObjectUpdate($ciniki, $settings, $business_id, array(
+            'object'=>$args['uri_split'][1],
+            'object_id'=>$args['uri_split'][2],
+            ));
+    }
     
     return array('stat'=>'ok');
 }

@@ -32,6 +32,13 @@ function ciniki_poma_maps(&$ciniki) {
             '50'=>'Paid',
         ),
     );
+    $maps['queueditem'] = array(
+        'status'=>array(
+            '10'=>'Queued',
+            '40'=>'Ordered',
+            '90'=>'Invoiced',
+        ),
+    );
     $maps['customerledger'] = array('source'=>array(
         '0'=>'',
         '10'=>'Paypal',

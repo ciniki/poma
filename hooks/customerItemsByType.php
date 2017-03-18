@@ -79,7 +79,8 @@ function ciniki_poma_hooks_customerItemsByType(&$ciniki, $business_id, $args) {
     $types = array(
         'favourite'=>array('items'=>array()),
         'repeat'=>array('items'=>array()),
-        'queue'=>array('items'=>array()),
+        'queueactive'=>array('items'=>array()),
+        'queueordered'=>array('items'=>array()),
         );
     if( isset($rc['rows']) ) {
         foreach($rc['rows'] as $row) {
@@ -118,6 +119,41 @@ function ciniki_poma_hooks_customerItemsByType(&$ciniki, $business_id, $args) {
         }
     } else {
         $types = array();
+    }
+
+    //
+    // Check for queued items
+    //
+    $strsql = "SELECT items.id, "
+        . "items.status, "
+        . "items.object, "
+        . "items.object_id, "
+        . "items.quantity "
+        . "FROM ciniki_poma_queued_items AS items "
+        . "WHERE items.customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
+        . "AND items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND items.status < 90 "
+        . "";
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryIDTree');
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( isset($rc['rows']) ) {
+        foreach($rc['rows'] as $row) {
+            if( $row['status'] == 10 ) {
+                $types['queueactive']['items'][$row['object_id']] = array(
+                    'id'=>$row['id'],
+                    'quantity'=>(float)$row['quantity'],
+                    );
+            } elseif( $row['status'] == 40 ) {
+                $types['queueordered']['items'][$row['object_id']] = array(
+                    'id'=>$row['id'],
+                    'quantity'=>(float)$row['quantity'],
+                    );
+                
+            }
+        }
     }
 
     return array('stat'=>'ok', 'types'=>$types);

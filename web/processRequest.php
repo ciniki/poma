@@ -102,10 +102,9 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $business_id, $args
         $page['submenu']['standing'] = array('name'=>'Standing', 'url'=>$args['base_url'] . '/standing');
     }
     if( ciniki_core_checkModuleFlags($ciniki, 'ciniki.poma', 0x02) ) {  
-//        $page['submenu']['queue'] = array('name'=>'Queue', 'url'=>$args['base_url'] . '/queue');
+        $page['submenu']['queue'] = array('name'=>'Queue', 'url'=>$args['base_url'] . '/queue');
     }
     $page['submenu']['past'] = array('name'=>'Past', 'url'=>$args['base_url'] . '/past');
-   
 
     return array('stat'=>'ok', 'page'=>$page);
 }

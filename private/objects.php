@@ -70,6 +70,7 @@ function ciniki_poma_objects(&$ciniki) {
             'unit_discount_percentage'=>array('name'=>'Discount Percentage', 'default'=>'0'),
             'cdeposit_description'=>array('name'=>'Container Deposit Description', 'default'=>''),
             'cdeposit_amount'=>array('name'=>'Container Deposit Amount', 'default'=>'0'),
+            'deposited_amount'=>array('name'=>'Deposited Amount', 'default'=>'0'),
             'subtotal_amount'=>array('name'=>'Subtotal Amount', 'default'=>'0'),
             'discount_amount'=>array('name'=>'Discount Amount', 'default'=>'0'),
             'total_amount'=>array('name'=>'Total Amount', 'default'=>'0'),
@@ -126,6 +127,7 @@ function ciniki_poma_objects(&$ciniki) {
             'object_id'=>array('name'=>'Item ID'),
             'description'=>array('name'=>'Description'),
             'quantity'=>array('name'=>'Quantity'),
+            'queued_date'=>array('name'=>'Date'),
             ),
         'history_table'=>'ciniki_poma_history',
         );

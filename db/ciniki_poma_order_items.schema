@@ -71,6 +71,8 @@
 # cdeposit_description:     The description for the container deposit.
 # cdeposit_amount:          The amount for the container deposit.
 #
+# deposited_amount:         The amount already paid in deposits, used for queued items with deposits.
+#
 # subtotal_amount:          The subtotal before taxes/shipping for this item.
 # discount_amount:          The amount of discount applied to this item.
 # total_amount:             The total amount for this item after quantity and discounts have been applied.
@@ -105,6 +107,7 @@ create table ciniki_poma_order_items (
     unit_discount_percentage decimal(19,4) not null,
     cdeposit_description varchar(250) not null,
     cdeposit_amount decimal(19,4) not null,
+    deposited_amount decimal(19,4) not null,
     subtotal_amount decimal(19,4) not null,
     discount_amount decimal(19,4) not null,
     total_amount decimal(19,4) not null,

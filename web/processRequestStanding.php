@@ -72,6 +72,7 @@ function ciniki_poma_web_processRequestStanding(&$ciniki, $settings, $business_i
         $page['blocks'][] = array('type'=>'content', 'content'=>"You don't have any items in your standing order. "
             . "To add item, browse the products and click on the cart icon to add it to your standing order.");
     } else {
+        $page['blocks'][] = array('type'=>'content', 'content'=>"The following items are on your standing order.");
         $page['blocks'][] = array('type'=>'orderrepeats', 
             'api_repeat_update'=>$api_repeat_update,
             'repeats'=>$rc['items']);

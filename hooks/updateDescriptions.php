@@ -73,6 +73,37 @@ function ciniki_poma_hooks_updateDescriptions(&$ciniki, $business_id, $args) {
         }
     }
 
+    //
+    // Get the list of queued items
+    //
+    $strsql = "SELECT id, description "
+        . "FROM ciniki_poma_queued_items "
+        . "WHERE ciniki_poma_queued_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_queued_items.object = '" . ciniki_core_dbQuote($ciniki, $args['object']) . "' "
+        . "AND ciniki_poma_queued_items.object_id = '" . ciniki_core_dbQuote($ciniki, $args['object_id']) . "' "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( isset($rc['rows']) ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
+        foreach($rc['rows'] as $row) {
+            if( $row['description'] != $args['description'] ) { 
+                $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.queueditem', $row['id'], array('description'=>$args['description']), 0x04);
+                if( $rc['stat'] != 'ok' ) {
+                    return $rc;
+                }
+            }
+        }
+    }
+
+    //
+    // FIXME: Update any descriptions on open orders
+    //
+
+
+
     return array('stat'=>'ok');
 }
 ?>

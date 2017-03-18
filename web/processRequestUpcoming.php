@@ -125,6 +125,10 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $business_i
                     'content'=>"Your order is currently empty.");
             }
         }
+
+        //
+        // Check for any repeats that will be ordered on this date
+        //
     } else {
         $page['blocks'][] = array('type'=>'formmessage', 'level'=>'error', 
             'message'=>"Oops, it looks like we forgot to add more available dates. Please contact us and we'll get more dates added.");
