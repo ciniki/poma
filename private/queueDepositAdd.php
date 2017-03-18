@@ -72,12 +72,13 @@ function ciniki_poma_queueDepositAdd(&$ciniki, $business_id, $args) {
     }
 
     //
-    // Add new order
+    // Add new order, or get the last line number of the existing order
     //
     $max_line_number = 0;
     if( $order_id == 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'newOrderForDate');
         $rc = ciniki_poma_newOrderForDate($ciniki, $business_id, array(
+            'checkdate'=>'no',
             'customer_id'=>$args['customer_id'],
             'date_id'=>$date_id,
             ));

@@ -91,6 +91,10 @@ function ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $item
         $item['deposit_text'] .= ($item['deposit_text'] != '' ? ': ' : '')
             . '$' . number_format(bcmul($item['quantity'], $item['cdeposit_amount'], 2), 2);
     }
+    if( isset($item['deposited_amount']) && $item['deposited_amount'] != 0 ) {
+        $item['deposit_text'] .= 'Deposits '
+            . '$' . number_format($item['deposited_amount'], 2);
+    }
 
     $item['price_html'] = $item['price_text'];
     if( $item['discount_text'] != '' ) {

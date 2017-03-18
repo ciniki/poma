@@ -99,7 +99,6 @@ function ciniki_poma_web_processRequestQueue(&$ciniki, $settings, $business_id, 
             'title'=>(count($ordered) > 0 ? 'Queued Items' : ''),
             'api_queue_update'=>$api_queue_update,
             'intro'=>"Here is the list of items you have in your queue.",
-//            'type'=>'queued',
 //            'pretext'=>'You have ',
 //            'posttext'=>' in your queue',
             'queue'=>$active);

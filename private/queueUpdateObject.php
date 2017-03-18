@@ -241,7 +241,7 @@ function ciniki_poma_queueUpdateObject(&$ciniki, $business_id, $args) {
                                 // Update the flag to mail the order to the customer, and this is being done via the website as the customer
                                 //
                                 if( isset($deposit['order_flags']) && ($deposit['order_flags']&0x10) == 0 
-                                    && isset($ciniki['session']['customer']['id']) && $ciniki['session']['customer']['id'] > 0 
+                                    && isset($args['customer_id']) && $args['customer_id'] > 0 
                                     ) {
                                     $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.order', $deposit['order_id'], array('flags'=>$deposit['order_flags'] |= 0x10), 0x04);
                                     if( $rc['stat'] != 'ok' ) {
@@ -262,8 +262,9 @@ function ciniki_poma_queueUpdateObject(&$ciniki, $business_id, $args) {
                 //
                 if( $new_quantity > $deposit_num_items ) {
                     $rc = ciniki_poma_queueDepositAdd($ciniki, $business_id, array(
-                        'customer_id'=>$ciniki['session']['customer']['id'],
-                        'flags'=>0x40,
+                        'customer_id'=>$args['customer_id'],
+                        'flags'=>0x40 & 0x20,
+                        'description'=>'Deposit for ' . $item['description'],
                         'object'=>'ciniki.poma.queueditem',
                         'object_id'=>$qitem['id'],
                         'itype'=>30,

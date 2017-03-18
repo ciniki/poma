@@ -33,6 +33,7 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
         'unit_discount_percentage'=>'',
         'cdeposit_description'=>'',
         'cdeposit_amount'=>0,
+        'deposited_amount'=>0,
         'taxtype_id'=>0,
         'notes'=>'',
         'subtotal_amount'=>0,
@@ -149,6 +150,10 @@ function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
             $items[$iid]['deposit_text'] = $items[$iid]['cdeposit_description'];
             $items[$iid]['deposit_text'] .= ($items[$iid]['deposit_text'] != '' ? ': ' : '')
                 . '$' . number_format(bcmul($items[$iid]['quantity'], $items[$iid]['cdeposit_amount'], 2), 2);
+        }
+        if( isset($items[$iid]['deposited_amount']) && $items[$iid]['deposited_amount'] != 0 ) {
+            $items[$iid]['deposit_text'] .= 'Deposits '
+                . '$' . number_format($items[$iid]['deposited_amount'], 2);
         }
     }
 

@@ -168,6 +168,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         . "ciniki_poma_order_items.unit_discount_percentage, "
         . "ciniki_poma_order_items.cdeposit_description, "
         . "ciniki_poma_order_items.cdeposit_amount, "
+        . "ciniki_poma_order_items.deposited_amount, "
         . "ciniki_poma_order_items.subtotal_amount, "
         . "ciniki_poma_order_items.discount_amount, "
         . "ciniki_poma_order_items.total_amount, "
@@ -187,7 +188,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'items', 'fname'=>'id', 
             'fields'=>array('id', 'parent_id', 'line_number', 'object', 'object_id', 'code', 'description', 
-                'flags', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'cdeposit_description', 'cdeposit_amount',
+                'flags', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'cdeposit_description', 'cdeposit_amount', 'deposited_amount',
                 'unit_amount', 'unit_discount_amount', 'unit_discount_percentage', 'subtotal_amount', 'discount_amount', 'total_amount', 
                 'taxtype_id', 'taxtype_name')),
         ));
