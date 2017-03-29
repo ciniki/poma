@@ -15,7 +15,9 @@
 // <rsp stat='ok' />
 //
 function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
- 
+
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
+
     //
     // Set the default start record to at beginning of ledger, unless someething else is specified
     //
@@ -106,9 +108,14 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
+        $customer_id = $order['customer_id'];
         $start_ledger_id = $entry['id'];
         $start_ledger_date = $entry['transaction_date'];
         $prev_balance = $new_balance;
+    } elseif( isset($args['customer_id']) && $args['customer_id'] > 0 ) {
+        $customer_id = $args['customer_id'];
+    } else {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.171', 'msg'=>'Must specify an order or customer'));
     }
 
 
@@ -117,12 +124,17 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
     //
 
     // FIXME: Add processing for rebalance ledger and invoice transactions/invoice payment_status
+
     $strsql = "SELECT id, customer_id, order_id, transaction_type, transaction_date, customer_amount, balance "
         . "FROM ciniki_poma_customer_ledgers "
-        . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $order['customer_id']) . "' "
-        . "AND transaction_date >= '" . ciniki_core_dbQuote($ciniki, $start_ledger_date) . "' "
+        . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $customer_id) . "' "
+        . "";
+    if( isset($start_ledger_date) ) {
+        $strsql .= "AND transaction_date >= '" . ciniki_core_dbQuote($ciniki, $start_ledger_date) . "' "
         . "AND id <> '" . ciniki_core_dbQuote($ciniki, $start_ledger_id) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "";
+    }
+    $strsql .= "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "ORDER BY transaction_date ASC "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'entry');
@@ -133,13 +145,17 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
         $entries = $rc['rows'];
         foreach($entries as $entry) {
             $new_balance = $entry['balance'];
+            error_log(print_r($entry, true));
             if( $entry['transaction_type'] == 10 ) {
+                error_log($prev_balance . ' + ' . $entry['customer_amount']);
                 $new_balance = bcadd($prev_balance, $entry['customer_amount'], 6);
             }
             elseif( $entry['transaction_type'] == 30 ) {
+                error_log($prev_balance . ' - ' . $entry['customer_amount']);
                 $new_balance = bcsub($prev_balance, $entry['customer_amount'], 6);
             }
             elseif( $entry['transaction_type'] == 60 ) {
+                error_log($prev_balance . ' + ' . $entry['customer_amount']);
                 $new_balance = bcadd($prev_balance, $entry['customer_amount'], 6);
             }
             
@@ -150,6 +166,7 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
                     return $rc;
                 }
             }
+            $prev_balance = $new_balance;
         }
     }
 

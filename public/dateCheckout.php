@@ -465,6 +465,14 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
     }
 
+    if( isset($args['action']) && $args['action'] == 'recalc' && isset($args['customer_id']) && $args['customer_id'] > 0 ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'accountUpdate');
+        $rc = ciniki_poma_accountUpdate($ciniki, $args['business_id'], array('customer_id'=>$args['customer_id']));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+    }
+
     //
     // Get the order
     //
