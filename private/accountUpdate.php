@@ -145,17 +145,13 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
         $entries = $rc['rows'];
         foreach($entries as $entry) {
             $new_balance = $entry['balance'];
-            error_log(print_r($entry, true));
             if( $entry['transaction_type'] == 10 ) {
-                error_log($prev_balance . ' + ' . $entry['customer_amount']);
                 $new_balance = bcadd($prev_balance, $entry['customer_amount'], 6);
             }
             elseif( $entry['transaction_type'] == 30 ) {
-                error_log($prev_balance . ' - ' . $entry['customer_amount']);
                 $new_balance = bcsub($prev_balance, $entry['customer_amount'], 6);
             }
             elseif( $entry['transaction_type'] == 60 ) {
-                error_log($prev_balance . ' + ' . $entry['customer_amount']);
                 $new_balance = bcadd($prev_balance, $entry['customer_amount'], 6);
             }
             
