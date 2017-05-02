@@ -597,6 +597,41 @@ function ciniki_poma_dateCheckout($ciniki) {
                 }
             }
         }
+        $strsql = "SELECT id, "
+            . "order_number, "
+            . "order_date, "
+            . "status, "
+            . "status AS status_text, "
+            . "payment_status, "
+            . "payment_status AS payment_status_text, "
+            . "flags, "
+            . "total_amount "
+            . "FROM ciniki_poma_orders "
+            . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $rsp['order']['customer_id']) . "' "
+            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND order_date <= UTC_TIMESTAMP() "
+            . "ORDER BY order_date DESC "
+            . "LIMIT 25 "
+            . "";
+        $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
+            array('container'=>'orders', 'fname'=>'id', 
+                'fields'=>array('id', 'order_number', 'order_date', 'status', 'status_text', 'payment_status', 'payment_status_text', 'flags', 'total_amount'),
+                'maps'=>array('status_text'=>$maps['order']['status'],
+                    'payment_status_text'=>$maps['order']['payment_status'],
+                    ),
+                'utctotz'=>array('order_date'=>array('timezone'=>'UTC', 'format'=>$date_format)),
+                ),
+            ));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        $rsp['checkout_orderhistory'] = array();
+        if( isset($rc['orders']) ) {
+            foreach($rc['orders'] as $order) {
+                $order['total_amount'] = '$' . number_format($order['total_amount'], 2);
+                $rsp['checkout_orderhistory'][] = $order;
+            }
+        }
     }
 
     //

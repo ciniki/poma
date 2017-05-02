@@ -25,6 +25,13 @@ function ciniki_poma_maps(&$ciniki) {
         ),
     );
     $maps['order'] = array(
+        'status'=>array(
+            '0'=>'',
+            '10'=>'Open',
+            '30'=>'Closed',
+            '50'=>'Ready',
+            '70'=>'Delivered',
+        ),
         'payment_status'=>array(
             '0'=>'',
             '10'=>'Payment Required',
