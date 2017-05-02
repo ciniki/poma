@@ -456,7 +456,7 @@ function ciniki_poma_main() {
         }
        
         if( args.customer_id != null && args.customer_id > 0 ) {    
-            this.account.open(cb, args.customer_id);
+            this.account.open(cb, args.customer_id, args.order_id);
         } else {
             this.menu.open(cb);
         }
