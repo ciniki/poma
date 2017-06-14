@@ -85,11 +85,17 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
             //
             // Use different rounding depending on the price
             //
-            $new_item['subtotal_amount'] = round(bcmul($quantity, $item['unit_amount'], 6), 2);
-            $new_item['total_amount'] = round(bcmul($quantity, $unit_amount, 6), 2);
-            $new_item['discount_amount'] = bcsub(bcmul($quantity, $item['unit_amount'], 6), $new_item['total_amount'], 2);
-            if( isset($item['deposited_amount']) && $item['deposited_amount'] != 0 ) {
-                $new_item['total_amount'] = bcsub($new_item['total_amount'], $item['deposited_amount'], 6);
+            if( ($item['flags']&0x0100) == 0 ) {
+                $new_item['subtotal_amount'] = round(bcmul($quantity, $item['unit_amount'], 6), 2);
+                $new_item['total_amount'] = round(bcmul($quantity, $unit_amount, 6), 2);
+                $new_item['discount_amount'] = bcsub(bcmul($quantity, $item['unit_amount'], 6), $new_item['total_amount'], 2);
+                if( isset($item['deposited_amount']) && $item['deposited_amount'] != 0 ) {
+                    $new_item['total_amount'] = bcsub($new_item['total_amount'], $item['deposited_amount'], 6);
+                }
+            } else {
+                $new_item['subtotal_amount'] = 0;
+                $new_item['total_amount'] = 0;
+                $new_item['discount_amount'] = 0;
             }
 
             //
@@ -151,25 +157,30 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
         }
         if( $subitemcount > 0 ) {
             if( $subfeeitem == null ) {
-                $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', array(
-                    'line_number'=>$max_line_number+1,
-                    'order_id'=>$order_id,
-                    'parent_id'=>0,
-                    'flags'=>0x28,
-                    'itype'=>30,
-                    'description'=>'Modification Fee',
-                    'unit_quantity'=>$subitemcount,
-                    'unit_amount'=>2,
-                    'total_amount'=>bcmul($subitemcount, 2, 2),
-                    'taxtype_id'=>0,
-                    ), 0x04);
-                if( $rc['stat'] != 'ok' ) {
-                    return $rc;
+                //
+                // Check if fees are to be applied
+                //
+                if( ($item['flags']&0x0100) == 0x0100 ) {
+                    $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', array(
+                        'line_number'=>$max_line_number+1,
+                        'order_id'=>$order_id,
+                        'parent_id'=>0,
+                        'flags'=>0x28,
+                        'itype'=>30,
+                        'description'=>'Modification Fee',
+                        'unit_quantity'=>$subitemcount,
+                        'unit_amount'=>2,
+                        'total_amount'=>bcmul($subitemcount, 2, 2),
+                        'taxtype_id'=>0,
+                        ), 0x04);
+                    if( $rc['stat'] != 'ok' ) {
+                        return $rc;
+                    }
+                    //
+                    // Update order total
+                    //
+                    $new_order['subtotal_amount'] = bcadd($new_order['subtotal_amount'], 2, 2);
                 }
-                //
-                // Update order total
-                //
-                $new_order['subtotal_amount'] = bcadd($new_order['subtotal_amount'], 2, 2);
             } elseif( $subfeeitem['unit_quantity'] != $subitemcount ) {
                 $update_args = array(
                     'unit_quantity'=>$subitemcount,

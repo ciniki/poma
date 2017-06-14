@@ -26,6 +26,10 @@
 #                               0x20 - Locked item, no customer modifications allowed
 #                               0x40 - Deposit amount for queued item.
 #                               0x80 - Extra Deposit amount on item, such as a bottle deposit.
+#                               0x0100 - Change a substitution fee if subitems changed. Applied to product baskets.
+#                               0x0200 - Prepaid item
+#                               0x0400 - 
+#                               0x0800 - 
 #
 # object:                   The object for the item in the order. This is the reference to package.module.object. When 
 #                           combined with object_id it can be linked to modules information.
