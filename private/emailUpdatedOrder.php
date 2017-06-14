@@ -62,24 +62,29 @@ function ciniki_poma_emailUpdatedOrder(&$ciniki, $business_id, $order_id) {
         $html_items = "<table cellpadding='7' cellspacing='0'>";
         $html_items .= "<tr><th>Item</th><th>Quantity/Price</th><th style='text-align: right;'>Total</th></tr>";
         foreach($order['items'] as $item) {
-            $quantity_text = (($item['quantity']>0&&$item['quantity']!=1)?($item['quantity'].' @ '):'')
-                . '$' . number_format($item['unit_amount'], 2);
-            $html_items .= "<tr><td>" . $item['description'] . "</td><td>" 
-                . $quantity_text 
-                . ($item['discount_text'] != '' ? "<br/>" . $item['discount_text'] : '')
-                . ($item['deposit_text'] != '' ? "<br/>" . $item['deposit_text'] : '')
-                . "</td><td style='text-align: right;'>"
-                . '$' . number_format($item['total_amount'], 2)
-                . ($item['taxtype_name'] != '' ? "<br/>" . $item['taxtype_name'] : '')
-                . "</td></tr>";
-            $text_items .= $item['description'] 
-                . ' - ' 
-                . $quantity_text
-                . ($item['discount_text'] != '' ? " (" . $item['discount_text'] . ")" : '')
-                . ($item['deposit_text'] != '' ? " (" . $item['deposit_text'] . ")" : '')
-                . ' - ' 
-                . ' = $' . number_format($item['total_amount'], 2)
-                . "\n";
+            if( ($item['flags']&0x0200) == 0x0200 ) {
+                $html_items .= "<tr><td>" . $item['description'] . "</td><td>" . $item['quantity'] . "</td><td></td></tr>";
+                $text_items .= $item['description'] . ' - ' . $item['quantity'] . "\n";
+            } else {
+                $quantity_text = (($item['quantity']>0&&$item['quantity']!=1)?($item['quantity'].' @ '):'')
+                    . '$' . number_format($item['unit_amount'], 2);
+                $html_items .= "<tr><td>" . $item['description'] . "</td><td>" 
+                    . $quantity_text 
+                    . ($item['discount_text'] != '' ? "<br/>" . $item['discount_text'] : '')
+                    . ($item['deposit_text'] != '' ? "<br/>" . $item['deposit_text'] : '')
+                    . "</td><td style='text-align: right;'>"
+                    . '$' . number_format($item['total_amount'], 2)
+                    . ($item['taxtype_name'] != '' ? "<br/>" . $item['taxtype_name'] : '')
+                    . "</td></tr>";
+                $text_items .= $item['description'] 
+                    . ' - ' 
+                    . $quantity_text
+                    . ($item['discount_text'] != '' ? " (" . $item['discount_text'] . ")" : '')
+                    . ($item['deposit_text'] != '' ? " (" . $item['deposit_text'] . ")" : '')
+                    . ' - ' 
+                    . ' = $' . number_format($item['total_amount'], 2)
+                    . "\n";
+            }
             if( isset($item['subitems']) && count($item['subitems']) > 0 ) {
                 foreach($item['subitems'] as $subitem) {
                     $quantity_text = $subitem['quantity'];
