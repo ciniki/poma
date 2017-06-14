@@ -85,17 +85,11 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
             //
             // Use different rounding depending on the price
             //
-            if( ($item['flags']&0x0200) == 0 ) {
-                $new_item['subtotal_amount'] = round(bcmul($quantity, $item['unit_amount'], 6), 2);
-                $new_item['total_amount'] = round(bcmul($quantity, $unit_amount, 6), 2);
-                $new_item['discount_amount'] = bcsub(bcmul($quantity, $item['unit_amount'], 6), $new_item['total_amount'], 2);
-                if( isset($item['deposited_amount']) && $item['deposited_amount'] != 0 ) {
-                    $new_item['total_amount'] = bcsub($new_item['total_amount'], $item['deposited_amount'], 6);
-                }
-            } else {
-                $new_item['subtotal_amount'] = 0;
-                $new_item['total_amount'] = 0;
-                $new_item['discount_amount'] = 0;
+            $new_item['subtotal_amount'] = round(bcmul($quantity, $item['unit_amount'], 6), 2);
+            $new_item['total_amount'] = round(bcmul($quantity, $unit_amount, 6), 2);
+            $new_item['discount_amount'] = bcsub(bcmul($quantity, $item['unit_amount'], 6), $new_item['total_amount'], 2);
+            if( isset($item['deposited_amount']) && $item['deposited_amount'] != 0 ) {
+                $new_item['total_amount'] = bcsub($new_item['total_amount'], $item['deposited_amount'], 6);
             }
 
             //
@@ -106,9 +100,14 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                 $new_item['total_amount'] = bcadd($new_item['total_amount'], $deposit, 2);
             }
 
-            $new_order['subtotal_amount'] = bcadd($new_order['subtotal_amount'], $new_item['total_amount'], 2);
-            if( $new_item['discount_amount'] > 0 ) {
-                $new_order['total_savings'] = bcadd($new_order['total_savings'], $new_item['discount_amount'], 2);
+            //
+            // Only add to the order totals if the item is not prepaid.
+            //
+            if( ($item['flags']&0x0200) == 0 ) {
+                $new_order['subtotal_amount'] = bcadd($new_order['subtotal_amount'], $new_item['total_amount'], 2);
+                if( $new_item['discount_amount'] > 0 ) {
+                    $new_order['total_savings'] = bcadd($new_order['total_savings'], $new_item['discount_amount'], 2);
+                }
             }
     
             $update_args = array();
