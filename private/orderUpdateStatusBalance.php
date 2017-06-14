@@ -85,7 +85,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
             //
             // Use different rounding depending on the price
             //
-            if( ($item['flags']&0x0100) == 0 ) {
+            if( ($item['flags']&0x0200) == 0 ) {
                 $new_item['subtotal_amount'] = round(bcmul($quantity, $item['unit_amount'], 6), 2);
                 $new_item['total_amount'] = round(bcmul($quantity, $unit_amount, 6), 2);
                 $new_item['discount_amount'] = bcsub(bcmul($quantity, $item['unit_amount'], 6), $new_item['total_amount'], 2);
