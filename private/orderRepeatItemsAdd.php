@@ -159,7 +159,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
                 return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.99', 'msg'=>'Unable to find the item.'));
             }
             $fn = $rc['function_call'];
-            $rc = $fn($ciniki, $business_id, array('object'=>$item['object'], 'object_id'=>$item['object_id']));
+            $rc = $fn($ciniki, $business_id, array('object'=>$item['object'], 'object_id'=>$item['object_id'], 'date_id'=>$date_id));
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }

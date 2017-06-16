@@ -65,6 +65,7 @@ function ciniki_poma_dateRepeatsAdd(&$ciniki, $business_id, $date_id) {
         //
         $rc = ciniki_poma_orderRepeatItemsAdd($ciniki, $business_id, array(
             'date'=>$date,
+            'date_id'=>$date_id,
             'customer_id'=>$customer_id,
             ));
         if( $rc['stat'] != 'ok' ) {
