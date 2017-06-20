@@ -36,6 +36,7 @@ function ciniki_poma_cron_jobs(&$ciniki) {
         . "FROM ciniki_poma_order_dates "
         . "WHERE status < 20 "
         . "AND repeats_dt <= UTC_TIMESTAMP() "
+        . "ORDER BY order_date ASC "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
     if( $rc['stat'] != 'ok' ) {
@@ -80,6 +81,7 @@ function ciniki_poma_cron_jobs(&$ciniki) {
         . "WHERE status < 50 "
         . "AND (flags&0x01) = 0x01 "
         . "AND autolock_dt <= UTC_TIMESTAMP() "
+        . "ORDER BY order_date ASC "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
     if( $rc['stat'] != 'ok' ) {

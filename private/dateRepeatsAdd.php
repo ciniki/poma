@@ -63,6 +63,7 @@ function ciniki_poma_dateRepeatsAdd(&$ciniki, $business_id, $date_id) {
         //
         // Apply the standing order items
         //
+        error_log("Applying repeats for customer: $date_id <- $customer_id\n");
         $rc = ciniki_poma_orderRepeatItemsAdd($ciniki, $business_id, array(
             'date'=>$date,
             'date_id'=>$date_id,
