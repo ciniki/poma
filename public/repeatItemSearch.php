@@ -80,7 +80,6 @@ function ciniki_poma_repeatItemSearch($ciniki) {
         $fn = $rc['function_call'];
         $rc = $fn($ciniki, $args['business_id'], array(
             'keywords'=>$keywords,
-            'order_id'=>$args['order_id'],
             'limit'=>$args['limit']));
         if( $rc['stat'] != 'ok' ) {
             continue;
