@@ -54,18 +54,20 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
-    $repeat_customers = $rc['customers'];
-    foreach($repeat_customers as $customer_id) {
-        //
-        // Apply the standing order items
-        //
-        error_log('applying repeats: ' . $customer_id);
-        $rc = ciniki_poma_orderRepeatItemsAdd($ciniki, $business_id, array(
-            'date'=>$date,
-            'customer_id'=>$customer_id,
-            ));
-        if( $rc['stat'] != 'ok' ) {
-            return $rc;
+    if( isset($rc['customers']) ) {
+        $repeat_customers = $rc['customers'];
+        foreach($repeat_customers as $customer_id) {
+            //
+            // Apply the standing order items
+            //
+            error_log('applying repeats: ' . $customer_id);
+            $rc = ciniki_poma_orderRepeatItemsAdd($ciniki, $business_id, array(
+                'date'=>$date,
+                'customer_id'=>$customer_id,
+                ));
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
         }
     }
 
@@ -82,19 +84,18 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
-    if( !isset($rc['rows']) || count($rc['rows']) < 1 ) {
-        return array('stat'=>'ok');
-    }
-    $orders = $rc['rows'];
+    if( isset($rc['rows']) && count($rc['rows']) > 0 ) {
+        $orders = $rc['rows'];
 
-    foreach($orders as $order) {
-        //
-        // Close the order
-        //
-        error_log('locking order: ' . $order['id']);
-        $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $order['id'], array('status'=>30), 0x04);
-        if( $rc['stat'] != 'ok' ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.124', 'msg'=>'Unable to lock order', 'err'=>$rc['err']));
+        foreach($orders as $order) {
+            //
+            // Close the order
+            //
+            error_log('locking order: ' . $order['id']);
+            $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $order['id'], array('status'=>30), 0x04);
+            if( $rc['stat'] != 'ok' ) {
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.124', 'msg'=>'Unable to lock order', 'err'=>$rc['err']));
+            }
         }
     }
 
