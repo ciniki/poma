@@ -81,6 +81,7 @@ function ciniki_poma_dateCheckout($ciniki) {
     if( !isset($args['date_id']) || $args['date_id'] == 0 ) {
         $strsql = "SELECT id, ABS(DATEDIFF(NOW(), order_date)) AS age "
             . "FROM ciniki_poma_order_dates "
+            . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
             . "ORDER BY age ASC "
             . "LIMIT 1 "
             . "";
