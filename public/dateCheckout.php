@@ -151,6 +151,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             . "FROM ciniki_poma_orders "
             . "WHERE date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
             . "AND customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
+            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
             . "ORDER BY status "
             . "LIMIT 1 "
             . "";
