@@ -90,6 +90,14 @@ function ciniki_poma_settingsUpdate(&$ciniki) {
         'email-invoice-paid-message',
         'email-invoice-unpaid-subject',
         'email-invoice-unpaid-message',
+        'dates-lock-auto',
+        'dates-lock-offset',
+        'dates-lock-time',
+        'dates-pickup-reminder',
+        'dates-pickup-reminder-offset',
+        'dates-pickup-reminder-time',
+        'dates-apply-repeats-offset',
+        'dates-apply-repeats-time',
         );
     //
     // Check each valid setting and see if a new value was passed in the arguments for it.

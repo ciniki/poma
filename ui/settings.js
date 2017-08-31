@@ -17,6 +17,7 @@ function ciniki_poma_settings() {
         'invoice':{'label':'', 'list':{
             'invoice':{'label':'Invoices', 'fn':'M.ciniki_poma_settings.invoice.open(\'M.ciniki_poma_settings.menu.open();\');'},
             'emails':{'label':'Emails', 'fn':'M.ciniki_poma_settings.emails.open(\'M.ciniki_poma_settings.menu.open();\');'},
+            'dates':{'label':'Order Dates', 'fn':'M.ciniki_poma_settings.dates.open(\'M.ciniki_poma_settings.menu.open();\');'},
             }},
 //        'expenses':{'label':'Expenses', 'visible':'no', 'list':{
 //            'expenses':{'label':'Expense Categories', 'fn':'M.ciniki_poma_settings.showExpenseCategories(\'M.ciniki_poma_settings.showMenu();\');'},
@@ -278,6 +279,66 @@ function ciniki_poma_settings() {
     };
     this.emails.addButton('save', 'Save', 'M.ciniki_poma_settings.emails.save();');
     this.emails.addClose('Cancel');
+
+    //
+    // The dates settings panel
+    //
+    this.dates = new M.panel('Invoice Settings', 'ciniki_poma_settings', 'dates', 'mc', 'medium', 'sectioned', 'ciniki.poma.settings.dates');
+    this.dates.sections = {
+        'lock':{'label':'Auto Lock Orders', 'fields':{
+            'dates-lock-auto':{'label':'Auto Lock', 'type':'toggle', 'default':'no', 'toggles':this.yesNoOptions},
+            'dates-lock-offset':{'label':'Days Prior', 'type':'toggle', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6'}},
+            'dates-lock-time':{'label':'Time', 'type':'text', 'size':'small'},
+            }},
+        'pickupreminder':{'label':'Pickup Reminders', 'fields':{
+            'dates-pickup-reminder':{'label':'Reminders', 'type':'toggle', 'default':'no', 'toggles':this.yesNoOptions},
+            'dates-pickup-reminder-offset':{'label':'Days Prior', 'type':'toggle', 'toggles':{'0':'0', '1':'1', '2':'2'}},
+            'dates-pickup-reminder-time':{'label':'Time', 'type':'text', 'size':'small'},
+            }},
+        'repeats':{'label':'Apply Repeat', 'fields':{
+            'dates-apply-repeats-offset':{'label':'Days Prior', 'type':'toggle', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6'}},
+            'dates-apply-repeats-time':{'label':'Time', 'type':'text', 'size':'small'},
+            }},
+        '_buttons':{'label':'', 'buttons':{
+            'save':{'label':'Save', 'fn':'M.ciniki_poma_settings.dates.save();'},
+            }},
+    };
+    this.dates.fieldHistoryArgs = function(s, i) {
+        return {'method':'ciniki.poma.settingsHistory', 'args':{'business_id':M.curBusinessID, 'setting':i}};
+    }
+    this.dates.fieldValue = function(s, i, d) {
+        if( this.data[i] == null && d.default != null ) { return d.default; }
+        return this.data[i];
+    };
+    this.dates.open = function(cb) {
+        M.api.getJSONCb('ciniki.poma.settingsGet', {'business_id':M.curBusinessID}, function(rsp) {
+            if( rsp.stat != 'ok' ) {
+                M.api.err(rsp);
+                return false;
+            }
+            var p = M.ciniki_poma_settings.dates;
+            p.data = rsp.settings;
+            p.refresh();
+            p.show(cb);
+        });
+    };
+    this.dates.save = function() {
+        var c = this.serializeForm('no');
+        if( c != '' ) {
+            M.api.postJSONCb('ciniki.poma.settingsUpdate', {'business_id':M.curBusinessID}, 
+                c, function(rsp) {
+                    if( rsp.stat != 'ok' ) {
+                        M.api.err(rsp);
+                        return false;
+                    }
+                    M.ciniki_poma_settings.dates.close();
+                });
+        } else {
+            this.close();
+        }
+    };
+    this.dates.addButton('save', 'Save', 'M.ciniki_poma_settings.dates.save();');
+    this.dates.addClose('Cancel');
 
     //
     // Arguments:

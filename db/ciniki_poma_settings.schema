@@ -21,6 +21,17 @@
 # email-repeats-added-subject:
 # email-repeats-added-message:
 #
+# dates-lock-auto:                  (yes|no) Should the orders be automatically locked on a date.
+# dates-lock-offset:                (-6|-5|-4|-3|-2|-1|0) The number of days before the order date the orders will be locked (-6 - 0)
+# dates-lock-time:                  The time of day in business timezone for orders to be locked.
+#
+# dates-pickup-reminder:            (yes|no) Should pickup reminder emails be sent.
+# dates-pickup-reminder-offset:     (-2|-1|0) The number of days before the order date when the reminder will be emailed.
+# dates-pickup-reminder-time:       The time of day in business timezone for pickup reminder to be sent.
+#
+# dates-apply-repeats-offset:     (-6|-5|-4|-3|-2|-1|0) The number of days before the order date when the repeats/standing order items will be added.
+# dates-apply-repeats-time:       The time of day in business timezone for the repeats to be added.
+#
 # Fields
 # ======
 # business_id:  The id of the business the detail is for.
