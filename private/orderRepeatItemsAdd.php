@@ -145,6 +145,8 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
     //
     $line_number = $order['max_line_number'] + 1;
 
+    $order_updated = 'no';
+    $added_items = array();
     foreach($items as $item) {  
         //
         // Check the item is not already part of the order
@@ -184,6 +186,10 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
                 return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.114', 'msg'=>'Unable to add repeat item', 'err'=>$rc['err']));
             }
             $parent_id = $rc['id'];
+            $order_updated = 'yes';
+            $object_item['id'] = $rc['id'];
+            $object_item['quantity'] = $item['quantity'];
+            $added_items[] = $object_item;
 
             //
             // Check for subitems
@@ -221,6 +227,17 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $business_id, $args) {
     $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $business_id, $order['id']);
     if( $rc['stat'] != 'ok' ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.117', 'msg'=>'Unable to update update order status', 'err'=>$rc['err']));
+    }
+
+    //
+    // Check if order should be emailed
+    //
+    if( $order_updated == 'yes' ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'emailRepeatsAdded');
+        $rc = ciniki_poma_emailRepeatsAdded($ciniki, $business_id, $order['id'], $added_items);
+        if( $rc['stat'] != 'ok' && $rc['stat'] != 'warn' ) {
+            return $rc;
+        }
     }
 
     return array('stat'=>'ok');

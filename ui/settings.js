@@ -109,7 +109,7 @@ function ciniki_poma_settings() {
     this.emails.selected = 'repeats';
     this.emails.sections = {
         '_menu':{'label':'Email Templates', 'aside':'yes', 'list':{
-//            'repeats':{'label':'Standing Order Added', 'fn':'M.ciniki_poma_settings.emails.switchTab("repeats");'},
+            'repeats':{'label':'Standing Order Added', 'fn':'M.ciniki_poma_settings.emails.switchTab("repeats");'},
 //            'subs':{'label':'Substitutions Enabled', 'fn':'M.ciniki_poma_settings.emails.switchTab("subs");'},
             'locking':{'label':'Locking Notice 24 Hours', 'fn':'M.ciniki_poma_settings.emails.switchTab("locking");'},
 //            'locked':{'label':'Order Locked', 'fn':'M.ciniki_poma_settings.emails.switchTab("locked");'},

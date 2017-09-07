@@ -75,6 +75,7 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $business_id, $date_id) {
 
     //
     // Check email template exists
+    //
     if( !isset($settings['email-pickup-reminder-subject']) || $settings['email-pickup-reminder-subject'] == '' ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.152', 'msg'=>'No order email subject specified'));
     }
