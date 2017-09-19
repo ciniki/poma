@@ -86,6 +86,7 @@ function ciniki_poma_accountRecords(&$ciniki, $business_id, $args) {
         . "transaction_type, "
         . "DATE_FORMAT(transaction_date, '%Y%m%d%H%i%s') AS sort_id, "
         . "transaction_date AS record_date, "
+        . "description, "
         . "customer_amount AS amount, "
         . "balance "
         . "FROM ciniki_poma_customer_ledgers "
@@ -102,7 +103,7 @@ function ciniki_poma_accountRecords(&$ciniki, $business_id, $args) {
         . "";
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'transactions', 'fname'=>'id', 
-            'fields'=>array('id', 'customer_id', 'order_id', 'sort_id', 'transaction_type', 'record_date', 'amount', 'old_balance'=>'balance'),
+            'fields'=>array('id', 'customer_id', 'order_id', 'sort_id', 'transaction_type', 'record_date', 'amount', 'old_balance'=>'balance', 'description'),
             'utctotz'=>array('record_date'=>array('timezone'=>'UTC', 'format'=>$date_format)),
             ),
         ));
@@ -114,7 +115,7 @@ function ciniki_poma_accountRecords(&$ciniki, $business_id, $args) {
             if( $transaction['transaction_type'] == 10 ) {
                 $transaction['transaction_name'] = 'Credit';
             } elseif( $transaction['transaction_type'] == 60 ) {
-                $transaction['transaction_name'] = 'Payment';
+                $transaction['transaction_name'] = $transaction['description'];
             }
             $transaction['balance'] = 0;
             $records[] = $transaction;
