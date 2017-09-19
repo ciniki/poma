@@ -22,6 +22,7 @@ function ciniki_poma_customerAccountGet($ciniki) {
         'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
         'customer_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Customer'),
         'order_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Order'),
+        'sections'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'list', 'name'=>'Return Orders'),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -68,119 +69,134 @@ function ciniki_poma_customerAccountGet($ciniki) {
     //
     // Get the customer details
     //
-    $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], array('customer_id'=>$args['customer_id']));
-    if( $rc['stat'] != 'ok' ) {
-        return $rc;
-    }
-    if( isset($rc['details']) ) {
-        $rsp['customer_details'] = $rc['details'];
-    }
-    if( isset($rc['customer']['member_status_text']) && $rc['customer']['member_status_text'] != '' ) {
-        if( isset($rc['customer']['member_lastpaid']) && $rc['customer']['member_lastpaid'] != '' ) {
-            $rsp['customer_details'][] = array('detail'=>array(
-                'label'=>'Membership',
-                'value'=>$rc['customer']['member_status_text'] . ' <span class="subdue">[' . $rc['customer']['member_lastpaid'] . ']</span>',
-                ));
-        } else {
-            $rsp['customer_details'][] = array('detail'=>array(
-                'label'=>'Membership',
-                'value'=>$rc['customer']['member_status_text'],
-                ));
+    if( isset($args['sections']) && in_array('details', $args['sections']) ) {
+        $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], array('customer_id'=>$args['customer_id']));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
         }
-    }
+        if( isset($rc['details']) ) {
+            $rsp['customer_details'] = $rc['details'];
+        }
+        if( isset($rc['customer']['member_status_text']) && $rc['customer']['member_status_text'] != '' ) {
+            if( isset($rc['customer']['member_lastpaid']) && $rc['customer']['member_lastpaid'] != '' ) {
+                $rsp['customer_details'][] = array('detail'=>array(
+                    'label'=>'Membership',
+                    'value'=>$rc['customer']['member_status_text'] . ' <span class="subdue">[' . $rc['customer']['member_lastpaid'] . ']</span>',
+                    ));
+            } else {
+                $rsp['customer_details'][] = array('detail'=>array(
+                    'label'=>'Membership',
+                    'value'=>$rc['customer']['member_status_text'],
+                    ));
+            }
+        }
 
-    //
-    // Get the current account balance
-    //
-    $strsql = "SELECT ciniki_poma_customer_ledgers.id, "
-        . "ciniki_poma_customer_ledgers.description, "
-        . "ciniki_poma_customer_ledgers.transaction_date, "
-        . "ciniki_poma_customer_ledgers.transaction_type, "
-        . "ciniki_poma_customer_ledgers.customer_amount, "
-        . "ciniki_poma_customer_ledgers.balance "
-        . "FROM ciniki_poma_customer_ledgers "
-        . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
-        . "ORDER BY transaction_date DESC "
-        . "LIMIT 15 "
-        . "";
-    $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
-        array('container'=>'entries', 'fname'=>'id', 
-            'fields'=>array('id', 'description', 'transaction_date', 'transaction_type', 'customer_amount', 'balance'),
-            'utctotz'=>array('transaction_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format)),
-            ),
-        ));
-    if( $rc['stat'] != 'ok' ) {
-        return $rc;
-    }
-    $rsp['recent_ledger'] = array();
-    if( isset($rc['entries']) ) {
-        foreach($rc['entries'] as $entry) {
-            if( !isset($balance) ) {
-                $balance = $entry['balance'];
-            }
-            if( $entry['transaction_type'] == 10 ) {
-                $entry['amount'] = '$' . number_format($entry['customer_amount'], 2);
-            } elseif( $entry['transaction_type'] == 30 ) {
-                $entry['amount'] = '-$' . number_format($entry['customer_amount'], 2);
-            } elseif( $entry['transaction_type'] == 60 ) {
-                $entry['amount'] = '$' . number_format($entry['customer_amount'], 2);
-            }
-            $entry['balance_text'] = ($entry['balance'] < 0 ? '-':'') . '$' . number_format(abs($entry['balance']), 2);
-            array_unshift($rsp['recent_ledger'], $entry);
-        }
-        if( isset($balance) ) {
-            $rsp['customer_details'][] = array('detail'=>array(
-                'label'=>'Account',
-                'value'=>($balance < 0 ? '-' : '') . '$' . number_format(abs($balance), 2),
+        //
+        // Get the current account balance
+        //
+        $strsql = "SELECT ciniki_poma_customer_ledgers.id, "
+            . "ciniki_poma_customer_ledgers.description, "
+            . "ciniki_poma_customer_ledgers.transaction_date, "
+            . "ciniki_poma_customer_ledgers.transaction_type, "
+            . "ciniki_poma_customer_ledgers.customer_amount, "
+            . "ciniki_poma_customer_ledgers.balance "
+            . "FROM ciniki_poma_customer_ledgers "
+            . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
+            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "ORDER BY transaction_date DESC "
+            . "LIMIT 15 "
+            . "";
+        $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
+            array('container'=>'entries', 'fname'=>'id', 
+                'fields'=>array('id', 'description', 'transaction_date', 'transaction_type', 'customer_amount', 'balance'),
+                'utctotz'=>array('transaction_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format)),
+                ),
             ));
-//            if( $balance < 0 && $balance != $rsp['order']['balance_amount'] ) {
-//                $rsp['order']['default_payment_amount'] = abs($balance);
-//            }
-//            if( $balance < 0 ) {
-//                $rsp['checkout_account'] = array(
-//                    array('label'=>'Account Balance Owing', 'status'=>'red', 'value'=>'$' . number_format(abs($balance), 2)),
-//                    );
-//            }
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        $rsp['recent_ledger'] = array();
+        if( isset($rc['entries']) ) {
+            foreach($rc['entries'] as $entry) {
+                if( !isset($balance) ) {
+                    $balance = $entry['balance'];
+                }
+                if( $entry['transaction_type'] == 10 ) {
+                    $entry['amount'] = '$' . number_format($entry['customer_amount'], 2);
+                } elseif( $entry['transaction_type'] == 30 ) {
+                    $entry['amount'] = '-$' . number_format($entry['customer_amount'], 2);
+                } elseif( $entry['transaction_type'] == 60 ) {
+                    $entry['amount'] = '$' . number_format($entry['customer_amount'], 2);
+                }
+                $entry['balance_text'] = ($entry['balance'] < 0 ? '-':'') . '$' . number_format(abs($entry['balance']), 2);
+//                array_unshift($rsp['recent_ledger'], $entry);
+            }
+            if( isset($balance) ) {
+                $rsp['customer_details'][] = array('detail'=>array(
+                    'label'=>'Account',
+                    'value'=>($balance < 0 ? '-' : '') . '$' . number_format(abs($balance), 2),
+                ));
+    //            if( $balance < 0 && $balance != $rsp['order']['balance_amount'] ) {
+    //                $rsp['order']['default_payment_amount'] = abs($balance);
+    //            }
+    //            if( $balance < 0 ) {
+    //                $rsp['checkout_account'] = array(
+    //                    array('label'=>'Account Balance Owing', 'status'=>'red', 'value'=>'$' . number_format(abs($balance), 2)),
+    //                    );
+    //            }
+            }
         }
     }
 
     //
     // Get the orders
     //
-    $strsql = "SELECT orders.id, "
-        . "orders.customer_id, "
-        . "orders.order_number, "
-        . "orders.order_date, "
-        . "orders.status, "
-        . "orders.status AS status_text, "
-        . "orders.payment_status, "
-        . "orders.payment_status AS payment_status_text, "
-        . "orders.billing_name, "
-        . "orders.total_amount "
-        . "FROM ciniki_poma_orders AS orders "
-        . "WHERE orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
-        . "AND orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
-        . "ORDER BY orders.order_date DESC "
-        . "";
-    $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
-        array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id', 'customer_id', 'order_number', 'order_date', 
-                'status', 'status_text', 'payment_status', 'payment_status_text', 'billing_name', 'total_amount'),
-            'utctotz'=>array('order_date'=>array('timezone'=>'UTC', 'format'=>$date_format)),
-            'maps'=>array('status_text'=>$maps['order']['status'],
-                'payment_status_text'=>$maps['order']['payment_status']),
-            ),
-        ));
-    if( $rc['stat'] != 'ok' ) {
-        return $rc;
-    }
-    if( isset($rc['orders']) ) {
-        $rsp['orders'] = $rc['orders'];
-        foreach($rsp['orders'] as $oid => $order) {
-            $rsp['orders'][$oid]['total_amount_display'] = '$' . number_format($order['total_amount'], 2);
+    if( isset($args['sections']) && in_array('orders', $args['sections']) ) {
+        $strsql = "SELECT orders.id, "
+            . "orders.customer_id, "
+            . "orders.order_number, "
+            . "orders.order_date, "
+            . "orders.status, "
+            . "orders.status AS status_text, "
+            . "orders.payment_status, "
+            . "orders.payment_status AS payment_status_text, "
+            . "orders.billing_name, "
+            . "orders.total_amount "
+            . "FROM ciniki_poma_orders AS orders "
+            . "WHERE orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
+            . "AND orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "ORDER BY orders.order_date DESC "
+            . "";
+        $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
+            array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id', 'customer_id', 'order_number', 'order_date', 
+                    'status', 'status_text', 'payment_status', 'payment_status_text', 'billing_name', 'total_amount'),
+                'utctotz'=>array('order_date'=>array('timezone'=>'UTC', 'format'=>$date_format)),
+                'maps'=>array('status_text'=>$maps['order']['status'],
+                    'payment_status_text'=>$maps['order']['payment_status']),
+                ),
+            ));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( isset($rc['orders']) ) {
+            $rsp['orders'] = $rc['orders'];
+            foreach($rsp['orders'] as $oid => $order) {
+                $rsp['orders'][$oid]['total_amount_display'] = '$' . number_format($order['total_amount'], 2);
+            }
         }
     }
 
+    //
+    // Get the records for the account
+    //
+    if( isset($args['sections']) && in_array('records', $args['sections']) ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'accountRecords');
+        $rc = ciniki_poma_accountRecords($ciniki, $args['business_id'], array('customer_id'=>$args['customer_id']));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        $rsp['records'] = isset($rc['records']) ? $rc['records'] : array();
+    }
 
     //
     // Get the order
@@ -213,11 +229,7 @@ function ciniki_poma_customerAccountGet($ciniki) {
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
-            if( isset($rc['messages']) ) {
-                $rsp['order_messages'] = $rc['messages'];
-            } else {
-                $rsp['order_messages'] = array();
-            }
+            $rsp['order_messages'] = isset($rc['messages']) ? $rc['messages'] : array();
         } 
     }
 

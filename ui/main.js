@@ -15,13 +15,24 @@ function ciniki_poma_main() {
     this.menu.date_id = 0;
     this.menu.order_id = 0;
     this.menu.nplists = {'orderitems':[]};
+    this.menu.account_nplist = [];
     this.menu.date_nplist = [];
+    this.menu.liveSearchRN = 0;
     this.menu.sections = {
-        '_tabs':{'label':'', 'type':'menutabs', 'selected':'dates', 'tabs':{
+        '_tabs':{'label':'', 'type':'menutabs', 'selected':'accounts', 'tabs':{
+            'accounts':{'label':'Accounts', 'fn':'M.ciniki_poma_main.menu.open(null,"dates");'},
             'dates':{'label':'Dates', 'fn':'M.ciniki_poma_main.menu.open(null,"dates");'},
             'taxes':{'label':'Taxes', 'fn':'M.ciniki_poma_main.menu.open(null,"taxes");'},
 //            'history':{'label':'History', 'fn':'M.ciniki_poma_main.menu.open(null,"history");'},
             }},
+//        'account_search':{'label':'', 'type':''},
+        'account_search':{'label':'', 'type':'livesearchgrid', 'livesearchcols':1, 'hint':'Search',
+            'noData':'No accounts found.',
+            },
+        'accounts':{'label':'Accounts', 'type':'simplegrid', 'num_cols':1,
+            'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'accounts') ? 'yes':'no'; },
+            'noData':'No accounts have been setup.',
+            },
         'dates':{'label':'Order Date', 'type':'simplegrid', 'num_cols':3,
             'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'dates') ? 'yes':'no'; },
             'headerValues':['Status', 'Date', '# Orders'],
@@ -34,6 +45,29 @@ function ciniki_poma_main() {
             'noData':'No taxes found',
             },
     }
+    this.menu.liveSearchCb = function(s, i, v) {
+        this.liveSearchRN++;
+        var sN = this.liveSearchRN;
+        if( s == 'account_search' && v != '' ) {
+            M.api.getJSONBgCb('ciniki.poma.accountSearch', {'business_id':M.curBusinessID, 'search_str':v, 'limit':'50'}, function(rsp) {
+                if( sN == M.ciniki_poma_main.menu.liveSearchRN ) {
+                    M.ciniki_poma_main.menu.liveSearchShow('account_search',null,M.gE(M.ciniki_poma_main.menu.panelUID + '_' + s), rsp.accounts);
+                }
+            });
+        }
+    }
+    this.menu.liveSearchResultValue = function(s, f, i, j, d) {
+        if( s == 'account_search' ) { 
+            switch(j) {
+                case 0: return d.display_name;
+            }
+        }
+    }
+    this.menu.liveSearchResultRowFn = function(s, f, i, j, d) {
+        if( s == 'account_search' ) { 
+            return 'M.ciniki_poma_main.account.open(\'M.ciniki_poma_main.menu.open();\',\'' + d.customer_id + '\',0,[]);';
+        }
+    }
     this.menu.fieldValue = function(s, i, d) {
         return this.date_id;
     }
@@ -45,6 +79,11 @@ function ciniki_poma_main() {
         }
     };
     this.menu.cellValue = function(s, i, j, d) {
+        if( s == 'accounts' ) {
+            switch(j) {
+                case 0: return d.display_name;
+            }
+        }
         if( s == 'dates' ) {
             switch(j) {
                 case 0: return d.status_text;
@@ -59,6 +98,9 @@ function ciniki_poma_main() {
         }
     }
     this.menu.rowFn = function(s, i, d) {
+        if( s == 'accounts' ) {
+            return 'M.ciniki_poma_main.account.open(\'M.ciniki_poma_main.menu.open();\',\'' + d.customer_id + '\',0,M.ciniki_poma_main.menu.account_nplist);';
+        }
         if( s == 'dates' ) {
             return 'M.ciniki_poma_main.editdate.open(\'M.ciniki_poma_main.menu.open();\',\'' + d.id + '\',M.ciniki_poma_main.menu.date_nplist);';
         }
@@ -66,7 +108,21 @@ function ciniki_poma_main() {
     }
     this.menu.open = function(cb, tab) {
         if( tab != null ) { this.sections._tabs.selected = tab; }
-        if( this.sections._tabs.selected == 'dates' ) {
+        if( this.sections._tabs.selected == 'accounts' ) {
+            M.api.getJSONCb('ciniki.poma.accountList', {'business_id':M.curBusinessID}, function(rsp) {
+                if( rsp.stat != 'ok' ) {
+                    M.api.err(rsp);
+                    return false;
+                }
+                var p = M.ciniki_poma_main.menu;
+                p.size = 'medium';
+                p.data = rsp;
+                p.account_nplist = (rsp.nplist != null ? rsp.nplist : null);
+                p.refresh();
+                p.show(cb);
+            });
+        }
+        else if( this.sections._tabs.selected == 'dates' ) {
             M.api.getJSONCb('ciniki.poma.dateList', {'business_id':M.curBusinessID}, function(rsp) {
                 if( rsp.stat != 'ok' ) {
                     M.api.err(rsp);
@@ -75,7 +131,7 @@ function ciniki_poma_main() {
                 var p = M.ciniki_poma_main.menu;
                 p.size = 'medium';
                 p.data = rsp;
-                p.date_nplist = (rsp.date_nplist != null ? rsp.date_nplist : null);
+                p.date_nplist = (rsp.nplist != null ? rsp.nplist : null);
                 p.refresh();
                 p.show(cb);
             });
@@ -221,42 +277,52 @@ function ciniki_poma_main() {
     this.account.order_id = 0;
     this.account.nplist = [];
     this.account.sections = {
+        '_tabs':{'label':'', 'type':'menutabs', 'selected':'orders', 'tabs':{
+            'orders':{'label':'Orders', 'fn':'M.ciniki_poma_main.account.switchTab("orders");'},
+            'records':{'label':'Records', 'fn':'M.ciniki_poma_main.account.switchTab("records");'},
+            }},
         'customer_details':{'label':'Customer', 'aside':'yes', 'type':'simplegrid', 'num_cols':1,
             'cellClasses':[''],
             'changeTxt':'Edit',
             'changeFn':'M.startApp(\'ciniki.customers.edit\',null,\'M.ciniki_poma_main.account.open();\',\'mc\',{\'customer_id\':M.ciniki_poma_main.account.customer_id});',
             },
         'orders':{'label':'Orders', 'aside':'yes', 'type':'simplegrid', 'num_cols':3,
+            'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'orders') ? 'yes' : 'no'; },
             'cellClasses':['alignright', '', 'alignright'],
             },
         'order_items':{'label':'Items', 'type':'simplegrid', 'num_cols':4,
-            'visible':function() { return (M.ciniki_poma_main.account.order_id > 0) ? 'yes':'no'; },
+            'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'orders' && M.ciniki_poma_main.account.order_id > 0)? 'yes' : 'no'; },
             'headerValues':['', 'Item', 'Quantity/Price', 'Total'],
             'headerClasses':['', '', 'alignright', 'alignright'],
             'cellClasses':['alignright', 'multiline', 'multiline nobreak', 'multiline alignright nobreak'],
             },
         'order_tallies':{'label':'', 'type':'simplegrid', 'num_cols':2,
-            'visible':function() { return (M.ciniki_poma_main.account.order_id > 0) ? 'yes':'no'; },
+            'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'orders' && M.ciniki_poma_main.account.order_id > 0)? 'yes' : 'no'; },
             'cellClasses':['alignright', 'alignright'],
             },
         'order_payments':{'label':'', 'type':'simplegrid', 'num_cols':2,
-            'visible':function() { return (M.ciniki_poma_main.account.order_id > 0) ? 'yes':'no'; },
+            'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'orders' && M.ciniki_poma_main.account.order_id > 0)? 'yes' : 'no'; },
             'cellClasses':['alignright', 'alignright'],
             },
         'order_messages':{'label':'Messages', 'type':'simplegrid', 'num_cols':2,
-            'visible':function() { return (M.ciniki_poma_main.account.order_id > 0) ? 'yes':'no'; },
+            'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'orders' && M.ciniki_poma_main.account.order_id > 0)? 'yes' : 'no'; },
             'cellClasses':['multiline', 'multiline'],
             'addTxt':'Email Customer',
             'addFn':'M.ciniki_poma_main.email.open(\'M.ciniki_poma_main.account.open();\',M.ciniki_poma_main.account.order_id);',
             },
         '_buttons':{'label':'', 
-            'visible':function() { return (M.ciniki_poma_main.account.order_id > 0) ? 'yes':'no'; },
+            'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'orders' && M.ciniki_poma_main.account.order_id > 0)? 'yes' : 'no'; },
             'buttons':{
                 'downloadpdf':{'label':'Print Invoice', 'fn':'M.ciniki_poma_main.account.printOrder();'},
                 'delete':{'label':'Delete Order', 
                     'visible':function() {return (M.ciniki_poma_main.account.data.order.total_amount == 0 && M.ciniki_poma_main.account.data.order_items.length == 0 ?'yes':'no');},
                     'fn':'M.ciniki_poma_main.account.deleteOrder();'},
             }},
+        // Account records
+        'records':{'label':'Invoices & Transactions', 'type':'simplegrid', 'num_cols':5,
+            'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'records') ? 'yes' : 'no'; },
+            'headerValues':['Date', 'Transaction', 'Debit', 'Credit', 'Balance'],
+            },
     }
     this.account.cellValue = function(s, i, j, d) {
         if( s == 'customer_details' ) {
@@ -325,10 +391,24 @@ function ciniki_poma_main() {
                 case 1: return '<span class="maintext">' + d.message.customer_email + '</span><span class="subtext">' + d.message.subject + '</span>';
             }
         }
+        if( s == 'records' ) {
+            switch(j) {
+                case 0: return d.record_date;
+                case 1: return d.transaction_name;
+                case 2: return (d.amount < 0 ? d.amount_display : '');
+                case 3: return (d.amount >= 0 ? d.amount_display : '');
+                case 4: return d.balance_display;
+            }
+        }
     }
     this.account.rowClass = function(s, i, d) {
         if( s == 'orders' && this.order_id == d.id ) {
             return 'highlight';
+        }
+        if( s == 'records' ) {
+            if( i > 1 ) {
+                return 'alignright';
+            }
         }
     }
     this.account.rowFn = function(s, i, d) {
@@ -337,10 +417,20 @@ function ciniki_poma_main() {
         }
         return '';
     }
+    this.account.switchTab = function(t) {
+        this.sections._tabs.selected = t;
+        this.open();
+    }
     this.account.open = function(cb, cid, oid) {
         if( cid != null ) { this.customer_id = cid; }
         if( oid != null ) { this.order_id = oid; }
-        M.api.getJSONCb('ciniki.poma.customerAccountGet', {'business_id':M.curBusinessID, 'customer_id':this.customer_id, 'order_id':this.order_id}, function(rsp) {
+        var args = {'business_id':M.curBusinessID, 'customer_id':this.customer_id, 'order_id':this.order_id};
+        if( this.sections._tabs.selected == 'orders' ) {
+            args['sections'] = 'details,orders';
+        } else if( this.sections._tabs.selected == 'records' ) {
+            args['sections'] = 'details,records';
+        }
+        M.api.getJSONCb('ciniki.poma.customerAccountGet', args, function(rsp) {
             if( rsp.stat != 'ok' ) {
                 M.api.err(rsp);
                 return false;
