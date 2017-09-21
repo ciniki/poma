@@ -76,7 +76,7 @@ function ciniki_poma_hooks_updateObjectID(&$ciniki, $business_id, $args) {
     //
     // Get the list of queued items
     //
-    $strsql = "SELECT id, description "
+    $strsql = "SELECT id, object_id "
         . "FROM ciniki_poma_queued_items "
         . "WHERE ciniki_poma_queued_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
         . "AND ciniki_poma_queued_items.object = '" . ciniki_core_dbQuote($ciniki, $args['object']) . "' "
