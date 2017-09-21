@@ -21,6 +21,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
         'subject'=>array('required'=>'no', 'blank'=>'yes', 'default'=>'no', 'name'=>'Subject'),
         'textmsg'=>array('required'=>'no', 'blank'=>'yes', 'default'=>'no', 'name'=>'Text Message'),
         'email'=>array('required'=>'no', 'blank'=>'yes', 'default'=>'no', 'name'=>'Email PDF'),
+        'template'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Invoice Template'),
         )); 
     if( $rc['stat'] != 'ok' ) { 
         return $rc;
@@ -37,7 +38,11 @@ function ciniki_poma_invoicePDF(&$ciniki) {
         return $rc;
     }
 
-    $invoice_template = 'invoice'; 
+    if( isset($args['template']) && $args['template'] == 'rawinvoice' ) {
+        $invoice_template = 'rawinvoice'; 
+    } else {
+        $invoice_template = 'invoice'; 
+    }
     $rc = ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'templates', $invoice_template);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
