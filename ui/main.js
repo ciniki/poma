@@ -314,6 +314,7 @@ function ciniki_poma_main() {
             'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'orders' && M.ciniki_poma_main.account.order_id > 0)? 'yes' : 'no'; },
             'buttons':{
                 'downloadpdf':{'label':'Print Invoice', 'fn':'M.ciniki_poma_main.account.printOrder();'},
+                'downloadrawpdf':{'label':'Print Invoice/No Balance', 'fn':'M.ciniki_poma_main.account.printOrderNoBalance();'},
                 'delete':{'label':'Delete Order', 
                     'visible':function() {return (M.ciniki_poma_main.account.data.order.total_amount == 0 && M.ciniki_poma_main.account.data.order_items.length == 0 ?'yes':'no');},
                     'fn':'M.ciniki_poma_main.account.deleteOrder();'},
@@ -448,6 +449,9 @@ function ciniki_poma_main() {
     }
     this.account.printOrder = function() {
         M.api.openPDF('ciniki.poma.invoicePDF', {'business_id':M.curBusinessID, 'order_id':this.order_id});
+    }
+    this.account.printOrderNoBalance = function() {
+        M.api.openPDF('ciniki.poma.invoicePDF', {'business_id':M.curBusinessID, 'order_id':this.order_id, 'template':'rawinvoice'});
     }
     this.account.deleteOrder = function() {
         M.api.getJSONCb('ciniki.poma.orderDelete', {'business_id':M.curBusinessID, 'order_id':this.order_id}, function(rsp) {
