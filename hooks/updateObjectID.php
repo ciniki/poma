@@ -64,7 +64,7 @@ function ciniki_poma_hooks_updateObjectID(&$ciniki, $business_id, $args) {
     if( isset($rc['rows']) ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
         foreach($rc['rows'] as $row) {
-            if( $row['object_oid'] != $args['new_object_id'] ) { 
+            if( $row['object_id'] != $args['new_object_id'] ) { 
                 $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.customeritem', $row['id'], array('object_id'=>$args['new_object_id']), 0x04);
                 if( $rc['stat'] != 'ok' ) {
                     return $rc;
