@@ -205,7 +205,6 @@ function ciniki_poma_cron_jobs(&$ciniki) {
         }
     }
 
-
     return array('stat'=>'ok');
 }
 ?>
