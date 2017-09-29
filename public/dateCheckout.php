@@ -552,7 +552,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $rsp['order']['customer_id']) . "' "
             . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
             . "ORDER BY transaction_date DESC "
-            . "LIMIT 15 "
+            . "LIMIT 25 "
             . "";
         $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
             array('container'=>'entries', 'fname'=>'id', 
