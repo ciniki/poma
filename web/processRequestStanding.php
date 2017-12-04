@@ -8,7 +8,7 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get events for.
+// tnid:     The ID of the tenant to get events for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,7 +16,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_processRequestStanding(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_processRequestStanding(&$ciniki, $settings, $tnid, $args) {
 
     
     $page = array(
@@ -48,9 +48,9 @@ function ciniki_poma_web_processRequestStanding(&$ciniki, $settings, $business_i
         . "LEFT JOIN ciniki_poma_order_items ON ("
             . "ciniki_poma_customer_items.object = ciniki_poma_order_items.object "
             . "AND ciniki_poma_customer_items.object_id = ciniki_poma_order_items.object_id "
-            . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND ciniki_poma_order_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . ") "
-        . "WHERE ciniki_poma_customer_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "WHERE ciniki_poma_customer_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND ciniki_poma_customer_items.customer_id = '" . ciniki_core_dbQuote($ciniki, $ciniki['session']['customer']['id']) . "' "
         . "AND ciniki_poma_customer_items.itype = 40 "
         . "GROUP BY ciniki_poma_customer_items.id "

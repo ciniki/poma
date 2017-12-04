@@ -8,7 +8,7 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get events for.
+// tnid:     The ID of the tenant to get events for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,7 +16,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $tnid, $args) {
 
     
     $page = array(
@@ -30,10 +30,10 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
     $api_substitution_update = 'ciniki/poma/orderSubstitutionUpdate/';
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -47,7 +47,7 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
     //
     if( isset($ciniki['session']['ciniki.poma']['date']['id']) && $ciniki['session']['ciniki.poma']['date']['id'] > 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'orderLoad');
-        $rc = ciniki_poma_web_orderLoad($ciniki, $settings, $business_id, array(
+        $rc = ciniki_poma_web_orderLoad($ciniki, $settings, $tnid, array(
             'date_id'=>$ciniki['session']['ciniki.poma']['date']['id'],
             ));
         if( $rc['stat'] != 'ok' ) {
@@ -111,7 +111,7 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
             'object'=>$item['object'],
             'object_id'=>$item['object_id'],
             );
-        $rc = $fn($ciniki, $business_id, $args);
+        $rc = $fn($ciniki, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -132,7 +132,7 @@ function ciniki_poma_web_processRequestSubstitutions(&$ciniki, $settings, $busin
                     $sub['unit_quantity'] = 1;
                 }
                 $sub['total_amount'] = $sub['unit_amount'];
-                $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $sub);
+                $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $tnid, $sub);
                 if( $rc['stat'] != 'ok' ) {
                     return $rc;
                 }

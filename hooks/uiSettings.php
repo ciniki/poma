@@ -7,13 +7,13 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:
+// tnid:
 // args: The arguments for the hook
 //
 // Returns
 // -------
 //
-function ciniki_poma_hooks_uiSettings(&$ciniki, $business_id, $args) {
+function ciniki_poma_hooks_uiSettings(&$ciniki, $tnid, $args) {
     //
     // Setup the default response
     //
@@ -22,7 +22,7 @@ function ciniki_poma_hooks_uiSettings(&$ciniki, $business_id, $args) {
     //
     // Check permissions for what menu items should be available
     //
-    if( isset($ciniki['business']['modules']['ciniki.poma'])
+    if( isset($ciniki['tenant']['modules']['ciniki.poma'])
         && (isset($args['permissions']['owners'])
             || isset($args['permissions']['employees'])
             || isset($args['permissions']['resellers'])
@@ -37,7 +37,7 @@ function ciniki_poma_hooks_uiSettings(&$ciniki, $business_id, $args) {
         $rsp['menu_items'][] = $menu_item;
     }
 
-    if( isset($ciniki['business']['modules']['ciniki.poma'])
+    if( isset($ciniki['tenant']['modules']['ciniki.poma'])
         && (isset($args['permissions']['owners'])
             || isset($args['permissions']['resellers'])
             || ($ciniki['session']['user']['perms']&0x01) == 0x01

@@ -8,7 +8,7 @@
 // ---------
 // api_key:
 // auth_token:
-// business_id:         The ID of the business the note is attached to.
+// tnid:         The ID of the tenant the note is attached to.
 // note_id:          The ID of the note to get the details for.
 //
 // Returns
@@ -20,7 +20,7 @@ function ciniki_poma_noteGet($ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'note_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Note'),
         'customer_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Customer'),
         ));
@@ -31,19 +31,19 @@ function ciniki_poma_noteGet($ciniki) {
 
     //
     // Make sure this module is activated, and
-    // check permission to run this function for this business
+    // check permission to run this function for this tenant
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.noteGet');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.noteGet');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -78,7 +78,7 @@ function ciniki_poma_noteGet($ciniki) {
             . "ciniki_poma_notes.customer_id, "
             . "ciniki_poma_notes.content "
             . "FROM ciniki_poma_notes "
-            . "WHERE ciniki_poma_notes.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "WHERE ciniki_poma_notes.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "AND ciniki_poma_notes.id = '" . ciniki_core_dbQuote($ciniki, $args['note_id']) . "' "
             . "";
         $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
@@ -100,7 +100,7 @@ function ciniki_poma_noteGet($ciniki) {
     $strsql = "SELECT ciniki_customers.id, "
         . "ciniki_customers.display_name AS name "
         . "FROM ciniki_customers "
-        . "WHERE ciniki_customers.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "WHERE ciniki_customers.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "AND status = 10 "
         . "ORDER BY display_name "
         . "";

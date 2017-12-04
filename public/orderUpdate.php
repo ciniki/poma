@@ -15,7 +15,7 @@ function ciniki_poma_orderUpdate(&$ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Order'),
         'status'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Status'),
         ));
@@ -26,10 +26,10 @@ function ciniki_poma_orderUpdate(&$ciniki) {
 
     //
     // Make sure this module is activated, and
-    // check permission to run this function for this business
+    // check permission to run this function for this tenant
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.orderUpdate');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.orderUpdate');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -40,7 +40,7 @@ function ciniki_poma_orderUpdate(&$ciniki) {
     $strsql = "SELECT id, status "
         . "FROM ciniki_poma_orders "
         . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
     if( $rc['stat'] != 'ok' ) {
@@ -68,7 +68,7 @@ function ciniki_poma_orderUpdate(&$ciniki) {
     //
     if( isset($args['status']) && $args['status'] != $order['status'] ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
-        $rc = ciniki_core_objectUpdate($ciniki, $args['business_id'], 'ciniki.poma.order', $args['item_id'], $args, 0x04);
+        $rc = ciniki_core_objectUpdate($ciniki, $args['tnid'], 'ciniki.poma.order', $args['item_id'], $args, 0x04);
         if( $rc['stat'] != 'ok' ) {
             ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
             return $rc;
@@ -79,7 +79,7 @@ function ciniki_poma_orderUpdate(&$ciniki) {
     // Update the order
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
-    $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $args['business_id'], $args['order_id']);
+    $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $args['tnid'], $args['order_id']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -93,17 +93,17 @@ function ciniki_poma_orderUpdate(&$ciniki) {
     }
 
     //
-    // Update the last_change date in the business modules
+    // Update the last_change date in the tenant modules
     // Ignore the result, as we don't want to stop user updates if this fails.
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'updateModuleChangeDate');
-    ciniki_businesses_updateModuleChangeDate($ciniki, $args['business_id'], 'ciniki', 'poma');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'updateModuleChangeDate');
+    ciniki_tenants_updateModuleChangeDate($ciniki, $args['tnid'], 'ciniki', 'poma');
 
     //
     // Update the web index if enabled
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'hookExec');
-    ciniki_core_hookExec($ciniki, $args['business_id'], 'ciniki', 'web', 'indexObject', array('object'=>'ciniki.poma.orderItem', 'object_id'=>$args['item_id']));
+    ciniki_core_hookExec($ciniki, $args['tnid'], 'ciniki', 'web', 'indexObject', array('object'=>'ciniki.poma.orderItem', 'object_id'=>$args['item_id']));
 
     return array('stat'=>'ok');
 }

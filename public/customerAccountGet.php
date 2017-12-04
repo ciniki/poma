@@ -8,7 +8,7 @@
 // ---------
 // api_key:
 // auth_token:
-// business_id:        The ID of the business to get Product for.
+// tnid:        The ID of the tenant to get Product for.
 //
 // Returns
 // -------
@@ -19,7 +19,7 @@ function ciniki_poma_customerAccountGet($ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'customer_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Customer'),
         'order_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Order'),
         'sections'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'list', 'name'=>'Return Orders'),
@@ -30,10 +30,10 @@ function ciniki_poma_customerAccountGet($ciniki) {
     $args = $rc['args'];
 
     //
-    // Check access to business_id as owner, or sys admin.
+    // Check access to tnid as owner, or sys admin.
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.customerAccountGet');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.customerAccountGet');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -49,10 +49,10 @@ function ciniki_poma_customerAccountGet($ciniki) {
     $maps = $rc['maps'];
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -70,7 +70,7 @@ function ciniki_poma_customerAccountGet($ciniki) {
     // Get the customer details
     //
     if( isset($args['sections']) && in_array('details', $args['sections']) ) {
-        $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], array('customer_id'=>$args['customer_id']));
+        $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['tnid'], array('customer_id'=>$args['customer_id']));
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -102,7 +102,7 @@ function ciniki_poma_customerAccountGet($ciniki) {
             . "ciniki_poma_customer_ledgers.balance "
             . "FROM ciniki_poma_customer_ledgers "
             . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "ORDER BY transaction_date DESC "
             . "LIMIT 15 "
             . "";
@@ -164,7 +164,7 @@ function ciniki_poma_customerAccountGet($ciniki) {
             . "orders.total_amount "
             . "FROM ciniki_poma_orders AS orders "
             . "WHERE orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
-            . "AND orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND orders.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "ORDER BY orders.order_date DESC "
             . "";
         $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
@@ -191,7 +191,7 @@ function ciniki_poma_customerAccountGet($ciniki) {
     //
     if( isset($args['sections']) && in_array('records', $args['sections']) ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'accountRecords');
-        $rc = ciniki_poma_accountRecords($ciniki, $args['business_id'], array('customer_id'=>$args['customer_id']));
+        $rc = ciniki_poma_accountRecords($ciniki, $args['tnid'], array('customer_id'=>$args['customer_id']));
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -204,7 +204,7 @@ function ciniki_poma_customerAccountGet($ciniki) {
     $rsp['order_messages'] = array();
     if( isset($args['order_id']) && $args['order_id'] > 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderLoad');
-        $rc = ciniki_poma_orderLoad($ciniki, $args['business_id'], $args['order_id']);
+        $rc = ciniki_poma_orderLoad($ciniki, $args['tnid'], $args['order_id']);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -223,9 +223,9 @@ function ciniki_poma_customerAccountGet($ciniki) {
         //
         // Check if there are any messages for this order
         //
-        if( isset($ciniki['business']['modules']['ciniki.mail']) ) {
+        if( isset($ciniki['tenant']['modules']['ciniki.mail']) ) {
             ciniki_core_loadMethod($ciniki, 'ciniki', 'mail', 'hooks', 'objectMessages');
-            $rc = ciniki_mail_hooks_objectMessages($ciniki, $args['business_id'], array('object'=>'ciniki.poma.order', 'object_id'=>$args['order_id']));
+            $rc = ciniki_mail_hooks_objectMessages($ciniki, $args['tnid'], array('object'=>'ciniki.poma.order', 'object_id'=>$args['order_id']));
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }

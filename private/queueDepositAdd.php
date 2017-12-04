@@ -10,13 +10,13 @@
 // Returns
 // -------
 //
-function ciniki_poma_queueDepositAdd(&$ciniki, $business_id, $args) {
+function ciniki_poma_queueDepositAdd(&$ciniki, $tnid, $args) {
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -38,9 +38,9 @@ function ciniki_poma_queueDepositAdd(&$ciniki, $business_id, $args) {
         . "LEFT JOIN ciniki_poma_orders AS orders ON ("
             . "dates.id = orders.date_id "
             . "AND orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
-            . "AND orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND orders.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . ") "
-        . "WHERE dates.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "WHERE dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND dates.order_date >= '" . ciniki_core_dbQuote($ciniki, $sdt->format('Y-m-d')) . "' "
         . "AND dates.order_date < '" . ciniki_core_dbQuote($ciniki, $edt->format('Y-m-d')) . "' "
         . "";
@@ -77,7 +77,7 @@ function ciniki_poma_queueDepositAdd(&$ciniki, $business_id, $args) {
     $max_line_number = 0;
     if( $order_id == 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'newOrderForDate');
-        $rc = ciniki_poma_newOrderForDate($ciniki, $business_id, array(
+        $rc = ciniki_poma_newOrderForDate($ciniki, $tnid, array(
             'checkdate'=>'no',
             'customer_id'=>$args['customer_id'],
             'date_id'=>$date_id,
@@ -95,7 +95,7 @@ function ciniki_poma_queueDepositAdd(&$ciniki, $business_id, $args) {
             . "FROM ciniki_poma_order_items "
             . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $order_id) . "' "
             . "AND parent_id = 0 "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
         if( $rc['stat'] != 'ok' ) {
@@ -113,7 +113,7 @@ function ciniki_poma_queueDepositAdd(&$ciniki, $business_id, $args) {
         $args['order_id'] = $order_id;
         $args['line_number'] = $max_line_number + 1;
         $args['flags'] = 0x40;
-        $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', $args, 0x04);
+        $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.orderitem', $args, 0x04);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -123,7 +123,7 @@ function ciniki_poma_queueDepositAdd(&$ciniki, $business_id, $args) {
     // Update the order totals
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
-    $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $business_id, $order_id);
+    $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $tnid, $order_id);
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
         return $rc;
@@ -133,7 +133,7 @@ function ciniki_poma_queueDepositAdd(&$ciniki, $business_id, $args) {
     // Update the flag to mail the order to the customer
     //
     if( ($order_flags&0x10) == 0 ) {
-        $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.order', $order_id, array('flags'=>$order_flags |= 0x10), 0x04);
+        $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.order', $order_id, array('flags'=>$order_flags |= 0x10), 0x04);
         if( $rc['stat'] != 'ok' ) {
             ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
             return $rc;

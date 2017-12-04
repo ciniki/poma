@@ -2,13 +2,13 @@
 //
 // Description
 // -----------
-// This method will add a new customer ledger entry for the business.
+// This method will add a new customer ledger entry for the tenant.
 //
 // Arguments
 // ---------
 // api_key:
 // auth_token:
-// business_id:        The ID of the business to add the Customer Ledger Entry to.
+// tnid:        The ID of the tenant to add the Customer Ledger Entry to.
 //
 // Returns
 // -------
@@ -19,7 +19,7 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'customer_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Customer'),
         'order_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Order'),
         'transaction_type'=>array('required'=>'yes', 'blank'=>'no', 'validlist'=>array('10', '60'), 'name'=>'Type'),
@@ -29,7 +29,7 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
         'source'=>array('required'=>'no', 'blank'=>'yes', 'default'=>'0', 'name'=>'Source'),
         'customer_amount'=>array('required'=>'yes', 'blank'=>'no', 'type'=>'currency', 'name'=>'Customer Amount'),
         'transaction_fees'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'currency', 'name'=>'Transaction Fees'),
-        'business_amount'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'currency', 'name'=>'Business Amount'),
+        'tenant_amount'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'currency', 'name'=>'Tenant Amount'),
         'notes'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notes'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -38,19 +38,19 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
     $args = $rc['args'];
 
     //
-    // Check access to business_id as owner
+    // Check access to tnid as owner
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.customerLedgerAdd');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.customerLedgerAdd');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -60,7 +60,7 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
     // Load maps
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'maps');
-    $rc = ciniki_poma_maps($ciniki, $args['business_id']);
+    $rc = ciniki_poma_maps($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -87,8 +87,8 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
     if( !isset($args['transaction_fees']) ) {
         $args['transaction_fees'] = 0;
     }
-    if( !isset($args['business_amount']) ) {
-        $args['business_amount'] = bcsub($args['customer_amount'], $args['transaction_fees'], 6);
+    if( !isset($args['tenant_amount']) ) {
+        $args['tenant_amount'] = bcsub($args['customer_amount'], $args['transaction_fees'], 6);
     }
 
     //
@@ -104,7 +104,7 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
     }
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'accountApplyCredit');
-    $rc = ciniki_poma_accountApplyCredit($ciniki, $args['business_id'], $args);
+    $rc = ciniki_poma_accountApplyCredit($ciniki, $args['tnid'], $args);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -119,11 +119,11 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
     }
 
     //
-    // Update the last_change date in the business modules
+    // Update the last_change date in the tenant modules
     // Ignore the result, as we don't want to stop user updates if this fails.
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'updateModuleChangeDate');
-    ciniki_businesses_updateModuleChangeDate($ciniki, $args['business_id'], 'ciniki', 'poma');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'updateModuleChangeDate');
+    ciniki_tenants_updateModuleChangeDate($ciniki, $args['tnid'], 'ciniki', 'poma');
 
     return array('stat'=>'ok', 'id'=>$entry_id);
 }

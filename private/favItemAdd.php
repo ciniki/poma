@@ -7,14 +7,14 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_favItemAdd(&$ciniki, $business_id, $args) {
+function ciniki_poma_favItemAdd(&$ciniki, $tnid, $args) {
     
     //
     // Check args
@@ -34,7 +34,7 @@ function ciniki_poma_favItemAdd(&$ciniki, $business_id, $args) {
     //
     $strsql = "SELECT id, status "
         . "FROM ciniki_poma_customer_items "
-        . "WHERE business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "WHERE tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
         . "AND itype = 20 "
         . "AND object = '" . ciniki_core_dbQuote($ciniki, $args['object']) . "' "
@@ -58,7 +58,7 @@ function ciniki_poma_favItemAdd(&$ciniki, $business_id, $args) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.33', 'msg'=>'Unable to add favourite.'));
     }
     $fn = $rc['function_call'];
-    $rc = $fn($ciniki, $business_id, $args);
+    $rc = $fn($ciniki, $tnid, $args);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -74,7 +74,7 @@ function ciniki_poma_favItemAdd(&$ciniki, $business_id, $args) {
     $args['itype'] = 20;
     $args['quantity'] = 1;
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
-    $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.customeritem', $args, 0x07);
+    $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.customeritem', $args, 0x07);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }

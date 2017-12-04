@@ -2,13 +2,13 @@
 //
 // Description
 // -----------
-// This function will lock a dates for a business that autolock has been specified.
+// This function will lock a dates for a tenant that autolock has been specified.
 //
 // Arguments
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get poma web options for.
+// tnid:     The ID of the tenant to get poma web options for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,7 +16,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
+function ciniki_poma_dateLock(&$ciniki, $tnid, $date_id) {
 
     //
     // Load the date
@@ -24,7 +24,7 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
     $strsql = "SELECT id, status, order_date, autolock_dt, flags "
         . "FROM ciniki_poma_order_dates "
         . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $date_id) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND status < 50 "
         . "AND autolock_dt <= UTC_TIMESTAMP() "
         . "";
@@ -48,7 +48,7 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
         . "FROM ciniki_poma_customer_items "
         . "WHERE next_order_date <= '" . ciniki_core_dbQuote($ciniki, $date['order_date']) . "' "
         . "AND itype = 40 "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbQueryList($ciniki, $strsql, 'ciniki.poma', 'customers', 'customer_id');
     if( $rc['stat'] != 'ok' ) {
@@ -61,7 +61,7 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
             // Apply the standing order items
             //
             error_log('applying repeats: ' . $customer_id);
-            $rc = ciniki_poma_orderRepeatItemsAdd($ciniki, $business_id, array(
+            $rc = ciniki_poma_orderRepeatItemsAdd($ciniki, $tnid, array(
                 'date'=>$date,
                 'customer_id'=>$customer_id,
                 ));
@@ -77,7 +77,7 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
     $strsql = "SELECT id, customer_id "
         . "FROM ciniki_poma_orders "
         . "WHERE date_id = '" . ciniki_core_dbQuote($ciniki, $date_id) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND status < 30 "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
@@ -92,7 +92,7 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
             // Close the order
             //
             error_log('locking order: ' . $order['id']);
-            $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $order['id'], array('status'=>30), 0x04);
+            $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.orderitem', $order['id'], array('status'=>30), 0x04);
             if( $rc['stat'] != 'ok' ) {
                 return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.124', 'msg'=>'Unable to lock order', 'err'=>$rc['err']));
             }
@@ -103,7 +103,7 @@ function ciniki_poma_dateLock(&$ciniki, $business_id, $date_id) {
     //
     // Lock the date
     //
-    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderdate', $date['id'], array('status'=>50), 0x04);
+    $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.orderdate', $date['id'], array('status'=>50), 0x04);
     if( $rc['stat'] != 'ok' ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.103', 'msg'=>'Unable to lock date', 'err'=>$rc['err']));
     }

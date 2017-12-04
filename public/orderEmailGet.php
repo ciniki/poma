@@ -16,7 +16,7 @@ function ciniki_poma_orderEmailGet(&$ciniki) {
     //  
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'), 
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'), 
         'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Invoice'), 
         )); 
     if( $rc['stat'] != 'ok' ) { 
@@ -28,7 +28,7 @@ function ciniki_poma_orderEmailGet(&$ciniki) {
     // Load the settings
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbDetailsQueryDash');
-    $rc = ciniki_core_dbDetailsQueryDash($ciniki, 'ciniki_poma_settings', 'business_id', $args['business_id'], 'ciniki.poma', 'settings', 'email');
+    $rc = ciniki_core_dbDetailsQueryDash($ciniki, 'ciniki_poma_settings', 'tnid', $args['tnid'], 'ciniki.poma', 'settings', 'email');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -42,7 +42,7 @@ function ciniki_poma_orderEmailGet(&$ciniki) {
     // Get the invoice record
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderLoad');
-    $rc = ciniki_poma_orderLoad($ciniki, $args['business_id'], $args['order_id']);
+    $rc = ciniki_poma_orderLoad($ciniki, $args['tnid'], $args['order_id']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -55,7 +55,7 @@ function ciniki_poma_orderEmailGet(&$ciniki) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.136', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
     }
     ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
-    $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], 
+    $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['tnid'], 
         array('customer_id'=>$order['customer_id'], 'phones'=>'no', 'emails'=>'yes', 'addresses'=>'no', 'subscriptions'=>'no'));
     if( $rc['stat'] != 'ok' ) {
         return $rc;

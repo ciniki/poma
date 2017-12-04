@@ -8,7 +8,7 @@
 // ---------
 // api_key:
 // auth_token:
-// business_id:        The ID of the business to get Product for.
+// tnid:        The ID of the tenant to get Product for.
 //
 // Returns
 // -------
@@ -19,7 +19,7 @@ function ciniki_poma_dateCheckout($ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'date_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Date'),
         'order'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'New Order'),
         'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Order'),
@@ -38,10 +38,10 @@ function ciniki_poma_dateCheckout($ciniki) {
     $args = $rc['args'];
 
     //
-    // Check access to business_id as owner, or sys admin.
+    // Check access to tnid as owner, or sys admin.
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'foodmarket', 'private', 'checkAccess');
-    $rc = ciniki_foodmarket_checkAccess($ciniki, $args['business_id'], 'ciniki.foodmarket.productList');
+    $rc = ciniki_foodmarket_checkAccess($ciniki, $args['tnid'], 'ciniki.foodmarket.productList');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -57,10 +57,10 @@ function ciniki_poma_dateCheckout($ciniki) {
     $maps = $rc['maps'];
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -81,7 +81,7 @@ function ciniki_poma_dateCheckout($ciniki) {
     if( !isset($args['date_id']) || $args['date_id'] == 0 ) {
         $strsql = "SELECT id, ABS(DATEDIFF(NOW(), order_date)) AS age "
             . "FROM ciniki_poma_order_dates "
-            . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "ORDER BY age ASC "
             . "LIMIT 1 "
             . "";
@@ -105,7 +105,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         . "ciniki_poma_order_dates.status, "
         . "ciniki_poma_order_dates.flags "
         . "FROM ciniki_poma_order_dates "
-        . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "GROUP BY ciniki_poma_order_dates.id "
         . "ORDER BY ciniki_poma_order_dates.order_date DESC "
         . "LIMIT 25"
@@ -132,7 +132,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         && isset($args['date_id']) && $args['date_id'] > 0 
         ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'newOrderForDate');
-        $rc = ciniki_poma_newOrderForDate($ciniki, $args['business_id'], array(
+        $rc = ciniki_poma_newOrderForDate($ciniki, $args['tnid'], array(
             'customer_id'=>$args['customer_id'],
             'date_id'=>$args['date_id'],
             'checkdate'=>'no',
@@ -151,7 +151,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             . "FROM ciniki_poma_orders "
             . "WHERE date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
             . "AND customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "ORDER BY status "
             . "LIMIT 1 "
             . "";
@@ -184,7 +184,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.71', 'msg'=>'Unable to add favourite.'));
         }
         $fn = $rc['function_call'];
-        $rc = $fn($ciniki, $args['business_id'], array('object'=>$args['new_object'], 'object_id'=>$args['new_object_id'], 'date_id'=>$args['date_id']));
+        $rc = $fn($ciniki, $args['tnid'], array('object'=>$args['new_object'], 'object_id'=>$args['new_object_id'], 'date_id'=>$args['date_id']));
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -199,7 +199,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         $strsql = "SELECT MAX(line_number) AS max_line_number "
             . "FROM ciniki_poma_order_items "
             . "WHERE ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-            . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND ciniki_poma_order_items.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
         if( $rc['stat'] != 'ok' ) {
@@ -236,7 +236,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             $item['unit_quantity'] = $args['new_unit_quantity'];
         }
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
-        $rc = ciniki_core_objectAdd($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $item, 0x04);
+        $rc = ciniki_core_objectAdd($ciniki, $args['tnid'], 'ciniki.poma.orderitem', $item, 0x04);
         if( $rc['stat'] != 'ok' ) {
             ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
             return $rc;
@@ -250,7 +250,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             foreach($item['subitems'] as $subitem) {
                 $subitem['order_id'] = $args['order_id'];
                 $subitem['parent_id'] = $item_id;
-                $rc = ciniki_core_objectAdd($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $subitem, 0x04);
+                $rc = ciniki_core_objectAdd($ciniki, $args['tnid'], 'ciniki.poma.orderitem', $subitem, 0x04);
                 if( $rc['stat'] != 'ok' ) {
                     ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
                     return $rc;
@@ -262,7 +262,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         // Update the order
         //
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
-        $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $args['business_id'], $args['order_id']);
+        $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $args['tnid'], $args['order_id']);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -286,7 +286,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             . "FROM ciniki_poma_order_items "
             . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
             . "AND order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
         if( $rc['stat'] != 'ok' ) {
@@ -304,7 +304,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             . "FROM ciniki_poma_order_items "
             . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
             . "AND parent_id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
         if( $rc['stat'] != 'ok' ) {
@@ -365,7 +365,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             //
             if( isset($subitems) && count($subitems) > 0 ) {
                 foreach($subitems as $subitem) {
-                    $rc = ciniki_core_objectDelete($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $subitem['id'], $subitem['uuid'], 0x04);
+                    $rc = ciniki_core_objectDelete($ciniki, $args['tnid'], 'ciniki.poma.orderitem', $subitem['id'], $subitem['uuid'], 0x04);
                     if( $rc['stat'] != 'ok' ) {
                         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
                         return $rc;
@@ -375,14 +375,14 @@ function ciniki_poma_dateCheckout($ciniki) {
             //
             // Delete the item
             //
-            $rc = ciniki_core_objectDelete($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $item['id'], $item['uuid'], 0x04);
+            $rc = ciniki_core_objectDelete($ciniki, $args['tnid'], 'ciniki.poma.orderitem', $item['id'], $item['uuid'], 0x04);
             if( $rc['stat'] != 'ok' ) {
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
                 return $rc;
             }
         } elseif( count($update_args) > 0 ) {
             ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
-            $rc = ciniki_core_objectUpdate($ciniki, $args['business_id'], 'ciniki.poma.orderitem', $args['item_id'], $update_args, 0x04);
+            $rc = ciniki_core_objectUpdate($ciniki, $args['tnid'], 'ciniki.poma.orderitem', $args['item_id'], $update_args, 0x04);
             if( $rc['stat'] != 'ok' ) {
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
                 return $rc;
@@ -394,7 +394,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             // Update the order
             //
             ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
-            $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $args['business_id'], $item['order_id']);
+            $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $args['tnid'], $item['order_id']);
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
@@ -411,7 +411,7 @@ function ciniki_poma_dateCheckout($ciniki) {
 
     if( isset($args['action']) && $args['action'] == 'invoiceorder' && isset($args['order_id']) && $args['order_id'] > 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'invoiceOrder');
-        $rc = ciniki_poma_invoiceOrder($ciniki, $args['business_id'], $args['order_id']);
+        $rc = ciniki_poma_invoiceOrder($ciniki, $args['tnid'], $args['order_id']);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -424,7 +424,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         $strsql = "SELECT id, status "
             . "FROM ciniki_poma_orders "
             . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
         if( $rc['stat'] != 'ok' ) {
@@ -452,7 +452,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         //
         if( $order['status'] < 70 ) {
             ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
-            $rc = ciniki_core_objectUpdate($ciniki, $args['business_id'], 'ciniki.poma.order', $args['order_id'], array('status'=>70), 0x04);
+            $rc = ciniki_core_objectUpdate($ciniki, $args['tnid'], 'ciniki.poma.order', $args['order_id'], array('status'=>70), 0x04);
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
@@ -469,7 +469,7 @@ function ciniki_poma_dateCheckout($ciniki) {
 
     if( isset($args['action']) && $args['action'] == 'recalc' && isset($args['customer_id']) && $args['customer_id'] > 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'accountUpdate');
-        $rc = ciniki_poma_accountUpdate($ciniki, $args['business_id'], array('customer_id'=>$args['customer_id']));
+        $rc = ciniki_poma_accountUpdate($ciniki, $args['tnid'], array('customer_id'=>$args['customer_id']));
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -480,7 +480,7 @@ function ciniki_poma_dateCheckout($ciniki) {
     //
     if( isset($args['order_id']) && $args['order_id'] > 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderLoad');
-        $rc = ciniki_poma_orderLoad($ciniki, $args['business_id'], $args['order_id']);
+        $rc = ciniki_poma_orderLoad($ciniki, $args['tnid'], $args['order_id']);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -502,9 +502,9 @@ function ciniki_poma_dateCheckout($ciniki) {
         //
         // Check if there are any messages for this order
         //
-        if( isset($ciniki['business']['modules']['ciniki.mail']) ) {
+        if( isset($ciniki['tenant']['modules']['ciniki.mail']) ) {
             ciniki_core_loadMethod($ciniki, 'ciniki', 'mail', 'hooks', 'objectMessages');
-            $rc = ciniki_mail_hooks_objectMessages($ciniki, $args['business_id'], array('object'=>'ciniki.poma.order', 'object_id'=>$args['order_id']));
+            $rc = ciniki_mail_hooks_objectMessages($ciniki, $args['tnid'], array('object'=>'ciniki.poma.order', 'object_id'=>$args['order_id']));
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
@@ -518,7 +518,7 @@ function ciniki_poma_dateCheckout($ciniki) {
 
     if( isset($rsp['order']['customer_id']) && $rsp['order']['customer_id'] > 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
-        $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], array('customer_id'=>$rsp['order']['customer_id']));
+        $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['tnid'], array('customer_id'=>$rsp['order']['customer_id']));
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -550,7 +550,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             . "ciniki_poma_customer_ledgers.balance "
             . "FROM ciniki_poma_customer_ledgers "
             . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $rsp['order']['customer_id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "ORDER BY transaction_date DESC "
             . "LIMIT 25 "
             . "";
@@ -610,7 +610,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             . "total_amount "
             . "FROM ciniki_poma_orders "
             . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $rsp['order']['customer_id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "AND order_date <= UTC_TIMESTAMP() "
             . "ORDER BY order_date DESC "
             . "LIMIT 25 "
@@ -649,10 +649,10 @@ function ciniki_poma_dateCheckout($ciniki) {
         . "LEFT JOIN ciniki_poma_notes AS notes ON ("
             . "orders.customer_id = notes.customer_id "
             . "AND notes.status = 10 "
-            . "AND notes.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND notes.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . ") "
         . "WHERE orders.date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
-        . "AND orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "AND orders.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "GROUP BY state, orders.id "
         . "ORDER BY state, orders.billing_name "
         . "";

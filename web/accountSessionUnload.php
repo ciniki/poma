@@ -10,7 +10,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_accountSessionUnload($ciniki, $settings, $business_id) {
+function ciniki_poma_web_accountSessionUnload($ciniki, $settings, $tnid) {
 
     if( isset($ciniki['session']['ciniki.poma']) ) {
         unset($ciniki['session']['ciniki.poma']);

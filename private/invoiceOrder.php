@@ -7,23 +7,23 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_invoiceOrder(&$ciniki, $business_id, $order_id) {
+function ciniki_poma_invoiceOrder(&$ciniki, $tnid, $order_id) {
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -41,7 +41,7 @@ function ciniki_poma_invoiceOrder(&$ciniki, $business_id, $order_id) {
         . "ciniki_poma_orders.balance_amount "
         . "FROM ciniki_poma_orders "
         . "WHERE ciniki_poma_orders.id = '" . ciniki_core_dbQuote($ciniki, $order_id) . "' "
-        . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
     if( $rc['stat'] != 'ok') {
@@ -65,7 +65,7 @@ function ciniki_poma_invoiceOrder(&$ciniki, $business_id, $order_id) {
     $strsql = "SELECT id, balance "
         . "FROM ciniki_poma_customer_ledgers "
         . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $order['customer_id']) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "ORDER BY transaction_date DESC "
         . "LIMIT 1 "
         . "";
@@ -121,7 +121,7 @@ function ciniki_poma_invoiceOrder(&$ciniki, $business_id, $order_id) {
     if( $order_balance != $order['balance_amount'] ) {
         $update_args['balance_amount'] = $order_balance;
     }
-    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.order', $order['id'], $update_args, 0x04);
+    $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.order', $order['id'], $update_args, 0x04);
     if( $rc['stat'] != 'ok') {
         return $rc;
     }
@@ -130,7 +130,7 @@ function ciniki_poma_invoiceOrder(&$ciniki, $business_id, $order_id) {
     // Add ledger entry
     //
     $dt = new DateTime('now', new DateTimezone($intl_timezone));
-    $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.customerledger', array(
+    $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.customerledger', array(
         'customer_id'=>$order['customer_id'],
         'order_id'=>$order['id'],
         'transaction_type'=>30,
@@ -139,7 +139,7 @@ function ciniki_poma_invoiceOrder(&$ciniki, $business_id, $order_id) {
         'description'=>'Invoice #'  . $order['order_number'],
         'customer_amount'=>$order['total_amount'],
         'transaction_fees'=>0,
-        'business_amount'=>$order['total_amount'],
+        'tenant_amount'=>$order['total_amount'],
         'balance'=>$new_balance,
         'notes'=>'',
         ), 0x04);
@@ -152,7 +152,7 @@ function ciniki_poma_invoiceOrder(&$ciniki, $business_id, $order_id) {
     // Add the payment if credit was applied
     //
     if( isset($credit_applied) && $credit_applied > 0 ) {
-        $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderpayment', array(
+        $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.orderpayment', array(
             'order_id'=>$order['id'],
             'ledger_id'=>$ledger_id,
             'payment_type'=>10,

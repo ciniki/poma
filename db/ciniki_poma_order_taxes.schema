@@ -9,7 +9,7 @@
 # ------
 # id:               The tax item ID.
 # uuid:             The Universal Unique ID for the order tax.
-# business_id:      The business the order is for.
+# tnid:             The tenant the order is for.
 #
 # order_id:         The ID of the order the tax is for.
 #
@@ -32,7 +32,7 @@
 create table ciniki_poma_order_taxes (
     id int not null auto_increment,
     uuid char(36) not null,
-    business_id int not null,
+    tnid int not null,
     order_id int not null,
     taxrate_id int not null,
     flags tinyint unsigned not null,
@@ -43,5 +43,5 @@ create table ciniki_poma_order_taxes (
     last_updated datetime not null,
     primary key (id),
     unique index (order_id, taxrate_id),
-    index sync (uuid, business_id, last_updated)
+    index sync (uuid, tnid, last_updated)
 ) ENGINE='InnoDB', COMMENT='v1.01';

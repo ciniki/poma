@@ -2,13 +2,13 @@
 //
 // Description
 // -----------
-// This method searchs for a Order Items for a business.
+// This method searchs for a Order Items for a tenant.
 //
 // Arguments
 // ---------
 // api_key:
 // auth_token:
-// business_id:        The ID of the business to get Order Item for.
+// tnid:        The ID of the tenant to get Order Item for.
 // start_needle:       The search string to search for.
 // limit:              The maximum number of entries to return.
 //
@@ -21,7 +21,7 @@ function ciniki_poma_repeatItemSearch($ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'start_needle'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Search String'),
         'limit'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Limit'),
         ));
@@ -31,19 +31,19 @@ function ciniki_poma_repeatItemSearch($ciniki) {
     $args = $rc['args'];
 
     //
-    // Check access to business_id as owner, or sys admin.
+    // Check access to tnid as owner, or sys admin.
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.repeatItemSearch');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.repeatItemSearch');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
 
     //
-    // Load business INTL settings
+    // Load tenant INTL settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -71,14 +71,14 @@ function ciniki_poma_repeatItemSearch($ciniki) {
     //
     // Check for modules which have searchable items
     //
-    foreach($ciniki['business']['modules'] as $module => $m) {
+    foreach($ciniki['tenant']['modules'] as $module => $m) {
         list($pkg, $mod) = explode('.', $module);
         $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemSearch');
         if( $rc['stat'] != 'ok' ) {
             continue;
         }
         $fn = $rc['function_call'];
-        $rc = $fn($ciniki, $args['business_id'], array(
+        $rc = $fn($ciniki, $args['tnid'], array(
             'keywords'=>$keywords,
             'limit'=>$args['limit']));
         if( $rc['stat'] != 'ok' ) {
@@ -90,7 +90,7 @@ function ciniki_poma_repeatItemSearch($ciniki) {
     }
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'formatItems');
-    $rc = ciniki_poma_formatItems($ciniki, $args['business_id'], $items);
+    $rc = ciniki_poma_formatItems($ciniki, $args['tnid'], $items);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }

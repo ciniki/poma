@@ -7,14 +7,14 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
+function ciniki_poma_accountUpdate(&$ciniki, $tnid, $args) {
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
 
@@ -32,7 +32,7 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
         $strsql = "SELECT id, customer_id, payment_status, total_amount "
             . "FROM ciniki_poma_orders "
             . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
         if( $rc['stat'] != 'ok' ) {
@@ -50,7 +50,7 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
             . "FROM ciniki_poma_customer_ledgers "
             . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
             . "AND customer_id = '" . ciniki_core_dbQuote($ciniki, $order['customer_id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'entry');
         if( $rc['stat'] != 'ok' ) {
@@ -82,7 +82,7 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
             . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $order['customer_id']) . "' "
             . "AND transaction_date <= '" . ciniki_core_dbQuote($ciniki, $entry['transaction_date']) . "' "
             . "AND id <> '" . ciniki_core_dbQuote($ciniki, $entry['id']) . "' "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . "ORDER BY transaction_date DESC "
             . "LIMIT 1 "
             . "";
@@ -104,7 +104,7 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
         if( $new_balance != $entry['balance'] ) {
             $update_args['balance'] = $new_balance;
         }
-        $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.customerledger', $entry['id'], $update_args, 0x04);
+        $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.customerledger', $entry['id'], $update_args, 0x04);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -134,7 +134,7 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
         . "AND id <> '" . ciniki_core_dbQuote($ciniki, $start_ledger_id) . "' "
         . "";
     }
-    $strsql .= "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+    $strsql .= "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "ORDER BY transaction_date ASC "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'entry');
@@ -157,7 +157,7 @@ function ciniki_poma_accountUpdate(&$ciniki, $business_id, $args) {
             
             if( $new_balance != $entry['balance'] ) {
                 $update_args = array('balance'=>$new_balance);
-                $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.customerledger', $entry['id'], $update_args, 0x04);
+                $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.customerledger', $entry['id'], $update_args, 0x04);
                 if( $rc['stat'] != 'ok' ) {
                     return $rc;
                 }

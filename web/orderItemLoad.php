@@ -7,14 +7,14 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_web_orderItemLoad($ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_orderItemLoad($ciniki, $settings, $tnid, $args) {
     if( !isset($args['item_id']) || $args['item_id'] < 1 || $args['item_id'] == '' ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.83', 'msg'=>'No item specified.'));
     }
@@ -33,7 +33,7 @@ function ciniki_poma_web_orderItemLoad($ciniki, $settings, $business_id, $args) 
         . "ciniki_poma_order_items.total_amount "
         . "FROM ciniki_poma_order_items "
         . "WHERE ciniki_poma_order_items.id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
-        . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_order_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
     if( $rc['stat'] != 'ok' ) {
@@ -55,9 +55,9 @@ function ciniki_poma_web_orderItemLoad($ciniki, $settings, $business_id, $args) 
         . "ciniki_poma_order_dates.status AS date_status "
         . "FROM ciniki_poma_orders, ciniki_poma_order_dates "
         . "WHERE ciniki_poma_orders.id = '" . ciniki_core_dbQuote($ciniki, $item['order_id']) . "' "
-        . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND ciniki_poma_orders.date_id = ciniki_poma_order_dates.id "
-        . "AND ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
     if( $rc['stat'] != 'ok' ) {
@@ -97,7 +97,7 @@ function ciniki_poma_web_orderItemLoad($ciniki, $settings, $business_id, $args) 
         . "FROM ciniki_poma_order_items "
         . "WHERE ciniki_poma_order_items.parent_id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
         . "AND ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $item['order_id']) . "' "
-        . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_order_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "ORDER BY ciniki_poma_order_items.description "
         . "";
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(

@@ -8,14 +8,14 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get poma request for.
+// tnid:     The ID of the tenant to get poma request for.
 // item:            The item to be formatted.:w
 //
 //
 // Returns
 // -------
 //
-function ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $item) {
+function ciniki_poma_web_orderItemFormat($ciniki, $settings, $tnid, $item) {
     $item['quantity_single'] = '';
     $item['quantity_plural'] = '';
     if( $item['itype'] == 10 ) {

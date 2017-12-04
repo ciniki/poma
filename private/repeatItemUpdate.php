@@ -7,14 +7,14 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
+function ciniki_poma_repeatItemUpdate(&$ciniki, $tnid, $args) {
     
     //
     // Check args
@@ -30,10 +30,10 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
     }
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -48,7 +48,7 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.96', 'msg'=>'Unable to add favourite.'));
     }
     $fn = $rc['function_call'];
-    $rc = $fn($ciniki, $business_id, $args);
+    $rc = $fn($ciniki, $tnid, $args);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -72,7 +72,7 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
         . "AND ciniki_poma_customer_items.itype = 40 "
         . "AND ciniki_poma_customer_items.object = '" . ciniki_core_dbQuote($ciniki, $args['object']) . "' "
         . "AND ciniki_poma_customer_items.object_id = '" . ciniki_core_dbQuote($ciniki, $args['object_id']) . "' "
-        . "AND ciniki_poma_customer_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_customer_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
     if( $rc['stat'] != 'ok' ) {
@@ -136,7 +136,7 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
         //
         if( isset($update_args['quantity']) && $update_args['quantity'] <= 0 ) {
             ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectDelete');
-            $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.customeritem', $existing_item['id'], $existing_item['uuid'], 0x04);
+            $rc = ciniki_core_objectDelete($ciniki, $tnid, 'ciniki.poma.customeritem', $existing_item['id'], $existing_item['uuid'], 0x04);
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
@@ -146,7 +146,7 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
         //
         elseif( count($update_args) > 0 ) {
             ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
-            $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.customeritem', $existing_item['id'], $update_args, 0x04);
+            $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.customeritem', $existing_item['id'], $update_args, 0x04);
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
@@ -182,7 +182,7 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
         $strsql = "SELECT id, order_date "
             . "FROM ciniki_poma_order_dates "
             . "WHERE status < 50 "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . "AND order_date > NOW() "
             . "ORDER BY order_date ASC "
             . "LIMIT 1 "
@@ -207,12 +207,12 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
             . "FROM ciniki_poma_order_items, ciniki_poma_orders, ciniki_poma_order_dates "
             . "WHERE ciniki_poma_order_items.object = '" . ciniki_core_dbQuote($ciniki, $args['object']) . "' "
             . "AND ciniki_poma_order_items.object_id = '" . ciniki_core_dbQuote($ciniki, $args['object_id']) . "' "
-            . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND ciniki_poma_order_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . "AND ciniki_poma_order_items.order_id = ciniki_poma_orders.id "
             . "AND ciniki_poma_orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
-            . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . "AND ciniki_poma_orders.date_id = ciniki_poma_order_dates.id "
-            . "AND ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
         if( $rc['stat'] != 'ok' ) {
@@ -236,7 +236,7 @@ function ciniki_poma_repeatItemUpdate(&$ciniki, $business_id, $args) {
         // Add the item
         //
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
-        $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.customeritem', $args, 0x04);
+        $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.customeritem', $args, 0x04);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }

@@ -8,7 +8,7 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get poma web options for.
+// tnid:     The ID of the tenant to get poma web options for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,20 +16,20 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_orderLoad(&$ciniki, $settings, $tnid, $args) {
 
     //
     // Check to make sure the module is enabled
     //
-    if( !isset($ciniki['business']['modules']['ciniki.poma']) ) {
+    if( !isset($ciniki['tenant']['modules']['ciniki.poma']) ) {
         return array('stat'=>'ok');
     }
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -49,7 +49,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         . "ciniki_poma_orders.order_notes "
         . "FROM ciniki_poma_orders "
         . "WHERE ciniki_poma_orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $ciniki['session']['customer']['id']) . "' "
-        . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     if( isset($args['date_id']) && $args['date_id'] > 0 ) {
         $strsql .= "AND ciniki_poma_orders.date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' ";
@@ -73,7 +73,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
                 . "ciniki_poma_order_dates.display_name "
                 . "FROM ciniki_poma_order_dates "
                 . "WHERE ciniki_poma_order_dates.id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
-                . "AND ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+                . "AND ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
                 . "";
             $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
             if( $rc['stat'] != 'ok' ) {
@@ -117,7 +117,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
                 . "ciniki_poma_order_dates.display_name "
                 . "FROM ciniki_poma_order_dates "
                 . "WHERE ciniki_poma_order_dates.id = '" . ciniki_core_dbQuote($ciniki, $order['date_id']) . "' "
-                . "AND ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+                . "AND ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
                 . "";
             $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
             if( $rc['stat'] != 'ok' ) {
@@ -177,10 +177,10 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         . "FROM ciniki_poma_order_items "
         . "LEFT JOIN ciniki_tax_types AS taxtypes ON ("
             . "ciniki_poma_order_items.taxtype_id = taxtypes.id "
-            . "AND taxtypes.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND taxtypes.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . ") "
         . "WHERE ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
-        . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_order_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
 //        . "AND ciniki_poma_order_items.parent_id = 0 "   // Don't load child items, they are only used for product baskets in foodmarket
         . "ORDER BY parent_id, line_number, description "
         . "";
@@ -199,7 +199,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         $order['items'] = $rc['items'];
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'orderItemFormat');
         foreach($order['items'] as $iid => $item) {
-            $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $item);
+            $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $tnid, $item);
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
@@ -270,7 +270,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $business_id, $args) {
         . "ROUND(amount, 2) AS amount "
         . "FROM ciniki_poma_order_taxes "
         . "WHERE ciniki_poma_order_taxes.order_id = '" . ciniki_core_dbQuote($ciniki, $order['id']) . "' "
-        . "AND ciniki_poma_order_taxes.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_order_taxes.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "ORDER BY line_number, date_added "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryTree');

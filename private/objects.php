@@ -179,7 +179,7 @@ function ciniki_poma_objects(&$ciniki) {
             'description'=>array('name'=>'Description'),
             'customer_amount'=>array('name'=>'Customer Amount'),
             'transaction_fees'=>array('name'=>'Transaction Fees', 'default'=>'0'),
-            'business_amount'=>array('name'=>'Business Amount'),
+            'tenant_amount'=>array('name'=>'Tenant Amount'),
             'balance'=>array('name'=>'Balance'),
             'notes'=>array('name'=>'Notes', 'default'=>''),
             ),

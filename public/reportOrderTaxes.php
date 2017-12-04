@@ -16,7 +16,7 @@ function ciniki_poma_reportOrderTaxes(&$ciniki) {
     //  
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'), 
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'), 
         )); 
     if( $rc['stat'] != 'ok' ) { 
         return $rc;
@@ -25,16 +25,16 @@ function ciniki_poma_reportOrderTaxes(&$ciniki) {
 
     //  
     // Make sure this module is activated, and
-    // check permission to run this function for this business
+    // check permission to run this function for this tenant
     //  
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.reportOrderTaxes'); 
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.reportOrderTaxes'); 
     if( $rc['stat'] != 'ok' ) { 
         return $rc;
     }
 
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -81,11 +81,11 @@ function ciniki_poma_reportOrderTaxes(&$ciniki) {
     }
 
     //
-    // Get the list of all tax rates for the business
+    // Get the list of all tax rates for the tenant
     //
     $strsql = "SELECT id, name "
         . "FROM ciniki_tax_rates "
-        . "WHERE business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "WHERE tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "";
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.taxes', array(
         array('container'=>'taxrates', 'fname'=>'id', 'fields'=>array('id', 'name')),
@@ -109,9 +109,9 @@ function ciniki_poma_reportOrderTaxes(&$ciniki) {
         . "FROM ciniki_poma_orders "
         . "LEFT JOIN ciniki_poma_order_taxes ON ("
             . "ciniki_poma_orders.id = ciniki_poma_order_taxes.order_id "
-            . "AND ciniki_poma_order_taxes.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND ciniki_poma_order_taxes.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . ") "
-        . "WHERE ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "WHERE ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "AND ciniki_poma_orders.payment_status > 0 "
         . "ORDER BY ciniki_poma_orders.order_date "
         . "";

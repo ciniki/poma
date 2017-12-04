@@ -2,13 +2,13 @@
 //
 // Description
 // -----------
-// This method will return the list of Order Dates for a business.
+// This method will return the list of Order Dates for a tenant.
 //
 // Arguments
 // ---------
 // api_key:
 // auth_token:
-// business_id:        The ID of the business to get Order Date for.
+// tnid:        The ID of the tenant to get Order Date for.
 //
 // Returns
 // -------
@@ -19,7 +19,7 @@ function ciniki_poma_dateList($ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'upcoming'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Upcoming'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -28,19 +28,19 @@ function ciniki_poma_dateList($ciniki) {
     $args = $rc['args'];
 
     //
-    // Check access to business_id as owner, or sys admin.
+    // Check access to tnid as owner, or sys admin.
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.dateList');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.dateList');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -59,7 +59,7 @@ function ciniki_poma_dateList($ciniki) {
     // Load maps
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'maps');
-    $rc = ciniki_poma_maps($ciniki, $args['business_id']);
+    $rc = ciniki_poma_maps($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -80,9 +80,9 @@ function ciniki_poma_dateList($ciniki) {
             . "FROM ciniki_poma_order_dates "
             . "LEFT JOIN ciniki_poma_orders ON ("
                 . "ciniki_poma_order_dates.id = ciniki_poma_orders.date_id "
-                . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+                . "AND ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
                 . ") "
-            . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "AND ciniki_poma_order_dates.order_date >= '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
             . "GROUP BY ciniki_poma_order_dates.id "
             . "ORDER BY ciniki_poma_order_dates.order_date ASC "
@@ -99,9 +99,9 @@ function ciniki_poma_dateList($ciniki) {
             . "FROM ciniki_poma_order_dates "
             . "LEFT JOIN ciniki_poma_orders ON ("
                 . "ciniki_poma_order_dates.id = ciniki_poma_orders.date_id "
-                . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+                . "AND ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
                 . ") "
-            . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "GROUP BY ciniki_poma_order_dates.id "
             . "ORDER BY order_date DESC "
             . "";

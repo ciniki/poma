@@ -8,14 +8,14 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $tnid, $args) {
     
     //
     // Check args
@@ -40,7 +40,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
     //
     // Load the item and the list of subitems
     //
-    $rc = ciniki_poma_web_orderItemLoad($ciniki, $settings, $business_id, $args);
+    $rc = ciniki_poma_web_orderItemLoad($ciniki, $settings, $tnid, $args);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -56,7 +56,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.88', 'msg'=>'Unable to add item.'));
     }
     $fn = $rc['function_call'];
-    $rc = $fn($ciniki, $business_id, $args);
+    $rc = $fn($ciniki, $tnid, $args);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -93,7 +93,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
     }
     $newitem['flags'] |= 0x04;
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
-    $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', $newitem, 0x04);
+    $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.orderitem', $newitem, 0x04);
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
         return $rc;
@@ -103,7 +103,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
     // Update the order totals
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
-    $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $business_id, $newitem['order_id']);
+    $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $tnid, $newitem['order_id']);
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
         return $rc;
@@ -114,7 +114,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
         // Update the flag to mail the order to the customer
         //
         if( ($order['flags']&0x10) == 0 ) {
-            $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.order', $newitem['order_id'], array('flags'=>$order['flags'] |= 0x10), 0x04);
+            $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.order', $newitem['order_id'], array('flags'=>$order['flags'] |= 0x10), 0x04);
             if( $rc['stat'] != 'ok' ) {
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
                 return $rc;
@@ -150,7 +150,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
         . "FROM ciniki_poma_order_items "
         . "WHERE ciniki_poma_order_items.parent_id = '" . ciniki_core_dbQuote($ciniki, $args['item_id']) . "' "
         . "AND ciniki_poma_order_items.order_id = '" . ciniki_core_dbQuote($ciniki, $existing_item['order_id']) . "' "
-        . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_order_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "ORDER BY ciniki_poma_order_items.description "
         . "";
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
@@ -172,7 +172,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
     $existing_item['curtotal'] = 0;
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'orderItemFormat');
     foreach($subitems as $iid => $itm) {
-        $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $business_id, $itm);
+        $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $tnid, $itm);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -195,7 +195,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $business_
             'object'=>$existing_item['object'],
             'object_id'=>$existing_item['object_id'],
             );
-        $rc = $fn($ciniki, $business_id, $args);
+        $rc = $fn($ciniki, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }

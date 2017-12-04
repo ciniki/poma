@@ -10,7 +10,7 @@
 // ---------
 // api_key:
 // auth_token:
-// business_id:         The ID of the business to get the details for.
+// tnid:         The ID of the tenant to get the details for.
 // item_id:          The ID of the customer item to get the history for.
 // field:                   The field to get the history for.
 //
@@ -23,7 +23,7 @@ function ciniki_poma_customerItemHistory($ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'item_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Customer Item'),
         'field'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'field'),
         ));
@@ -33,25 +33,25 @@ function ciniki_poma_customerItemHistory($ciniki) {
     $args = $rc['args'];
 
     //
-    // Check access to business_id as owner, or sys admin
+    // Check access to tnid as owner, or sys admin
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.customerItemHistory');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.customerItemHistory');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
 
     if( $args['field'] == 'last_order_date' ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbGetModuleHistoryReformat');
-        return ciniki_core_dbGetModuleHistoryReformat($ciniki, 'ciniki.poma', 'ciniki_poma_history', $args['business_id'], 'ciniki_poma_customer_items', $args['item_id'], $args['field'], 'date');
+        return ciniki_core_dbGetModuleHistoryReformat($ciniki, 'ciniki.poma', 'ciniki_poma_history', $args['tnid'], 'ciniki_poma_customer_items', $args['item_id'], $args['field'], 'date');
     }
 
     if( $args['field'] == 'next_order_date' ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbGetModuleHistoryReformat');
-        return ciniki_core_dbGetModuleHistoryReformat($ciniki, 'ciniki.poma', 'ciniki_poma_history', $args['business_id'], 'ciniki_poma_customer_items', $args['item_id'], $args['field'], 'date');
+        return ciniki_core_dbGetModuleHistoryReformat($ciniki, 'ciniki.poma', 'ciniki_poma_history', $args['tnid'], 'ciniki_poma_customer_items', $args['item_id'], $args['field'], 'date');
     }
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbGetModuleHistory');
-    return ciniki_core_dbGetModuleHistory($ciniki, 'ciniki.poma', 'ciniki_poma_history', $args['business_id'], 'ciniki_poma_customer_items', $args['item_id'], $args['field']);
+    return ciniki_core_dbGetModuleHistory($ciniki, 'ciniki.poma', 'ciniki_poma_history', $args['tnid'], 'ciniki_poma_customer_items', $args['item_id'], $args['field']);
 }
 ?>

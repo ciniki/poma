@@ -8,7 +8,7 @@
 // ---------
 // api_key:
 // auth_token:
-// business_id:            The ID of the business the order item is attached to.
+// tnid:            The ID of the tenant the order item is attached to.
 // item_id:            The ID of the order item to be removed.
 //
 // Returns
@@ -20,7 +20,7 @@ function ciniki_poma_orderDelete(&$ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'order_id'=>array('required'=>'yes', 'blank'=>'yes', 'name'=>'Order Item'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -29,10 +29,10 @@ function ciniki_poma_orderDelete(&$ciniki) {
     $args = $rc['args'];
 
     //
-    // Check access to business_id as owner
+    // Check access to tnid as owner
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.orderItemDelete');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.orderItemDelete');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -47,10 +47,10 @@ function ciniki_poma_orderDelete(&$ciniki) {
         . "FROM ciniki_poma_orders "
         . "LEFT JOIN ciniki_poma_order_items ON ("
             . "ciniki_poma_orders.id = ciniki_poma_order_items.order_id "
-            . "AND ciniki_poma_order_items.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "AND ciniki_poma_order_items.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . ") "
         . "WHERE ciniki_poma_orders.id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-        . "AND ciniki_poma_orders.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "AND ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
     if( $rc['stat'] != 'ok' ) {
@@ -71,7 +71,7 @@ function ciniki_poma_orderDelete(&$ciniki) {
     $strsql = "SELECT COUNT(id) AS num_payments "
         . "FROM ciniki_poma_order_payments "
         . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-        . "AND ciniki_poma_order_payments.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "AND ciniki_poma_order_payments.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbSingleCount');
     $rc = ciniki_core_dbSingleCount($ciniki, $strsql, 'ciniki.poma', 'num');
@@ -88,7 +88,7 @@ function ciniki_poma_orderDelete(&$ciniki) {
     $strsql = "SELECT COUNT(id) AS num_ledgers "
         . "FROM ciniki_poma_customer_ledgers "
         . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-        . "AND ciniki_poma_customer_ledgers.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+        . "AND ciniki_poma_customer_ledgers.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbSingleCount');
     $rc = ciniki_core_dbSingleCount($ciniki, $strsql, 'ciniki.poma', 'num');
@@ -116,7 +116,7 @@ function ciniki_poma_orderDelete(&$ciniki) {
     //
     // Remove the item
     //
-    $rc = ciniki_core_objectDelete($ciniki, $args['business_id'], 'ciniki.poma.order', $args['order_id'], $order['uuid'], 0x04);
+    $rc = ciniki_core_objectDelete($ciniki, $args['tnid'], 'ciniki.poma.order', $args['order_id'], $order['uuid'], 0x04);
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
         return $rc;
@@ -131,11 +131,11 @@ function ciniki_poma_orderDelete(&$ciniki) {
     }
 
     //
-    // Update the last_change date in the business modules
+    // Update the last_change date in the tenant modules
     // Ignore the result, as we don't want to stop user updates if this fails.
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'updateModuleChangeDate');
-    ciniki_businesses_updateModuleChangeDate($ciniki, $args['business_id'], 'ciniki', 'poma');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'updateModuleChangeDate');
+    ciniki_tenants_updateModuleChangeDate($ciniki, $args['tnid'], 'ciniki', 'poma');
 
     return array('stat'=>'ok');
 }

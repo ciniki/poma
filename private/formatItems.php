@@ -8,7 +8,7 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get poma web options for.
+// tnid:     The ID of the tenant to get poma web options for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,7 +16,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_formatItems(&$ciniki, $business_id, $items) {
+function ciniki_poma_formatItems(&$ciniki, $tnid, $items) {
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'formatAmount');
 

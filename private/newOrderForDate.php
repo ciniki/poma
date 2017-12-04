@@ -7,14 +7,14 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
+function ciniki_poma_newOrderForDate(&$ciniki, $tnid, $args) {
     
     //
     // Check args
@@ -27,10 +27,10 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
     }
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -40,7 +40,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
     // Load the customer details
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
-    $rc = ciniki_customers_hooks_customerDetails($ciniki, $business_id, array('customer_id'=>$args['customer_id']));
+    $rc = ciniki_customers_hooks_customerDetails($ciniki, $tnid, array('customer_id'=>$args['customer_id']));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -57,7 +57,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
         . "ciniki_poma_order_dates.status "
         . "FROM ciniki_poma_order_dates "
         . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
     if( $rc['stat'] != 'ok' ) {
@@ -87,7 +87,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
     //
     $strsql = "SELECT MAX(CAST(order_number AS UNSIGNED)) AS max_order_number "
         . "FROM ciniki_poma_orders "
-        . "WHERE business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "WHERE tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'max');
     if( $rc['stat'] != 'ok' ) {
@@ -114,7 +114,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $business_id, $args) {
         'items'=>array(),
         );
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
-    $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.order', $order, 0x07);
+    $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.order', $order, 0x07);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }

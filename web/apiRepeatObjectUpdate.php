@@ -8,14 +8,14 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_web_apiRepeatObjectUpdate(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_apiRepeatObjectUpdate(&$ciniki, $settings, $tnid, $args) {
     
     //
     // Start a transaction
@@ -47,7 +47,7 @@ function ciniki_poma_web_apiRepeatObjectUpdate(&$ciniki, $settings, $business_id
     if( isset($_GET['skip']) && $_GET['skip'] == 'yes' ) {
         $item_args['skip'] = 'yes';
     }
-    $rc = ciniki_poma_repeatItemUpdate($ciniki, $business_id, $item_args);
+    $rc = ciniki_poma_repeatItemUpdate($ciniki, $tnid, $item_args);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }

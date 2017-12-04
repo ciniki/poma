@@ -49,7 +49,7 @@ function ciniki_poma_main() {
         this.liveSearchRN++;
         var sN = this.liveSearchRN;
         if( s == 'account_search' && v != '' ) {
-            M.api.getJSONBgCb('ciniki.poma.accountSearch', {'business_id':M.curBusinessID, 'search_str':v, 'limit':'50'}, function(rsp) {
+            M.api.getJSONBgCb('ciniki.poma.accountSearch', {'tnid':M.curTenantID, 'search_str':v, 'limit':'50'}, function(rsp) {
                 if( sN == M.ciniki_poma_main.menu.liveSearchRN ) {
                     M.ciniki_poma_main.menu.liveSearchShow('account_search',null,M.gE(M.ciniki_poma_main.menu.panelUID + '_' + s), rsp.accounts);
                 }
@@ -109,7 +109,7 @@ function ciniki_poma_main() {
     this.menu.open = function(cb, tab) {
         if( tab != null ) { this.sections._tabs.selected = tab; }
         if( this.sections._tabs.selected == 'accounts' ) {
-            M.api.getJSONCb('ciniki.poma.accountList', {'business_id':M.curBusinessID}, function(rsp) {
+            M.api.getJSONCb('ciniki.poma.accountList', {'tnid':M.curTenantID}, function(rsp) {
                 if( rsp.stat != 'ok' ) {
                     M.api.err(rsp);
                     return false;
@@ -123,7 +123,7 @@ function ciniki_poma_main() {
             });
         }
         else if( this.sections._tabs.selected == 'dates' ) {
-            M.api.getJSONCb('ciniki.poma.dateList', {'business_id':M.curBusinessID}, function(rsp) {
+            M.api.getJSONCb('ciniki.poma.dateList', {'tnid':M.curTenantID}, function(rsp) {
                 if( rsp.stat != 'ok' ) {
                     M.api.err(rsp);
                     return false;
@@ -137,7 +137,7 @@ function ciniki_poma_main() {
             });
         }
         else if( this.sections._tabs.selected == 'taxes' ) {
-            M.api.getJSONCb('ciniki.poma.reportOrderTaxes', {'business_id':M.curBusinessID}, function(rsp) {
+            M.api.getJSONCb('ciniki.poma.reportOrderTaxes', {'tnid':M.curTenantID}, function(rsp) {
                 if( rsp.stat != 'ok' ) {
                     M.api.err(rsp);
                     return false;
@@ -189,12 +189,12 @@ function ciniki_poma_main() {
         };
     this.editdate.fieldValue = function(s, i, d) { return this.data[i]; }
     this.editdate.fieldHistoryArgs = function(s, i) {
-        return {'method':'ciniki.poma.dateHistory', 'args':{'business_id':M.curBusinessID, 'date_id':this.date_id, 'field':i}};
+        return {'method':'ciniki.poma.dateHistory', 'args':{'tnid':M.curTenantID, 'date_id':this.date_id, 'field':i}};
     }
     this.editdate.open = function(cb, did, list) {
         if( did != null ) { this.date_id = did; }
         if( list != null ) { this.nplist = list; }
-        M.api.getJSONCb('ciniki.poma.dateGet', {'business_id':M.curBusinessID, 'date_id':this.date_id}, function(rsp) {
+        M.api.getJSONCb('ciniki.poma.dateGet', {'tnid':M.curTenantID, 'date_id':this.date_id}, function(rsp) {
             if( rsp.stat != 'ok' ) {
                 M.api.err(rsp);
                 return false;
@@ -218,7 +218,7 @@ function ciniki_poma_main() {
         if( this.date_id > 0 ) {
             var c = this.serializeForm('no');
             if( c != '' ) {
-                M.api.postJSONCb('ciniki.poma.dateUpdate', {'business_id':M.curBusinessID, 'date_id':this.date_id}, c, function(rsp) {
+                M.api.postJSONCb('ciniki.poma.dateUpdate', {'tnid':M.curTenantID, 'date_id':this.date_id}, c, function(rsp) {
                     if( rsp.stat != 'ok' ) {
                         M.api.err(rsp);
                         return false;
@@ -230,7 +230,7 @@ function ciniki_poma_main() {
             }
         } else {
             var c = this.serializeForm('yes');
-            M.api.postJSONCb('ciniki.poma.dateAdd', {'business_id':M.curBusinessID}, c, function(rsp) {
+            M.api.postJSONCb('ciniki.poma.dateAdd', {'tnid':M.curTenantID}, c, function(rsp) {
                 if( rsp.stat != 'ok' ) {
                     M.api.err(rsp);
                     return false;
@@ -242,7 +242,7 @@ function ciniki_poma_main() {
     }
     this.editdate.remove = function() {
         if( confirm('Are you sure you want to remove order date?') ) {
-            M.api.getJSONCb('ciniki.poma.dateDelete', {'business_id':M.curBusinessID, 'date_id':this.date_id}, function(rsp) {
+            M.api.getJSONCb('ciniki.poma.dateDelete', {'tnid':M.curTenantID, 'date_id':this.date_id}, function(rsp) {
                 if( rsp.stat != 'ok' ) {
                     M.api.err(rsp);
                     return false;
@@ -425,7 +425,7 @@ function ciniki_poma_main() {
     this.account.open = function(cb, cid, oid) {
         if( cid != null ) { this.customer_id = cid; }
         if( oid != null ) { this.order_id = oid; }
-        var args = {'business_id':M.curBusinessID, 'customer_id':this.customer_id, 'order_id':this.order_id};
+        var args = {'tnid':M.curTenantID, 'customer_id':this.customer_id, 'order_id':this.order_id};
         if( this.sections._tabs.selected == 'orders' ) {
             args['sections'] = 'details,orders';
         } else if( this.sections._tabs.selected == 'records' ) {
@@ -448,13 +448,13 @@ function ciniki_poma_main() {
         });
     }
     this.account.printOrder = function() {
-        M.api.openPDF('ciniki.poma.invoicePDF', {'business_id':M.curBusinessID, 'order_id':this.order_id});
+        M.api.openPDF('ciniki.poma.invoicePDF', {'tnid':M.curTenantID, 'order_id':this.order_id});
     }
     this.account.printOrderNoBalance = function() {
-        M.api.openPDF('ciniki.poma.invoicePDF', {'business_id':M.curBusinessID, 'order_id':this.order_id, 'template':'rawinvoice'});
+        M.api.openPDF('ciniki.poma.invoicePDF', {'tnid':M.curTenantID, 'order_id':this.order_id, 'template':'rawinvoice'});
     }
     this.account.deleteOrder = function() {
-        M.api.getJSONCb('ciniki.poma.orderDelete', {'business_id':M.curBusinessID, 'order_id':this.order_id}, function(rsp) {
+        M.api.getJSONCb('ciniki.poma.orderDelete', {'tnid':M.curTenantID, 'order_id':this.order_id}, function(rsp) {
             if( rsp.stat != 'ok' ) {
                 M.api.err(rsp);
                 return false;
@@ -503,7 +503,7 @@ function ciniki_poma_main() {
         //
         // Get the email template
         //
-        M.api.getJSONCb('ciniki.poma.orderEmailGet', {'business_id':M.curBusinessID, 'order_id':this.order_id}, function(rsp) {
+        M.api.getJSONCb('ciniki.poma.orderEmailGet', {'tnid':M.curTenantID, 'order_id':this.order_id}, function(rsp) {
             if( rsp.stat != 'ok' ) {
                 M.api.err(rsp);
                 return false;
@@ -517,7 +517,7 @@ function ciniki_poma_main() {
     this.email.send = function() {
         var subject = this.formFieldValue(this.sections._subject.fields.subject, 'subject');
         var textmsg = this.formFieldValue(this.sections._textmsg.fields.textmsg, 'textmsg');
-        M.api.getJSONCb('ciniki.poma.invoicePDF', {'business_id':M.curBusinessID, 
+        M.api.getJSONCb('ciniki.poma.invoicePDF', {'tnid':M.curTenantID, 
             'order_id':this.order_id, 'subject':subject, 'textmsg':textmsg, 'output':'pdf', 'email':'yes'}, function(rsp) {
                 if( rsp.stat != 'ok' ) {
                     M.api.err(rsp);

@@ -26,13 +26,13 @@ function ciniki_poma_cron_jobs(&$ciniki) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbAddModuleHistory');
 
     //
-    // FIXME: Check business for orders dates < 4 weeks out
+    // FIXME: Check tenant for orders dates < 4 weeks out
     //
 
     //
-    // Get the list of businesses with dates that need to have repeats applied
+    // Get the list of tenants with dates that need to have repeats applied
     //
-    $strsql = "SELECT id, business_id "
+    $strsql = "SELECT id, tnid "
         . "FROM ciniki_poma_order_dates "
         . "WHERE status < 20 "
         . "AND repeats_dt <= UTC_TIMESTAMP() "
@@ -54,9 +54,9 @@ function ciniki_poma_cron_jobs(&$ciniki) {
             }
             
             error_log("Adding repeats: " . $row['id']);
-            $rc = ciniki_poma_dateRepeatsAdd($ciniki, $row['business_id'], $row['id']);
+            $rc = ciniki_poma_dateRepeatsAdd($ciniki, $row['tnid'], $row['id']);
             if( $rc['stat'] != 'ok' ) {
-                ciniki_cron_logMsg($ciniki, $row['business_id'], array('code'=>'ciniki.poma.104', 'msg'=>'Unable to add repeats.',
+                ciniki_cron_logMsg($ciniki, $row['tnid'], array('code'=>'ciniki.poma.104', 'msg'=>'Unable to add repeats.',
                     'cron_id'=>0, 'severity'=>50, 'err'=>$rc['err'],
                     ));
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
@@ -74,9 +74,9 @@ function ciniki_poma_cron_jobs(&$ciniki) {
     }
 
     //
-    // Get the list of businesses with dates that need to be locked
+    // Get the list of tenants with dates that need to be locked
     //
-    $strsql = "SELECT id, business_id "
+    $strsql = "SELECT id, tnid "
         . "FROM ciniki_poma_order_dates "
         . "WHERE status < 50 "
         . "AND (flags&0x01) = 0x01 "
@@ -99,9 +99,9 @@ function ciniki_poma_cron_jobs(&$ciniki) {
             }
 
             error_log("locking: " . $row['id']);
-            $rc = ciniki_poma_dateLock($ciniki, $row['business_id'], $row['id']);
+            $rc = ciniki_poma_dateLock($ciniki, $row['tnid'], $row['id']);
             if( $rc['stat'] != 'ok' ) {
-                ciniki_cron_logMsg($ciniki, $row['business_id'], array('code'=>'ciniki.poma.98', 'msg'=>'Unable to lock date.',
+                ciniki_cron_logMsg($ciniki, $row['tnid'], array('code'=>'ciniki.poma.98', 'msg'=>'Unable to lock date.',
                     'cron_id'=>0, 'severity'=>50, 'err'=>$rc['err'],
                     ));
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
@@ -124,7 +124,7 @@ function ciniki_poma_cron_jobs(&$ciniki) {
     $dt = new DateTime('now', new DateTimezone('UTC'));
     $dt->sub(new DateInterval('PT30M'));
 
-    $strsql = "SELECT id, business_id "
+    $strsql = "SELECT id, tnid "
         . "FROM ciniki_poma_orders "
         . "WHERE (flags&0x10) = 0x10 "
         . "AND last_updated < '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d H:i:s')) . "' "
@@ -143,9 +143,9 @@ function ciniki_poma_cron_jobs(&$ciniki) {
                 return $rc;
             }
 
-            $rc = ciniki_poma_emailUpdatedOrder($ciniki, $row['business_id'], $row['id']);
+            $rc = ciniki_poma_emailUpdatedOrder($ciniki, $row['tnid'], $row['id']);
             if( $rc['stat'] != 'ok' ) {
-                ciniki_cron_logMsg($ciniki, $row['business_id'], array('code'=>'ciniki.poma.144', 'msg'=>'Unable to email order.',
+                ciniki_cron_logMsg($ciniki, $row['tnid'], array('code'=>'ciniki.poma.144', 'msg'=>'Unable to email order.',
                     'cron_id'=>0, 'severity'=>50, 'err'=>$rc['err'],
                     ));
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
@@ -165,7 +165,7 @@ function ciniki_poma_cron_jobs(&$ciniki) {
     //
     // Check for order dates where pickup reminder should be sent
     //
-    $strsql = "SELECT id, business_id "
+    $strsql = "SELECT id, tnid "
         . "FROM ciniki_poma_order_dates "
         . "WHERE status = 50 "
         . "AND (flags&0x40) = 0x40 "
@@ -186,9 +186,9 @@ function ciniki_poma_cron_jobs(&$ciniki) {
                 return $rc;
             }
 
-            $rc = ciniki_poma_emailPickupReminders($ciniki, $row['business_id'], $row['id']);
+            $rc = ciniki_poma_emailPickupReminders($ciniki, $row['tnid'], $row['id']);
             if( $rc['stat'] != 'ok' ) {
-                ciniki_cron_logMsg($ciniki, $row['business_id'], array('code'=>'ciniki.poma.148', 'msg'=>'Unable to email pickup reminders.',
+                ciniki_cron_logMsg($ciniki, $row['tnid'], array('code'=>'ciniki.poma.148', 'msg'=>'Unable to email pickup reminders.',
                     'cron_id'=>0, 'severity'=>50, 'err'=>$rc['err'],
                     ));
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');

@@ -7,14 +7,14 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_accountRecords(&$ciniki, $business_id, $args) {
+function ciniki_poma_accountRecords(&$ciniki, $tnid, $args) {
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
 
@@ -55,7 +55,7 @@ function ciniki_poma_accountRecords(&$ciniki, $business_id, $args) {
         . "AND id <> '" . ciniki_core_dbQuote($ciniki, $start_ledger_id) . "' "
         . "";
     }
-    $strsql .= "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+    $strsql .= "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "ORDER BY ciniki_poma_orders.order_date ASC "
         . "";
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
@@ -98,7 +98,7 @@ function ciniki_poma_accountRecords(&$ciniki, $business_id, $args) {
         . "AND id <> '" . ciniki_core_dbQuote($ciniki, $start_ledger_id) . "' "
         . "";
     }
-    $strsql .= "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+    $strsql .= "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "ORDER BY record_date ASC "
         . "";
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(

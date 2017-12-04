@@ -10,13 +10,13 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_accountSessionLoad(&$ciniki, $settings, $business_id) {
+function ciniki_poma_web_accountSessionLoad(&$ciniki, $settings, $tnid) {
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -36,7 +36,7 @@ function ciniki_poma_web_accountSessionLoad(&$ciniki, $settings, $business_id) {
         if( isset($ciniki['session']['ciniki.poma']['date']['id']) && $ciniki['session']['ciniki.poma']['date']['id'] > 0 ) {
             $strsql = "SELECT id, order_date, display_name, status, flags "
                 . "FROM ciniki_poma_order_dates "
-                . "WHERE business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+                . "WHERE tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
                 . "AND id = '" . ciniki_core_dbQuote($ciniki['session']['ciniki.poma']['date_id']) . "' "
                 . "";
             $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
@@ -60,7 +60,7 @@ function ciniki_poma_web_accountSessionLoad(&$ciniki, $settings, $business_id) {
             $dt = new DateTime('now', new DateTimezone($intl_timezone));
             $strsql = "SELECT id, order_date, display_name, status, flags "
                 . "FROM ciniki_poma_order_dates "
-                . "WHERE business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+                . "WHERE tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
                 . "AND status < 50 "
                 . "AND order_date >= '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
                 . "ORDER BY order_date ASC "

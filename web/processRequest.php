@@ -8,7 +8,7 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get poma request for.
+// tnid:     The ID of the tenant to get poma request for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,12 +16,12 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_processRequest(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_processRequest(&$ciniki, $settings, $tnid, $args) {
 
     //
     // Check to make sure the module is enabled
     //
-    if( !isset($ciniki['business']['modules']['ciniki.poma']) ) {
+    if( !isset($ciniki['tenant']['modules']['ciniki.poma']) ) {
         return array('stat'=>'404', 'err'=>array('code'=>'ciniki.poma.13', 'msg'=>"I'm sorry, the page you requested does not exist."));
     }
 
@@ -58,7 +58,7 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $business_id, $args
         ) {
         array_shift($args['uri_split']);
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestPast');
-        $rc = ciniki_poma_web_processRequestPast($ciniki, $settings, $business_id, $args);
+        $rc = ciniki_poma_web_processRequestPast($ciniki, $settings, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -69,7 +69,7 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $business_id, $args
         ) {
         array_shift($args['uri_split']);
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestQueue');
-        $rc = ciniki_poma_web_processRequestQueue($ciniki, $settings, $business_id, $args);
+        $rc = ciniki_poma_web_processRequestQueue($ciniki, $settings, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -80,7 +80,7 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $business_id, $args
         ) {
         array_shift($args['uri_split']);
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestStanding');
-        $rc = ciniki_poma_web_processRequestStanding($ciniki, $settings, $business_id, $args);
+        $rc = ciniki_poma_web_processRequestStanding($ciniki, $settings, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -91,7 +91,7 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $business_id, $args
         ) {
         array_shift($args['uri_split']);
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestSubstitutions');
-        $rc = ciniki_poma_web_processRequestSubstitutions($ciniki, $settings, $business_id, $args);
+        $rc = ciniki_poma_web_processRequestSubstitutions($ciniki, $settings, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -99,7 +99,7 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $business_id, $args
     } 
     else {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestUpcoming');
-        $rc = ciniki_poma_web_processRequestUpcoming($ciniki, $settings, $business_id, $args);
+        $rc = ciniki_poma_web_processRequestUpcoming($ciniki, $settings, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }

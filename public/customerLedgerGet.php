@@ -8,7 +8,7 @@
 // ---------
 // api_key:
 // auth_token:
-// business_id:         The ID of the business the customer ledger entry is attached to.
+// tnid:         The ID of the tenant the customer ledger entry is attached to.
 // entry_id:          The ID of the customer ledger entry to get the details for.
 //
 // Returns
@@ -20,7 +20,7 @@ function ciniki_poma_customerLedgerGet($ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'entry_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Customer Ledger Entry'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -30,19 +30,19 @@ function ciniki_poma_customerLedgerGet($ciniki) {
 
     //
     // Make sure this module is activated, and
-    // check permission to run this function for this business
+    // check permission to run this function for this tenant
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.customerLedgerGet');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.customerLedgerGet');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $args['business_id']);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $args['tnid']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -70,7 +70,7 @@ function ciniki_poma_customerLedgerGet($ciniki) {
             'description'=>'',
             'customer_amount'=>'',
             'transaction_fees'=>'',
-            'business_amount'=>'',
+            'tenant_amount'=>'',
             'notes'=>'',
         );
     }
@@ -90,11 +90,11 @@ function ciniki_poma_customerLedgerGet($ciniki) {
             . "ciniki_poma_customer_ledgers.description, "
             . "ciniki_poma_customer_ledgers.customer_amount, "
             . "ciniki_poma_customer_ledgers.transaction_fees, "
-            . "ciniki_poma_customer_ledgers.business_amount, "
+            . "ciniki_poma_customer_ledgers.tenant_amount, "
             . "ciniki_poma_customer_ledgers.balance, "
             . "ciniki_poma_customer_ledgers.notes "
             . "FROM ciniki_poma_customer_ledgers "
-            . "WHERE ciniki_poma_customer_ledgers.business_id = '" . ciniki_core_dbQuote($ciniki, $args['business_id']) . "' "
+            . "WHERE ciniki_poma_customer_ledgers.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . "AND ciniki_poma_customer_ledgers.id = '" . ciniki_core_dbQuote($ciniki, $args['entry_id']) . "' "
             . "";
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
@@ -102,7 +102,7 @@ function ciniki_poma_customerLedgerGet($ciniki) {
             array('container'=>'entries', 'fname'=>'id', 
                 'fields'=>array('customer_id', 'order_id', 'transaction_type', 'transaction_date', 
                     'transaction_date_date', 'transaction_date_time',
-                    'source', 'description', 'customer_amount', 'transaction_fees', 'business_amount', 'balance', 'notes'),
+                    'source', 'description', 'customer_amount', 'transaction_fees', 'tenant_amount', 'balance', 'notes'),
                 'utctotz'=>array(
                     'transaction_date_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
                     'transaction_date_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),

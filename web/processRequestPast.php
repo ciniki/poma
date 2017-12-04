@@ -8,7 +8,7 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get events for.
+// tnid:     The ID of the tenant to get events for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,7 +16,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_processRequestPast(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_processRequestPast(&$ciniki, $settings, $tnid, $args) {
 
     
     $page = array(

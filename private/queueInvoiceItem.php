@@ -10,13 +10,13 @@
 // Returns
 // -------
 //
-function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
+function ciniki_poma_queueInvoiceItem(&$ciniki, $tnid, $item_id) {
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -36,7 +36,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
         . "FROM ciniki_poma_queued_items AS items "
         . "WHERE items.id = '" . ciniki_core_dbQuote($ciniki, $item_id) . "' "
         . "AND items.status = 40 "
-        . "AND items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
     if( $rc['stat'] != 'ok' ) {
@@ -56,7 +56,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.168', 'msg'=>'Unable to add item to queue.'));
     }
     $fn = $rc['function_call'];
-    $rc = $fn($ciniki, $business_id, array(
+    $rc = $fn($ciniki, $tnid, array(
         'object'=>$qitem['object'],
         'object_id'=>$qitem['object_id'],
         ));
@@ -102,12 +102,12 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
         . "orders.payment_status "
         . "FROM ciniki_poma_orders AS orders, ciniki_poma_order_items AS items "
         . "WHERE orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $qitem['customer_id']) . "' "
-        . "AND orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND orders.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND orders.id = items.order_id "
         . "AND items.object = 'ciniki.poma.queueditem' "
         . "AND items.object_id = '" . ciniki_core_dbQuote($ciniki, $item_id) . "' "
         . "AND (items.flags&0x40) = 0x40 "
-        . "AND items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
     if( $rc['stat'] != 'ok' ) {
@@ -122,7 +122,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
             // Check if any deposits are unpaid, then remove deposit from invoice
             //
             if( $deposit['payment_status'] < 50 ) {
-                $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.orderitem', $deposit['id'], $deposit['uuid'], 0x04);
+                $rc = ciniki_core_objectDelete($ciniki, $tnid, 'ciniki.poma.orderitem', $deposit['id'], $deposit['uuid'], 0x04);
                 if( $rc['stat'] != 'ok' ) {
                     ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
                     return $rc;
@@ -131,7 +131,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
                 //
                 // Update the order totals
                 //
-                $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $business_id, $deposit['order_id']);
+                $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $tnid, $deposit['order_id']);
                 if( $rc['stat'] != 'ok' ) {
                     ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
                     return $rc;
@@ -158,9 +158,9 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
         . "LEFT JOIN ciniki_poma_orders AS orders ON ("
             . "dates.id = orders.date_id "
             . "AND orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $qitem['customer_id']) . "' "
-            . "AND orders.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND orders.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . ") "
-        . "WHERE dates.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "WHERE dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND dates.order_date >= '" . ciniki_core_dbQuote($ciniki, $sdt->format('Y-m-d')) . "' "
         . "AND dates.order_date < '" . ciniki_core_dbQuote($ciniki, $edt->format('Y-m-d')) . "' "
         . "";
@@ -199,7 +199,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
     $max_line_number = 0;
     if( $order_id == 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'newOrderForDate');
-        $rc = ciniki_poma_newOrderForDate($ciniki, $business_id, array(
+        $rc = ciniki_poma_newOrderForDate($ciniki, $tnid, array(
             'checkdate'=>'no',
             'customer_id'=>$qitem['customer_id'],
             'date_id'=>$date_id,
@@ -218,7 +218,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
             . "FROM ciniki_poma_order_items "
             . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $order_id) . "' "
             . "AND parent_id = 0 "
-            . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
         if( $rc['stat'] != 'ok' ) {
@@ -247,7 +247,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
         }
         $item['object'] = 'ciniki.poma.queueditem';
         $item['object_id'] = $qitem['id'];
-        $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', $item, 0x04);
+        $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.orderitem', $item, 0x04);
         if( $rc['stat'] != 'ok' ) {
             ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
             return $rc;
@@ -258,7 +258,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
     // Update the order totals
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
-    $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $business_id, $order_id);
+    $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $tnid, $order_id);
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
         return $rc;
@@ -267,7 +267,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $business_id, $item_id) {
     //
     // Update the status of the queue item
     //
-    $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.queueditem', $item_id, array('status'=>90), 0x04);
+    $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.queueditem', $item_id, array('status'=>90), 0x04);
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
         return $rc;

@@ -7,20 +7,20 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id) {
+function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $tnid, $order_id) {
     
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -30,7 +30,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     // Load the order
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderLoad');
-    $rc = ciniki_poma_orderLoad($ciniki, $business_id, $order_id);
+    $rc = ciniki_poma_orderLoad($ciniki, $tnid, $order_id);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -118,7 +118,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                 }
             }
             if( count($update_args) > 0 ) {
-                $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $item['id'], $update_args, 0x04);
+                $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.orderitem', $item['id'], $update_args, 0x04);
                 if( $rc['stat'] != 'ok' ) {
                     return $rc;
                 }
@@ -160,7 +160,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                 // Check if fees are to be applied
                 //
                 if( ($item['flags']&0x0100) == 0x0100 ) {
-                    $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.orderitem', array(
+                    $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.orderitem', array(
                         'line_number'=>$max_line_number+1,
                         'order_id'=>$order_id,
                         'parent_id'=>0,
@@ -185,7 +185,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                     'unit_quantity'=>$subitemcount,
                     'total_amount'=>bcmul($subfeeitem['unit_amount'], $subitemcount, 2),
                     );
-                $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.orderitem', $subfeeitem['id'], $update_args, 0x04);
+                $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.orderitem', $subfeeitem['id'], $update_args, 0x04);
                 if( $rc['stat'] != 'ok' ) {
                     return $rc;
                 }
@@ -199,7 +199,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
             //
             // No sub fees, remove the sub fee item
             //
-            $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.orderitem', $subfeeitem['id'], null, 0x04);
+            $rc = ciniki_core_objectDelete($ciniki, $tnid, 'ciniki.poma.orderitem', $subfeeitem['id'], null, 0x04);
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
@@ -235,7 +235,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     // Pass to the taxes module to calculate the taxes
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'taxes', 'private', 'calcInvoiceTaxes');
-    $rc = ciniki_taxes_calcInvoiceTaxes($ciniki, $business_id, $new_order);
+    $rc = ciniki_taxes_calcInvoiceTaxes($ciniki, $tnid, $new_order);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -247,7 +247,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     $strsql = "SELECT id, uuid, taxrate_id, description, amount "
         . "FROM ciniki_poma_order_taxes "
         . "WHERE ciniki_poma_order_taxes.order_id = '" . ciniki_core_dbQuote($ciniki, $order_id) . "' "
-        . "AND ciniki_poma_order_taxes.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_order_taxes.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashIDQuery');
     $rc = ciniki_core_dbHashIDQuery($ciniki, $strsql, 'ciniki.poma', 'taxes', 'taxrate_id');
@@ -277,13 +277,13 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
                 $args['description'] = $tax['name'];
             }
             if( count($args) > 0 ) {
-                $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.ordertax', $old_taxes[$tid]['id'], $args, 0x04);
+                $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.ordertax', $old_taxes[$tid]['id'], $args, 0x04);
                 if( $rc['stat'] != 'ok' ) {
                     return $rc;
                 }
             }
         } else {
-            $rc = ciniki_core_objectAdd($ciniki, $business_id, 'ciniki.poma.ordertax', 
+            $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.ordertax', 
                 array(
                     'order_id'=>$order_id,
                     'taxrate_id'=>$tid,
@@ -312,7 +312,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     foreach($old_taxes as $tid => $tax) {
         if( !isset($new_taxes[$tid]) ) {
             // Remove the tax
-            $rc = ciniki_core_objectDelete($ciniki, $business_id, 'ciniki.poma.ordertax', $tax['id'], $tax['uuid'], 0x04);
+            $rc = ciniki_core_objectDelete($ciniki, $tnid, 'ciniki.poma.ordertax', $tax['id'], $tax['uuid'], 0x04);
             if( $rc['stat'] != 'ok' ) {
                 return $rc;
             }
@@ -347,7 +347,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     $strsql = "SELECT id, ledger_id, payment_type, amount "
         . "FROM ciniki_poma_order_payments "
         . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $order_id) . "' "
-        . "AND business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'payment');
     if( $rc['stat'] != 'ok' ) {
@@ -391,7 +391,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
         }
     }
     if( count($update_args) > 0 ) {
-        $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.order', $order['id'], $update_args, 0x04);
+        $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.order', $order['id'], $update_args, 0x04);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -402,7 +402,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $business_id, $order_id)
     //
     if( isset($update_args['total_amount']) ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'accountUpdate');
-        $rc = ciniki_poma_accountUpdate($ciniki, $business_id, array('order_id'=>$order['id']));
+        $rc = ciniki_poma_accountUpdate($ciniki, $tnid, array('order_id'=>$order['id']));
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }

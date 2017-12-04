@@ -8,7 +8,7 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get events for.
+// tnid:     The ID of the tenant to get events for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,7 +16,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_processRequestQueue(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_processRequestQueue(&$ciniki, $settings, $tnid, $args) {
 
     
     $page = array(
@@ -42,7 +42,7 @@ function ciniki_poma_web_processRequestQueue(&$ciniki, $settings, $business_id, 
         . "ciniki_poma_queued_items.quantity "
         . "FROM ciniki_poma_queued_items "
         . "WHERE ciniki_poma_queued_items.customer_id = '" . ciniki_core_dbQuote($ciniki, $ciniki['session']['customer']['id']) . "' "
-        . "AND ciniki_poma_queued_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_queued_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND ciniki_poma_queued_items.status = 40 "
         . "ORDER BY ciniki_poma_queued_items.description "
         . "";
@@ -69,7 +69,7 @@ function ciniki_poma_web_processRequestQueue(&$ciniki, $settings, $business_id, 
         . "ciniki_poma_queued_items.quantity "
         . "FROM ciniki_poma_queued_items "
         . "WHERE ciniki_poma_queued_items.customer_id = '" . ciniki_core_dbQuote($ciniki, $ciniki['session']['customer']['id']) . "' "
-        . "AND ciniki_poma_queued_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "AND ciniki_poma_queued_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND ciniki_poma_queued_items.status = 10 "
         . "ORDER BY ciniki_poma_queued_items.description "
         . "";

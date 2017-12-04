@@ -16,7 +16,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
     //  
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'), 
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'), 
         'order_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Invoice'), 
         'subject'=>array('required'=>'no', 'blank'=>'yes', 'default'=>'no', 'name'=>'Subject'),
         'textmsg'=>array('required'=>'no', 'blank'=>'yes', 'default'=>'no', 'name'=>'Text Message'),
@@ -30,10 +30,10 @@ function ciniki_poma_invoicePDF(&$ciniki) {
 
     //  
     // Make sure this module is activated, and
-    // check permission to run this function for this business
+    // check permission to run this function for this tenant
     //  
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.invoicePDF'); 
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.invoicePDF'); 
     if( $rc['stat'] != 'ok' ) { 
         return $rc;
     }
@@ -50,7 +50,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
     $fn = $rc['function_call'];
 
     if( isset($args['email']) && $args['email'] == 'yes' ) {
-        $rc = $fn($ciniki, $args['business_id'], $args['order_id']);
+        $rc = $fn($ciniki, $args['tnid'], $args['order_id']);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -68,7 +68,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.119', 'msg'=>'No customer attached to the invoice, we are unable to send the email.'));
         }
         ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
-        $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['business_id'], 
+        $rc = ciniki_customers_hooks_customerDetails($ciniki, $args['tnid'], 
             array('customer_id'=>$order['customer_id'], 'phones'=>'no', 'emails'=>'yes', 'addresses'=>'no', 'subscriptions'=>'no'));
         if( $rc['stat'] != 'ok' ) {
             return $rc;
@@ -112,7 +112,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
         // Add to the mail module
         //
         ciniki_core_loadMethod($ciniki, 'ciniki', 'mail', 'hooks', 'addMessage');
-        $rc = ciniki_mail_hooks_addMessage($ciniki, $args['business_id'], array(
+        $rc = ciniki_mail_hooks_addMessage($ciniki, $args['tnid'], array(
             'object'=>'ciniki.poma.order',
             'object_id'=>$args['order_id'],
             'customer_id'=>$order['customer_id'],
@@ -127,7 +127,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
             ciniki_core_dbTransactionRollback($ciniki, 'ciniki.mail');
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.122', 'msg'=>'Unable to create mail message.', 'err'=>$rc['err']));
         }
-        $ciniki['emailqueue'][] = array('mail_id'=>$rc['id'], 'business_id'=>$args['business_id']);
+        $ciniki['emailqueue'][] = array('mail_id'=>$rc['id'], 'tnid'=>$args['tnid']);
 
         //
         // Commit the transaction
@@ -141,7 +141,7 @@ function ciniki_poma_invoicePDF(&$ciniki) {
         return array('stat'=>'ok');
     }
 
-    $rc = $fn($ciniki, $args['business_id'], $args['order_id']);
+    $rc = $fn($ciniki, $args['tnid'], $args['order_id']);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }

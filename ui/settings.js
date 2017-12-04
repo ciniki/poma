@@ -39,13 +39,13 @@ function ciniki_poma_settings() {
             }},
         'header':{'label':'Header Address Options', 'fields':{
             'invoice-header-contact-position':{'label':'Position', 'type':'toggle', 'default':'center', 'toggles':this.positionOptions},
-            'invoice-header-business-name':{'label':'Business Name', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
-            'invoice-header-business-address':{'label':'Address', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
-            'invoice-header-business-phone':{'label':'Phone', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
-            'invoice-header-business-cell':{'label':'Cell', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
-            'invoice-header-business-fax':{'label':'Fax', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
-            'invoice-header-business-email':{'label':'Email', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
-            'invoice-header-business-website':{'label':'Website', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
+            'invoice-header-tenant-name':{'label':'Tenant Name', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
+            'invoice-header-tenant-address':{'label':'Address', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
+            'invoice-header-tenant-phone':{'label':'Phone', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
+            'invoice-header-tenant-cell':{'label':'Cell', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
+            'invoice-header-tenant-fax':{'label':'Fax', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
+            'invoice-header-tenant-email':{'label':'Email', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
+            'invoice-header-tenant-website':{'label':'Website', 'type':'toggle', 'default':'yes', 'toggles':this.toggleOptions},
             }},
         '_bottom_msg':{'label':'Invoice Message', 'fields':{
             'invoice-bottom-message':{'label':'', 'hidelabel':'yes', 'type':'textarea'},
@@ -58,7 +58,7 @@ function ciniki_poma_settings() {
             }},
     };
     this.invoice.fieldHistoryArgs = function(s, i) {
-        return {'method':'ciniki.poma.settingsHistory', 'args':{'business_id':M.curBusinessID, 'setting':i}};
+        return {'method':'ciniki.poma.settingsHistory', 'args':{'tnid':M.curTenantID, 'setting':i}};
     }
     this.invoice.fieldValue = function(s, i, d) {
         if( this.data[i] == null && d.default != null ) { return d.default; }
@@ -73,7 +73,7 @@ function ciniki_poma_settings() {
         return true;
     };
     this.invoice.open = function(cb) {
-        M.api.getJSONCb('ciniki.poma.settingsGet', {'business_id':M.curBusinessID}, function(rsp) {
+        M.api.getJSONCb('ciniki.poma.settingsGet', {'tnid':M.curTenantID}, function(rsp) {
             if( rsp.stat != 'ok' ) {
                 M.api.err(rsp);
                 return false;
@@ -87,7 +87,7 @@ function ciniki_poma_settings() {
     this.invoice.save = function() {
         var c = this.serializeForm('no');
         if( c != '' ) {
-            M.api.postJSONCb('ciniki.poma.settingsUpdate', {'business_id':M.curBusinessID}, 
+            M.api.postJSONCb('ciniki.poma.settingsUpdate', {'tnid':M.curTenantID}, 
                 c, function(rsp) {
                     if( rsp.stat != 'ok' ) {
                         M.api.err(rsp);
@@ -236,7 +236,7 @@ function ciniki_poma_settings() {
             }},
     };
     this.emails.fieldHistoryArgs = function(s, i) {
-        return {'method':'ciniki.poma.settingsHistory', 'args':{'business_id':M.curBusinessID, 'setting':i}};
+        return {'method':'ciniki.poma.settingsHistory', 'args':{'tnid':M.curTenantID, 'setting':i}};
     }
     this.emails.fieldValue = function(s, i, d) {
         if( this.data[i] == null && d.default != null ) { return d.default; }
@@ -252,7 +252,7 @@ function ciniki_poma_settings() {
         this.showHideSections();
     }
     this.emails.open = function(cb) {
-        M.api.getJSONCb('ciniki.poma.settingsGet', {'business_id':M.curBusinessID}, function(rsp) {
+        M.api.getJSONCb('ciniki.poma.settingsGet', {'tnid':M.curTenantID}, function(rsp) {
             if( rsp.stat != 'ok' ) {
                 M.api.err(rsp);
                 return false;
@@ -266,7 +266,7 @@ function ciniki_poma_settings() {
     this.emails.save = function() {
         var c = this.serializeForm('no');
         if( c != '' ) {
-            M.api.postJSONCb('ciniki.poma.settingsUpdate', {'business_id':M.curBusinessID}, c, function(rsp) {
+            M.api.postJSONCb('ciniki.poma.settingsUpdate', {'tnid':M.curTenantID}, c, function(rsp) {
                 if( rsp.stat != 'ok' ) {
                     M.api.err(rsp);
                     return false;
@@ -304,14 +304,14 @@ function ciniki_poma_settings() {
             }},
     };
     this.dates.fieldHistoryArgs = function(s, i) {
-        return {'method':'ciniki.poma.settingsHistory', 'args':{'business_id':M.curBusinessID, 'setting':i}};
+        return {'method':'ciniki.poma.settingsHistory', 'args':{'tnid':M.curTenantID, 'setting':i}};
     }
     this.dates.fieldValue = function(s, i, d) {
         if( this.data[i] == null && d.default != null ) { return d.default; }
         return this.data[i];
     };
     this.dates.open = function(cb) {
-        M.api.getJSONCb('ciniki.poma.settingsGet', {'business_id':M.curBusinessID}, function(rsp) {
+        M.api.getJSONCb('ciniki.poma.settingsGet', {'tnid':M.curTenantID}, function(rsp) {
             if( rsp.stat != 'ok' ) {
                 M.api.err(rsp);
                 return false;
@@ -325,7 +325,7 @@ function ciniki_poma_settings() {
     this.dates.save = function() {
         var c = this.serializeForm('no');
         if( c != '' ) {
-            M.api.postJSONCb('ciniki.poma.settingsUpdate', {'business_id':M.curBusinessID}, 
+            M.api.postJSONCb('ciniki.poma.settingsUpdate', {'tnid':M.curTenantID}, 
                 c, function(rsp) {
                     if( rsp.stat != 'ok' ) {
                         M.api.err(rsp);

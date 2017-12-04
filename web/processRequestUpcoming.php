@@ -8,7 +8,7 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get events for.
+// tnid:     The ID of the tenant to get events for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,7 +16,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $tnid, $args) {
 
     
     $page = array(
@@ -32,10 +32,10 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $business_i
     $api_repeat_update = 'ciniki/poma/repeatObjectUpdate/';
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -55,7 +55,7 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $business_i
 //            . "ciniki_poma_order_dates.id = ciniki_poma_orders.date_id "
 //            . "AND ciniki_poma_orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $ciniki['session']['customer']['id']) . "' "
 //            . ") "
-        . "WHERE ciniki_poma_order_dates.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND ciniki_poma_order_dates.order_date >= '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
         . "ORDER BY order_date ASC "
         . "";
@@ -101,7 +101,7 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $business_i
     //
     if( isset($ciniki['session']['ciniki.poma']['date']['id']) && $ciniki['session']['ciniki.poma']['date']['id'] > 0 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'orderLoad');
-        $rc = ciniki_poma_web_orderLoad($ciniki, $settings, $business_id, array(
+        $rc = ciniki_poma_web_orderLoad($ciniki, $settings, $tnid, array(
             'date_id'=>$ciniki['session']['ciniki.poma']['date']['id'],
             ));
         if( $rc['stat'] != 'ok' ) {

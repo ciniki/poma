@@ -8,7 +8,7 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get poma web options for.
+// tnid:     The ID of the tenant to get poma web options for.
 //
 // args:            The possible arguments for posts
 //
@@ -16,12 +16,12 @@
 // Returns
 // -------
 //
-function ciniki_poma_hooks_updateObjectID(&$ciniki, $business_id, $args) {
+function ciniki_poma_hooks_updateObjectID(&$ciniki, $tnid, $args) {
 
     //
     // Check to make sure the module is enabled
     //
-    if( !isset($ciniki['business']['modules']['ciniki.poma']) ) {
+    if( !isset($ciniki['tenant']['modules']['ciniki.poma']) ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.179', 'msg'=>"I'm sorry, the page you requested does not exist."));
     }
 
@@ -39,10 +39,10 @@ function ciniki_poma_hooks_updateObjectID(&$ciniki, $business_id, $args) {
     }
 
     //
-    // Load business settings
+    // Load tenant settings
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'intlSettings');
-    $rc = ciniki_businesses_intlSettings($ciniki, $business_id);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'intlSettings');
+    $rc = ciniki_tenants_intlSettings($ciniki, $tnid);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -53,7 +53,7 @@ function ciniki_poma_hooks_updateObjectID(&$ciniki, $business_id, $args) {
     //
     $strsql = "SELECT id, object_id "
         . "FROM ciniki_poma_customer_items "
-        . "WHERE ciniki_poma_customer_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "WHERE ciniki_poma_customer_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND ciniki_poma_customer_items.object = '" . ciniki_core_dbQuote($ciniki, $args['object']) . "' "
         . "AND ciniki_poma_customer_items.object_id = '" . ciniki_core_dbQuote($ciniki, $args['old_object_id']) . "' "
         . "";
@@ -65,7 +65,7 @@ function ciniki_poma_hooks_updateObjectID(&$ciniki, $business_id, $args) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
         foreach($rc['rows'] as $row) {
             if( $row['object_id'] != $args['new_object_id'] ) { 
-                $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.customeritem', $row['id'], array('object_id'=>$args['new_object_id']), 0x04);
+                $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.customeritem', $row['id'], array('object_id'=>$args['new_object_id']), 0x04);
                 if( $rc['stat'] != 'ok' ) {
                     return $rc;
                 }
@@ -78,7 +78,7 @@ function ciniki_poma_hooks_updateObjectID(&$ciniki, $business_id, $args) {
     //
     $strsql = "SELECT id, object_id "
         . "FROM ciniki_poma_queued_items "
-        . "WHERE ciniki_poma_queued_items.business_id = '" . ciniki_core_dbQuote($ciniki, $business_id) . "' "
+        . "WHERE ciniki_poma_queued_items.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND ciniki_poma_queued_items.object = '" . ciniki_core_dbQuote($ciniki, $args['object']) . "' "
         . "AND ciniki_poma_queued_items.object_id = '" . ciniki_core_dbQuote($ciniki, $args['old_object_id']) . "' "
         . "AND ciniki_poma_queued_items.status <= 40 "
@@ -91,7 +91,7 @@ function ciniki_poma_hooks_updateObjectID(&$ciniki, $business_id, $args) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
         foreach($rc['rows'] as $row) {
             if( $row['object_id'] != $args['new_object_id'] ) { 
-                $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.queueditem', $row['id'], array('object_id'=>$args['new_object_id']), 0x04);
+                $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.queueditem', $row['id'], array('object_id'=>$args['new_object_id']), 0x04);
                 if( $rc['stat'] != 'ok' ) {
                     return $rc;
                 }

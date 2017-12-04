@@ -8,14 +8,14 @@
 // Arguments
 // ---------
 // ciniki:
-// business_id:                 The business ID to check the session user against.
+// tnid:                 The tenant ID to check the session user against.
 // method:                      The requested method.
 //
 // Returns
 // -------
 // <rsp stat='ok' />
 //
-function ciniki_poma_web_apiQueueObjectUpdate(&$ciniki, $settings, $business_id, $args) {
+function ciniki_poma_web_apiQueueObjectUpdate(&$ciniki, $settings, $tnid, $args) {
     
     //
     // Check args
@@ -42,7 +42,7 @@ function ciniki_poma_web_apiQueueObjectUpdate(&$ciniki, $settings, $business_id,
     // Update the queued item
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'queueUpdateObject');
-    $rc = ciniki_poma_queueUpdateObject($ciniki, $business_id, $args);
+    $rc = ciniki_poma_queueUpdateObject($ciniki, $tnid, $args);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }

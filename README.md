@@ -1,7 +1,7 @@
-Ciniki - Small Business Management Platform
+Ciniki - Multitenant Cloud Platform
 ===========================================
 
-This module is designed for Farm Markets, Food Co-ops and other small businesses taking orders. It was develop
+This module is designed for Farm Markets, Food Co-ops and other small tenants taking orders. It was develop
 at the same time as the foodmarket module.
 
 License

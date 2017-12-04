@@ -8,19 +8,19 @@
 // ---------
 // ciniki:
 // settings:        The web settings structure.
-// business_id:     The ID of the business to get poma web options for.
+// tnid:     The ID of the tenant to get poma web options for.
 //
 //
 // Returns
 // -------
 //
-function ciniki_poma_emailUpdatedOrder(&$ciniki, $business_id, $order_id) {
+function ciniki_poma_emailUpdatedOrder(&$ciniki, $tnid, $order_id) {
 
     //
     // Load the order
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderLoad');
-    $rc = ciniki_poma_orderLoad($ciniki, $business_id, $order_id);
+    $rc = ciniki_poma_orderLoad($ciniki, $tnid, $order_id);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -30,7 +30,7 @@ function ciniki_poma_emailUpdatedOrder(&$ciniki, $business_id, $order_id) {
     // Load the email settings
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbDetailsQueryDash');
-    $rc = ciniki_core_dbDetailsQueryDash($ciniki, 'ciniki_poma_settings', 'business_id', $business_id, 'ciniki.poma', 'settings', 'email-updated-order');
+    $rc = ciniki_core_dbDetailsQueryDash($ciniki, 'ciniki_poma_settings', 'tnid', $tnid, 'ciniki.poma', 'settings', 'email-updated-order');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -129,7 +129,7 @@ function ciniki_poma_emailUpdatedOrder(&$ciniki, $business_id, $order_id) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.145', 'msg'=>'No customer attached to the order, we are unable to send the email.'));
     }
     ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'hooks', 'customerDetails');
-    $rc = ciniki_customers_hooks_customerDetails($ciniki, $business_id, 
+    $rc = ciniki_customers_hooks_customerDetails($ciniki, $tnid, 
         array('customer_id'=>$order['customer_id'], 'phones'=>'no', 'emails'=>'yes', 'addresses'=>'no', 'subscriptions'=>'no'));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -158,7 +158,7 @@ function ciniki_poma_emailUpdatedOrder(&$ciniki, $business_id, $order_id) {
     // Add the message to the outgoing queue
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'mail', 'hooks', 'addMessage');
-    $rc = ciniki_mail_hooks_addMessage($ciniki, $business_id, array(
+    $rc = ciniki_mail_hooks_addMessage($ciniki, $tnid, array(
         'object'=>'ciniki.poma.order',
         'object_id'=>$order_id,
         'customer_id'=>$order['customer_id'],
@@ -177,7 +177,7 @@ function ciniki_poma_emailUpdatedOrder(&$ciniki, $business_id, $order_id) {
     //
     if( ($order['flags']&0x10) == 0x10 ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
-        $rc = ciniki_core_objectUpdate($ciniki, $business_id, 'ciniki.poma.order', $order_id, array('flags'=>(int)($order['flags']&~0x10)), 0x04);
+        $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.order', $order_id, array('flags'=>(int)($order['flags']&~0x10)), 0x04);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }

@@ -15,7 +15,7 @@ function ciniki_poma_customerLedgerUpdate(&$ciniki) {
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'prepareArgs');
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
-        'business_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Business'),
+        'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'entry_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Customer Ledger Entry'),
         'customer_id'=>array('required'=>'no', 'blank'=>'no', 'name'=>'Customer'),
         'order_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Order'),
@@ -26,7 +26,7 @@ function ciniki_poma_customerLedgerUpdate(&$ciniki) {
         'description'=>array('required'=>'no', 'blank'=>'no', 'name'=>'Description'),
         'customer_amount'=>array('required'=>'no', 'blank'=>'no', 'type'=>'currency', 'name'=>'Customer Amount'),
         'transaction_fees'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'currency', 'name'=>'Transaction Fees'),
-        'business_amount'=>array('required'=>'no', 'blank'=>'no', 'type'=>'currency', 'name'=>'Business Amount'),
+        'tenant_amount'=>array('required'=>'no', 'blank'=>'no', 'type'=>'currency', 'name'=>'Tenant Amount'),
         'balance'=>array('required'=>'no', 'blank'=>'no', 'name'=>'Balance'),
         'notes'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notes'),
         ));
@@ -37,10 +37,10 @@ function ciniki_poma_customerLedgerUpdate(&$ciniki) {
 
     //
     // Make sure this module is activated, and
-    // check permission to run this function for this business
+    // check permission to run this function for this tenant
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'checkAccess');
-    $rc = ciniki_poma_checkAccess($ciniki, $args['business_id'], 'ciniki.poma.customerLedgerUpdate');
+    $rc = ciniki_poma_checkAccess($ciniki, $args['tnid'], 'ciniki.poma.customerLedgerUpdate');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -63,7 +63,7 @@ return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.112', 'msg'=>'Not
     // Update the Customer Ledger Entry in the database
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
-    $rc = ciniki_core_objectUpdate($ciniki, $args['business_id'], 'ciniki.poma.customerledger', $args['entry_id'], $args, 0x04);
+    $rc = ciniki_core_objectUpdate($ciniki, $args['tnid'], 'ciniki.poma.customerledger', $args['entry_id'], $args, 0x04);
     if( $rc['stat'] != 'ok' ) {
         ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
         return $rc;
@@ -78,11 +78,11 @@ return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.112', 'msg'=>'Not
     }
 
     //
-    // Update the last_change date in the business modules
+    // Update the last_change date in the tenant modules
     // Ignore the result, as we don't want to stop user updates if this fails.
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'businesses', 'private', 'updateModuleChangeDate');
-    ciniki_businesses_updateModuleChangeDate($ciniki, $args['business_id'], 'ciniki', 'poma');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'tenants', 'private', 'updateModuleChangeDate');
+    ciniki_tenants_updateModuleChangeDate($ciniki, $args['tnid'], 'ciniki', 'poma');
 
     return array('stat'=>'ok');
 }
