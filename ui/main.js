@@ -23,6 +23,7 @@ function ciniki_poma_main() {
             'accounts':{'label':'Accounts', 'fn':'M.ciniki_poma_main.menu.open(null,"dates");'},
             'dates':{'label':'Dates', 'fn':'M.ciniki_poma_main.menu.open(null,"dates");'},
             'taxes':{'label':'Taxes', 'fn':'M.ciniki_poma_main.menu.open(null,"taxes");'},
+            'sales':{'label':'Sales', 'fn':'M.ciniki_poma_main.menu.open(null,"sales");'},
 //            'history':{'label':'History', 'fn':'M.ciniki_poma_main.menu.open(null,"history");'},
             }},
 //        'account_search':{'label':'', 'type':''},
@@ -39,6 +40,13 @@ function ciniki_poma_main() {
             'noData':'No order dates have been setup.',
             'addTxt':'Add Order Date',
             'addFn':'M.ciniki_poma_main.editdate.open(\'M.ciniki_poma_main.menu.open();\',0,null);'
+            },
+        'products_sales':{'label':'Product Sales', 'type':'simplegrid', 'num_cols':2,
+            'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'sales') ? 'yes':'no'; },
+            'headerValues':['Product', '# Orders'],
+            'sortable':'yes',
+            'sortTypes':['text', 'number'],
+            'noData':'No sales found',
             },
         'tax_quarters':{'label':'', 'type':'simplegrid', 'num_cols':2,
             'visible':function() { return (M.ciniki_poma_main.menu.sections._tabs.selected == 'taxes') ? 'yes':'no'; },
@@ -77,6 +85,9 @@ function ciniki_poma_main() {
             if( i > 1 && i == (this.sections.tax_quarters.num_cols - 1) ) { return 'Total'; }
             return this.data.taxrates[(i-1)].name;
         }
+        if( this.sections[s].headerValues != null ) {
+            return this.sections[s].headerValues[i];
+        }
     };
     this.menu.cellValue = function(s, i, j, d) {
         if( s == 'accounts' ) {
@@ -89,6 +100,12 @@ function ciniki_poma_main() {
                 case 0: return d.status_text;
                 case 1: return d.display_name;
                 case 2: return d.num_orders;
+            }
+        }
+        if( s == 'products_sales' ) {
+            switch(j) {
+                case 0: return d.description;
+                case 1: return d.num_ordered;
             }
         }
         if( s == 'tax_quarters' ) {
@@ -130,6 +147,20 @@ function ciniki_poma_main() {
                 }
                 var p = M.ciniki_poma_main.menu;
                 p.size = 'medium';
+                p.data = rsp;
+                p.date_nplist = (rsp.nplist != null ? rsp.nplist : null);
+                p.refresh();
+                p.show(cb);
+            });
+        }
+        else if( this.sections._tabs.selected == 'sales' ) {
+            M.api.getJSONCb('ciniki.poma.salesStats', {'tnid':M.curTenantID}, function(rsp) {
+                if( rsp.stat != 'ok' ) {
+                    M.api.err(rsp);
+                    return false;
+                }
+                var p = M.ciniki_poma_main.menu;
+                p.size = 'xlarge';
                 p.data = rsp;
                 p.date_nplist = (rsp.nplist != null ? rsp.nplist : null);
                 p.refresh();
