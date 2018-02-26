@@ -1,5 +1,4 @@
 #
-# Add UTC times for reminder emails
 #
 ALTER TABLE ciniki_poma_order_dates ADD COLUMN lockreminder_dt datetime not null AFTER autolock_dt;
 ALTER TABLE ciniki_poma_order_dates ADD COLUMN pickupreminder_dt datetime not null AFTER lockreminder_dt;

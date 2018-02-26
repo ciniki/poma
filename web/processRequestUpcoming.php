@@ -100,6 +100,9 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $tnid, $arg
     // Display the current order
     //
     if( isset($ciniki['session']['ciniki.poma']['date']['id']) && $ciniki['session']['ciniki.poma']['date']['id'] > 0 ) {
+        //
+        // Load the current order
+        //
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'orderLoad');
         $rc = ciniki_poma_web_orderLoad($ciniki, $settings, $tnid, array(
             'date_id'=>$ciniki['session']['ciniki.poma']['date']['id'],

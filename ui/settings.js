@@ -285,6 +285,11 @@ function ciniki_poma_settings() {
     //
     this.dates = new M.panel('Invoice Settings', 'ciniki_poma_settings', 'dates', 'mc', 'medium', 'sectioned', 'ciniki.poma.settings.dates');
     this.dates.sections = {
+        'open':{'label':'Auto Open Order Dates', 'fields':{
+            'dates-open-auto':{'label':'Auto open', 'type':'toggle', 'default':'no', 'toggles':this.yesNoOptions},
+            'dates-open-offset':{'label':'Days Prior', 'type':'toggle', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '13':'13', '14':'14'}},
+            'dates-open-time':{'label':'Time', 'type':'text', 'size':'small'},
+            }},
         'lock':{'label':'Auto Lock Orders', 'fields':{
             'dates-lock-auto':{'label':'Auto Lock', 'type':'toggle', 'default':'no', 'toggles':this.yesNoOptions},
             'dates-lock-offset':{'label':'Days Prior', 'type':'toggle', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6'}},

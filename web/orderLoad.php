@@ -199,6 +199,29 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $tnid, $args) {
         $order['items'] = $rc['items'];
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'orderItemFormat');
         foreach($order['items'] as $iid => $item) {
+/*            //
+            // Check if limited quantity and lookup 
+            //
+            if( isset($item['flags']) && ($item['flags']&0x0800) == 0x0800 && $item['object'] != '') {
+                list($pkg, $mod, $obj) = explode('.', $item['object']);
+                $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemLookup');
+                if( $rc['stat'] != 'ok' ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.185', 'msg'=>'Unable to find item.'));
+                }
+                $fn = $rc['function_call'];
+                $rc = $fn($ciniki, $tnid, array('object'=>$item['object'], 'object_id'=>$item['object_id']));
+                if( $rc['stat'] != 'ok' ) {
+                    return $rc;
+                }
+                if( !isset($rc['item']) ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.58', 'msg'=>'Unable to find order item.'));
+                }
+                $o_item = $rc['item'];
+                $item['inventory'] = $rc['item']['inventory'];
+                $item['num_ordered'] = $rc['item']['num_ordered'];
+                $item['num_available'] = $rc['item']['num_available'];
+            } */
+
             $rc = ciniki_poma_web_orderItemFormat($ciniki, $settings, $tnid, $item);
             if( $rc['stat'] != 'ok' ) {
                 return $rc;

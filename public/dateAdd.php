@@ -23,6 +23,8 @@ function ciniki_poma_dateAdd(&$ciniki) {
         'order_date'=>array('required'=>'yes', 'blank'=>'no', 'type'=>'date', 'name'=>'Date'),
         'status'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Status'),
         'flags'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Options'),
+        'autoopen_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Auto Open Date'),
+        'autoopen_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Auto Open Time'),
         'autolock_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Auto Lock Date'),
         'autolock_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Auto Lock Time'),
         'repeats_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Repeat Date'),
@@ -66,6 +68,16 @@ function ciniki_poma_dateAdd(&$ciniki) {
     //
     // Parse dates
     //
+    $args['open_dt'] = (isset($args['open_date']) ? $args['open_date'] : '') . ' ' . (isset($args['open_time']) ? $args['open_time'] : '');
+    if( trim($args['open_dt']) != '' ) {
+        $ts = strtotime($args['open_dt']);
+        if( $ts === FALSE || $ts < 1 ) {
+            $args['open_dt'] = '';
+        } else {
+            $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+            $args['open_dt'] = $dt->format('Y-m-d H:i:s');
+        }
+    }
     $args['repeats_dt'] = (isset($args['repeats_date']) ? $args['repeats_date'] : '') . ' ' . (isset($args['repeats_time']) ? $args['repeats_time'] : '');
     if( trim($args['repeats_dt']) != '' ) {
         $ts = strtotime($args['repeats_dt']);

@@ -29,7 +29,7 @@
 #                               0x0100 - Change a substitution fee if subitems changed. Applied to product baskets.
 #                               0x0200 - Prepaid item
 #                               0x0400 - 
-#                               0x0800 - 
+#                               0x0800 - Limited Quantity Item (Always check hooks when adjusting quantity)
 #
 # object:                   The object for the item in the order. This is the reference to package.module.object. When 
 #                           combined with object_id it can be linked to modules information.

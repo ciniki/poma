@@ -199,7 +199,11 @@ function ciniki_poma_main() {
     this.editdate.sections = {
         'general':{'label':'', 'fields':{
             'order_date':{'label':'Date', 'required':'yes', 'type':'date'},
-            'status':{'label':'Status', 'type':'toggle', 'toggles':{'10':'Open', '30':'Substitutions', '50':'Locked', '90':'Closed'}},
+//            'status':{'label':'Status', 'type':'toggle', 'toggles':{'5', 'Pending', '10':'Open', '30':'Substitutions', '50':'Locked', '90':'Closed'}},
+            'status':{'label':'Status', 'type':'select', 'options':{'5', 'Pending', '10':'Open', '30':'Substitutions', '50':'Locked', '90':'Closed'}},
+            'flags2':{'label':'Auto Open', 'type':'flagtoggle', 'field':'flags', 'bit':0x02, 'on_fields':['autoopen_date', 'autoopen_time']},
+            'autoopen_date':{'label':'Auto Open Date', 'visible':'no', 'type':'date'},
+            'autoopen_time':{'label':'Auto Open Time', 'visible':'no', 'type':'text', 'size':'small'},
             'flags1':{'label':'Autolock', 'type':'flagtoggle', 'field':'flags', 'bit':0x01, 'on_fields':['autolock_date', 'autolock_time']},
             'autolock_date':{'label':'Auto Lock Date', 'visible':'no', 'type':'date'},
             'autolock_time':{'label':'Auto Lock Time', 'visible':'no', 'type':'text', 'size':'small'},
@@ -232,6 +236,13 @@ function ciniki_poma_main() {
             }
             var p = M.ciniki_poma_main.editdate;
             p.data = rsp.date;
+            if( (rsp.date.flags&0x02) == 0x02 ) {
+                p.sections.general.fields.autoopen_date.visible = 'yes';
+                p.sections.general.fields.autoopen_time.visible = 'yes';
+            } else {
+                p.sections.general.fields.autoopen_date.visible = 'no';
+                p.sections.general.fields.autoopen_time.visible = 'no';
+            }
             if( (rsp.date.flags&0x01) == 0x01 ) {
                 p.sections.general.fields.autolock_date.visible = 'yes';
                 p.sections.general.fields.autolock_time.visible = 'yes';

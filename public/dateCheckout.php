@@ -451,6 +451,17 @@ function ciniki_poma_dateCheckout($ciniki) {
         // Update the Order status in the database
         //
         if( $order['status'] < 70 ) {
+            //
+            // If the current status is < 50, the items have not been removed from inventory
+            //
+            if( $order['status'] < 50 ) {
+                ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderRemoveFromInventory');
+                $rc = ciniki_poma_orderRemoveFromInventory($ciniki, $args['tnid'], $args['order_id']);
+                if( $rc['stat'] != 'ok' ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.foodmarket.95', 'msg'=>'Unable to remove items from inventory', 'err'=>$rc['err']));
+                }
+            }
+
             ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
             $rc = ciniki_core_objectUpdate($ciniki, $args['tnid'], 'ciniki.poma.order', $args['order_id'], array('status'=>70), 0x04);
             if( $rc['stat'] != 'ok' ) {

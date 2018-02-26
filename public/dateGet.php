@@ -87,6 +87,7 @@ function ciniki_poma_dateGet($ciniki) {
         } else {
             $dt = new DateTime('now', new DateTimeZone($intl_timezone));
         }
+        $odt = clone $dt;
         $adt = clone $dt;
         $adt->add(new DateInterval('P5D'));
         $ldt = clone $dt;
@@ -98,6 +99,8 @@ function ciniki_poma_dateGet($ciniki) {
             'order_date'=>$dt->format($date_format),
             'status'=>'10',
             'flags'=>'0x43',
+            'open_date'=>$odt->format($date_format),
+            'open_time'=>'1:00 AM',
             'repeats_date'=>$rdt->format($date_format),
             'repeats_time'=>'1:00 AM',
             'autolock_date'=>$adt->format($date_format),
@@ -119,6 +122,8 @@ function ciniki_poma_dateGet($ciniki) {
             . "ciniki_poma_order_dates.display_name, "
             . "ciniki_poma_order_dates.status, "
             . "ciniki_poma_order_dates.flags, "
+            . "ciniki_poma_order_dates.open_dt AS open_date, "
+            . "ciniki_poma_order_dates.open_dt AS open_time, "
             . "ciniki_poma_order_dates.repeats_dt AS repeats_date, "
             . "ciniki_poma_order_dates.repeats_dt AS repeats_time, "
             . "ciniki_poma_order_dates.autolock_dt AS autolock_date, "
@@ -135,11 +140,13 @@ function ciniki_poma_dateGet($ciniki) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
         $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
             array('container'=>'dates', 'fname'=>'id', 
-                'fields'=>array('order_date', 'display_name', 'status', 'flags', 'repeats_date', 'repeats_time', 
+                'fields'=>array('order_date', 'display_name', 'status', 'flags', 'open_date', 'open_time', 'repeats_date', 'repeats_time', 
                     'autolock_date', 'autolock_time', 'lockreminder_date', 'lockreminder_time', 'pickupreminder_date', 'pickupreminder_time', 
                     'notices'),
                 'utctotz'=>array(
                     'order_date'=>array('timezone'=>'UTC', 'format'=>$date_format),
+                    'open_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
+                    'open_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                     'repeats_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
                     'repeats_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                     'autolock_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),

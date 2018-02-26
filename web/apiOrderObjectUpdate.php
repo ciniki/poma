@@ -153,6 +153,19 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $tnid, $args)
     // Update the existing item if it exists
     //
     if( isset($rc['item']) ) {
+        //
+        // Check for inventory on limited quantity items
+        //
+        if( ($item['flags']&0x0800) == 0x0800 && $args['object'] != '' && isset($item['num_available']) ) {
+            if( $item['itype'] == 10 ) {
+                $qty_diff = bcsub($item['weight_quantity'], $rc['item']['weight_quantity'], 6);
+            } else {
+                $qty_diff = bcsub($item['unit_quantity'], $rc['item']['unit_quantity'], 6);
+            }
+            if( $qty_diff > $item['num_available'] ) {
+                return array('stat'=>'noavail', 'err'=>array('code'=>'ciniki.poma.184', 'msg'=>"I'm sorry, there are no more available."));
+            }
+        }
         $existing_item = $rc['item'];
         $update_args = array();
         foreach($fields as $field) {

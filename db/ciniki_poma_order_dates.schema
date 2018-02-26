@@ -17,6 +17,7 @@
 #
 # status:           The current status of the date.
 #
+#                       05 - Pending open (not available in website)
 #                       10 - Available to place order, add, remove, modify
 #                       20 - Repeats applied
 #                       30 - Substitions, only allowed to make changes to substitution items
@@ -25,14 +26,16 @@
 # 
 # flags:            The options for the date.
 #
-#                       0x01 - Autolock, automatically lock the orders at the UTC date and time in change_deadline
-#                       0x02 - 
+#                       0x01 - Autolock, automatically lock the orders at the UTC date and time in autolock_dt.
+#                       0x02 - Autoopen, automatically open the date at the UTC date and time in open_dt.
 #                       0x04 - 
 #                       0x08 - 
 #                       0x10 - 
 #                       0x20 - Lock Reminder
 #                       0x40 - Pickup Reminder
 #                       0x80 - 
+#
+# open_dt:          The UTC date and time the date will be opened.
 #
 # repeats_dt:       The UTC date and time the repeat items will be applied to an order.
 #
@@ -56,6 +59,7 @@ create table ciniki_poma_order_dates (
     display_name varchar(100) not null,
     status tinyint unsigned not null,
     flags tinyint unsigned not null,
+    open_dt datetime not null,  
     repeats_dt datetime not null,  
     autolock_dt datetime not null,  
     lockreminder_dt datetime not null,  
@@ -66,4 +70,4 @@ create table ciniki_poma_order_dates (
     primary key (id),
     unique index (uuid),
     index sync (tnid, uuid, last_updated)
-) ENGINE='InnoDB', COMMENT='v1.02';
+) ENGINE='InnoDB', COMMENT='v1.03';

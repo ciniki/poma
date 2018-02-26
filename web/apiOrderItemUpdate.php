@@ -73,10 +73,6 @@ function ciniki_poma_web_apiOrderItemUpdate(&$ciniki, $settings, $tnid, $args) {
     }
 
     //
-    // FIXME: Check inventory before allowing an increase in quantity when limited items
-    //
-
-    //
     // The list of fields the customer is allowed to change
     //
     $fields = array('unit_quantity', 'weight_quantity');
@@ -134,8 +130,18 @@ function ciniki_poma_web_apiOrderItemUpdate(&$ciniki, $settings, $tnid, $args) {
         } else {
             if( $existing_item['itype'] == 10 ) {
                 $new_item['weight_quantity'] = $_GET['quantity'];
+                $qty_diff = bcsub($new_item['weight_quantity'], $existing_item['weight_quantity'], 6);
             } else {
                 $new_item['unit_quantity'] = $_GET['quantity'];
+                $qty_diff = bcsub($new_item['unit_quantity'], $existing_item['unit_quantity'], 6);
+            }
+            //
+            // Check for inventory on limited quantity items
+            //
+            if( ($existing_item['flags']&0x0800) == 0x0800 && $existing_item['object'] != '' && isset($o_item['num_available']) ) {
+                if( $qty_diff > $o_item['num_available'] ) {
+                    return array('stat'=>'noavail', 'err'=>array('code'=>'ciniki.poma.183', 'msg'=>"I'm sorry, there are no more available."));
+                }
             }
         }
     }

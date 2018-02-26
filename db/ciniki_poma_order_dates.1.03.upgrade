@@ -1,0 +1,5 @@
+#
+# Add UTC times for reminder emails
+#
+ALTER TABLE ciniki_poma_order_dates ADD COLUMN open_dt datetime not null AFTER flags;
+ALTER TABLE ciniki_poma_order_dates COMMENT='v1.03';

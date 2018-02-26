@@ -60,6 +60,28 @@ function ciniki_poma_datesAdd(&$ciniki) {
     $settings = $rc['settings'];
 
     //
+    // Prepare the autoopen date
+    //
+    if( isset($settings['dates-open-auto']) && $settings['dates-open-auto'] == 'yes' 
+        && isset($settings['dates-open-time']) && $settings['dates-open-time'] != '' 
+        ) {
+        $ts = strtotime($args['order_date'] . ' ' . $settings['dates-open-time']);
+        if( $ts === FALSE || $ts < 1 ) {
+            $args['open_dt'] = '';
+        } else {
+            $open_dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+            //
+            // Check for the offset
+            //
+            if( isset($settings['dates-open-offset']) && $settings['dates-open-offset'] > 0 ) {
+                $open_dt->sub(new DateInterval('P' . $settings['dates-open-offset'] . 'D'));
+            }
+            $args['status'] = 5;
+            $args['flags'] |= 0x02;
+        }
+    }
+    
+    //
     // Prepare the autolock date
     //
     if( isset($settings['dates-lock-auto']) && $settings['dates-lock-auto'] == 'yes' 
@@ -153,6 +175,12 @@ function ciniki_poma_datesAdd(&$ciniki) {
         //
         // Increase and format dates
         //
+        if( isset($open_dt) ) {
+            if( $i > 0 ) {
+                $open_dt->add(new DateInterval('P1D'));
+            }
+            $args['open_dt'] = $open_dt->format('Y-m-d H:i:s');
+        }
         if( isset($autolock_dt) ) {
             if( $i > 0 ) {
                 $autolock_dt->add(new DateInterval('P1D'));
