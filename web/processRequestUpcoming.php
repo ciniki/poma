@@ -57,6 +57,7 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $tnid, $arg
 //            . ") "
         . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND ciniki_poma_order_dates.order_date >= '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
+        . "AND ciniki_poma_order_dates.status > 5 "
         . "ORDER BY order_date ASC "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');

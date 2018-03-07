@@ -20,7 +20,7 @@ function ciniki_poma_main() {
     this.menu.liveSearchRN = 0;
     this.menu.sections = {
         '_tabs':{'label':'', 'type':'menutabs', 'selected':'accounts', 'tabs':{
-            'accounts':{'label':'Accounts', 'fn':'M.ciniki_poma_main.menu.open(null,"dates");'},
+            'accounts':{'label':'Accounts', 'fn':'M.ciniki_poma_main.menu.open(null,"accounts");'},
             'dates':{'label':'Dates', 'fn':'M.ciniki_poma_main.menu.open(null,"dates");'},
             'taxes':{'label':'Taxes', 'fn':'M.ciniki_poma_main.menu.open(null,"taxes");'},
             'sales':{'label':'Sales', 'fn':'M.ciniki_poma_main.menu.open(null,"sales");'},
@@ -199,8 +199,7 @@ function ciniki_poma_main() {
     this.editdate.sections = {
         'general':{'label':'', 'fields':{
             'order_date':{'label':'Date', 'required':'yes', 'type':'date'},
-//            'status':{'label':'Status', 'type':'toggle', 'toggles':{'5', 'Pending', '10':'Open', '30':'Substitutions', '50':'Locked', '90':'Closed'}},
-            'status':{'label':'Status', 'type':'select', 'options':{'5', 'Pending', '10':'Open', '30':'Substitutions', '50':'Locked', '90':'Closed'}},
+            'status':{'label':'Status', 'type':'select', 'options':{'5':'Pending', '10':'Open', '30':'Substitutions', '50':'Locked', '90':'Closed'}},
             'flags2':{'label':'Auto Open', 'type':'flagtoggle', 'field':'flags', 'bit':0x02, 'on_fields':['autoopen_date', 'autoopen_time']},
             'autoopen_date':{'label':'Auto Open Date', 'visible':'no', 'type':'date'},
             'autoopen_time':{'label':'Auto Open Time', 'visible':'no', 'type':'text', 'size':'small'},
