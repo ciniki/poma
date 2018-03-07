@@ -16,6 +16,7 @@ function ciniki_poma_cron_jobs(&$ciniki) {
 
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbQuote');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQuery');
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'dateOpen');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'dateRepeatsAdd');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'dateLock');
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'emailUpdatedOrder');
@@ -28,6 +29,49 @@ function ciniki_poma_cron_jobs(&$ciniki) {
     //
     // FIXME: Check tenant for orders dates < 4 weeks out
     //
+
+    //
+    // Check for order dates that need to be opened
+    //
+    $strsql = "SELECT id, tnid "
+        . "FROM ciniki_poma_order_dates "
+        . "WHERE status = 5 "
+        . "AND open_dt <= UTC_TIMESTAMP() "
+        . "ORDER BY order_date ASC "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+    if( isset($rc['rows']) ) {
+        foreach($rc['rows'] as $row) {
+            //
+            // Start transaction
+            //
+            $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+            
+            error_log("Opening date: " . $row['id']);
+            $rc = ciniki_poma_dateOpen($ciniki, $row['tnid'], $row['id']);
+            if( $rc['stat'] != 'ok' ) {
+                ciniki_cron_logMsg($ciniki, $row['tnid'], array('code'=>'ciniki.poma.186', 'msg'=>'Unable to open dates.',
+                    'cron_id'=>0, 'severity'=>50, 'err'=>$rc['err'],
+                    ));
+                ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+                return $rc;
+            }
+
+            //
+            // Commit the transaction
+            //
+            $rc = ciniki_core_dbTransactionCommit($ciniki, 'ciniki.poma');
+            if( $rc['stat'] != 'ok' ) {
+                return $rc;
+            }
+        }
+    }
 
     //
     // Get the list of tenants with dates that need to have repeats applied
