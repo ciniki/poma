@@ -73,6 +73,15 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $tnid, $ar
     }
 
     //
+    // Check for inventory on limited quantity items
+    //
+    if( ($newitem['flags']&0x0800) == 0x0800 && $newitem['object'] != '' && isset($newitem['num_available']) ) {
+        if( 1 > $newitem['num_available'] ) {
+            return array('stat'=>'noavail', 'err'=>array('code'=>'ciniki.poma.187', 'msg'=>"I'm sorry, there are no more available."));
+        }
+    }
+
+    //
     // Start a transaction
     //
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbTransactionStart');

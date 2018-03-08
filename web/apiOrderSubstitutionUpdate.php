@@ -46,6 +46,8 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $tnid, 
     //
     if( isset($subitems[$args['subitem_id']]) ) {
         $subitem = $subitems[$args['subitem_id']];
+
+
         if( isset($_GET['quantity']) && is_numeric($_GET['quantity']) && $_GET['quantity'] != $subitem['quantity'] ) {
             //
             // Check out much will be added, and if there is space
@@ -65,6 +67,39 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $tnid, 
             if( $new_quantity < 0 ) {
                 $new_quantity = 0;
             }
+            
+            //
+            // Check inventory
+            //
+            if( isset($subitem['object']) && $subitem['object'] != '' ) {
+                //
+                // Get the requested item
+                //
+                list($pkg, $mod, $obj) = explode('.', $subitem['object']);
+                $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemLookup');
+                if( $rc['stat'] != 'ok' ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.88', 'msg'=>'Unable to add item.'));
+                }
+                $fn = $rc['function_call'];
+                $rc = $fn($ciniki, $tnid, array('object'=>$subitem['object'], 'object_id'=>$subitem['object_id']));
+                if( $rc['stat'] != 'ok' ) {
+                    return $rc;
+                }
+                if( !isset($rc['item']) ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.89', 'msg'=>'Unable to add item.'));
+                }
+                $o_item = $rc['item'];
+
+                //
+                // Check for inventory on limited quantity items
+                //
+                if( ($o_item['flags']&0x0800) == 0x0800 && $o_item['object'] != '' && isset($o_item['num_available']) ) {
+                    if( $quantity_diff > $o_item['num_available'] ) {
+                        return array('stat'=>'noavail', 'err'=>array('code'=>'ciniki.poma.188', 'msg'=>"I'm sorry, there are no more available."));
+                    }
+                }
+            }
+
             //
             // Check if order needs updating
             //
