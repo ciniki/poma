@@ -21,8 +21,31 @@
 # email-repeats-added-subject:
 # email-repeats-added-message:
 #
-# dates-lock-auto:                  (yes|no) Should the orders be automatically locked on a date.
-# dates-lock-offset:                (-6|-5|-4|-3|-2|-1|0) The number of days before the order date the orders will be locked (-6 - 0)
+# dates-open-auto:                  (no|fixed|variable) Fixed means all orders will open the same days prior, the dates-open-offset
+#                                       will be used. Variable allows for each day of week to have different open, and
+#                                       the dates-open-offset-day will be used to determine the days prior to open date.
+#                                       No will not auto open dates, they will need to be opened manually.
+#                                       
+# dates-open-offset:                The number of days prior to the order date the date should be opened. (Only used when fixed)
+# dates-open-offset-sun:            The days prior to sunday order to open date. (only used when variable)
+# dates-open-offset-mon:            The days prior to monday order to open date. (only used when variable)
+# dates-open-offset-tue:            The days prior to tuesday order to open date. (only used when variable)
+# dates-open-offset-wed:            The days prior to wednesday order to open date. (only used when variable)
+# dates-open-offset-thu:            The days prior to thursday order to open date. (only used when variable)
+# dates-open-offset-fri:            The days prior to friday order to open date. (only used when variable)
+# dates-open-offset-sat:            The days prior to saturday order to open date. (only used when variable)
+# dates-open-time:                  The time of day to open the orders. (used for fixed or variable)
+#
+# dates-lock-auto:                  (no|fixed|variable) Should the orders be automatically locked on a date.
+# 
+# dates-lock-offset:                The number of days before the order date the orders will be locked (-6 - 0)
+# dates-lock-offset-sun:            The days prior to sunday order to lock date. (only used when variable)
+# dates-lock-offset-mon:            The days prior to monday order to lock date. (only used when variable)
+# dates-lock-offset-tue:            The days prior to tuesday order to lock date. (only used when variable)
+# dates-lock-offset-wed:            The days prior to wednesday order to lock date. (only used when variable)
+# dates-lock-offset-thu:            The days prior to thursday order to lock date. (only used when variable)
+# dates-lock-offset-fri:            The days prior to friday order to lock date. (only used when variable)
+# dates-lock-offset-sat:            The days prior to saturday order to lock date. (only used when variable)
 # dates-lock-time:                  The time of day in tenant timezone for orders to be locked.
 #
 # dates-pickup-reminder:            (yes|no) Should pickup reminder emails be sent.

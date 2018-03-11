@@ -62,7 +62,7 @@ function ciniki_poma_datesAdd(&$ciniki) {
     //
     // Prepare the autoopen date
     //
-    if( isset($settings['dates-open-auto']) && $settings['dates-open-auto'] == 'yes' 
+/*    if( isset($settings['dates-open-auto']) && $settings['dates-open-auto'] == 'fixed' 
         && isset($settings['dates-open-time']) && $settings['dates-open-time'] != '' 
         ) {
         $ts = strtotime($args['order_date'] . ' ' . $settings['dates-open-time']);
@@ -84,7 +84,7 @@ function ciniki_poma_datesAdd(&$ciniki) {
     //
     // Prepare the autolock date
     //
-    if( isset($settings['dates-lock-auto']) && $settings['dates-lock-auto'] == 'yes' 
+    if( isset($settings['dates-lock-auto']) && $settings['dates-lock-auto'] == 'fixed' 
         && isset($settings['dates-lock-time']) && $settings['dates-lock-time'] != '' 
         ) {
         $ts = strtotime($args['order_date'] . ' ' . $settings['dates-lock-time']);
@@ -100,7 +100,7 @@ function ciniki_poma_datesAdd(&$ciniki) {
             }
             $args['flags'] |= 0x01;
         }
-    }
+    } */
     
     //
     // Prepare the pickup reminder date
@@ -173,9 +173,68 @@ function ciniki_poma_datesAdd(&$ciniki) {
         $args['display_name'] = $dt->format('D M jS');
 
         //
+        // Prepare auto open date
+        //
+        $open_dt = clone $dt;
+        if( isset($settings['dates-open-auto']) 
+            && ($settings['dates-open-auto'] == 'fixed' || $settings['dates-open-auto'] == 'variable')
+            && isset($settings['dates-open-time']) && $settings['dates-open-time'] != '' 
+            ) {
+            $ts = strtotime($args['order_date'] . ' ' . $settings['dates-open-time']);
+            if( $ts === FALSE || $ts < 1 ) {
+                $args['open_dt'] = '';
+            } else {
+                $open_dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+                //
+                // Check for the offset
+                //
+                if( $settings['dates-open-auto'] == 'fixed' && isset($settings['dates-open-offset']) && $settings['dates-open-offset'] > 0 ) {
+                    $open_dt->sub(new DateInterval('P' . $settings['dates-open-offset'] . 'D'));
+                } elseif( $settings['dates-open-auto'] == 'variable' ) {
+                    $weekday = strtolower($open_dt->format('D'));
+                    if( isset($settings['dates-open-offset-' . $weekday]) ) {
+                        $open_dt->sub(new DateInterval('P' . $settings['dates-open-offset-' . $weekday] . 'D'));
+                    }
+                }
+                $args['status'] = 5;
+                $args['flags'] |= 0x02;
+                $args['open_dt'] = $open_dt->format('Y-m-d H:i:s');
+            }
+        }
+
+        //
+        // Prepare the autolock date
+        //
+        $autolock_dt = clone $dt;
+        if( isset($settings['dates-lock-auto']) 
+            && ($settings['dates-lock-auto'] == 'fixed' || $settings['dates-lock-auto'] == 'variable')
+            && isset($settings['dates-lock-time']) && $settings['dates-lock-time'] != '' 
+            ) {
+            $ts = strtotime($args['order_date'] . ' ' . $settings['dates-lock-time']);
+            if( $ts === FALSE || $ts < 1 ) {
+                $args['autolock_dt'] = '';
+            } else {
+                $autolock_dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+                //
+                // Check for the offset
+                //
+                if( isset($settings['dates-lock-offset']) && $settings['dates-lock-offset'] > 0 ) {
+                    $autolock_dt->sub(new DateInterval('P' . $settings['dates-lock-offset'] . 'D'));
+                } elseif( $settings['dates-lock-auto'] == 'variable' ) {
+                    $weekday = strtolower($autolock_dt->format('D'));
+                    if( isset($settings['dates-lock-offset-' . $weekday]) ) {
+                        $autolock_dt->sub(new DateInterval('P' . $settings['dates-lock-offset-' . $weekday] . 'D'));
+                    }
+                }
+                $args['flags'] |= 0x01;
+                $args['autolock_dt'] = $autolock_dt->format('Y-m-d H:i:s');
+            }
+        }
+        
+        //
         // Increase and format dates
         //
-        if( isset($open_dt) ) {
+/*        if( isset($open_dt) ) {
             if( $i > 0 ) {
                 $open_dt->add(new DateInterval('P1D'));
             }
@@ -186,7 +245,7 @@ function ciniki_poma_datesAdd(&$ciniki) {
                 $autolock_dt->add(new DateInterval('P1D'));
             }
             $args['autolock_dt'] = $autolock_dt->format('Y-m-d H:i:s');
-        }
+        } */
         if( isset($pickupreminder_dt) ) {
             if( $i > 0 ) {
                 $pickupreminder_dt->add(new DateInterval('P1D'));

@@ -286,14 +286,28 @@ function ciniki_poma_settings() {
     this.dates = new M.panel('Invoice Settings', 'ciniki_poma_settings', 'dates', 'mc', 'medium', 'sectioned', 'ciniki.poma.settings.dates');
     this.dates.sections = {
         'open':{'label':'Auto Open Order Dates', 'fields':{
-            'dates-open-auto':{'label':'Auto open', 'type':'toggle', 'default':'no', 'toggles':this.yesNoOptions},
-            'dates-open-offset':{'label':'Days Prior', 'type':'toggle', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '13':'13', '14':'14'}},
-            'dates-open-time':{'label':'Time', 'type':'text', 'size':'small'},
+            'dates-open-auto':{'label':'Auto open', 'type':'toggle', 'default':'no', 'toggles':{'no':'No', 'fixed':'Fixed', 'variable':'Variable'}, 'onchange':'M.ciniki_poma_settings.dates.showHideFields();'},
+            'dates-open-offset':{'label':'Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '13':'13', '14':'14'}},
+            'dates-open-offset-mon':{'label':'Monday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '9':'9', '10':'10', '11':'11', '12':'12', '13':'13', '14':'14'}},
+            'dates-open-offset-tue':{'label':'Tuesday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '9':'9', '10':'10', '11':'11', '12':'12', '13':'13', '14':'14'}},
+            'dates-open-offset-wed':{'label':'Wednesday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '9':'9', '10':'10', '11':'11', '12':'12', '13':'13', '14':'14'}},
+            'dates-open-offset-thu':{'label':'Thursday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '9':'9', '10':'10', '11':'11', '12':'12', '13':'13', '14':'14'}},
+            'dates-open-offset-fri':{'label':'Friday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '9':'9', '10':'10', '11':'11', '12':'12', '13':'13', '14':'14'}},
+            'dates-open-offset-sat':{'label':'Saturday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '9':'9', '10':'10', '11':'11', '12':'12', '13':'13', '14':'14'}},
+            'dates-open-offset-sun':{'label':'Sunday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'5':'5', '6':'6', '7':'7', '8':'8', '9':'9', '10':'10', '11':'11', '12':'12', '13':'13', '14':'14'}},
+            'dates-open-time':{'label':'Time', 'type':'text', 'visible':'no', 'size':'small'},
             }},
         'lock':{'label':'Auto Lock Orders', 'fields':{
-            'dates-lock-auto':{'label':'Auto Lock', 'type':'toggle', 'default':'no', 'toggles':this.yesNoOptions},
-            'dates-lock-offset':{'label':'Days Prior', 'type':'toggle', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6'}},
-            'dates-lock-time':{'label':'Time', 'type':'text', 'size':'small'},
+            'dates-lock-auto':{'label':'Auto Lock', 'type':'toggle', 'default':'no', 'toggles':{'no':'No', 'fixed':'Fixed', 'variable':'Variable'}, 'onchange':'M.ciniki_poma_settings.dates.showHideFields();'},
+            'dates-lock-offset':{'label':'Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6'}},
+            'dates-lock-offset-mon':{'label':'Monday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6', '7':'7'}},
+            'dates-lock-offset-tue':{'label':'Tuesday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6', '7':'7'}},
+            'dates-lock-offset-wed':{'label':'Wednesday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6', '7':'7'}},
+            'dates-lock-offset-thu':{'label':'Thursday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6', '7':'7'}},
+            'dates-lock-offset-fri':{'label':'Friday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6', '7':'7'}},
+            'dates-lock-offset-sat':{'label':'Saturday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6', '7':'7'}},
+            'dates-lock-offset-sun':{'label':'Sunday Days Prior', 'type':'toggle', 'visible':'no', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6', '7':'7'}},
+            'dates-lock-time':{'label':'Time', 'type':'text', 'size':'small', 'visible':'no'},
             }},
         'pickupreminder':{'label':'Pickup Reminders', 'fields':{
             'dates-pickup-reminder':{'label':'Reminders', 'type':'toggle', 'default':'no', 'toggles':this.yesNoOptions},
@@ -315,6 +329,90 @@ function ciniki_poma_settings() {
         if( this.data[i] == null && d.default != null ) { return d.default; }
         return this.data[i];
     };
+    this.dates.showHideFields = function() {
+        var l = this.formValue('dates-open-auto');
+        if( l == 'no' ) {
+            this.sections.open.fields['dates-open-offset'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-mon'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-tue'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-wed'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-thu'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-fri'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-sat'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-sun'].visible = 'no';
+            this.sections.open.fields['dates-open-time'].visible = 'no';
+        } else if( l == 'fixed' ) {
+            this.sections.open.fields['dates-open-offset'].visible = 'yes';
+            this.sections.open.fields['dates-open-offset-mon'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-tue'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-wed'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-thu'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-fri'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-sat'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-sun'].visible = 'no';
+            this.sections.open.fields['dates-open-time'].visible = 'yes';
+        } else if( l == 'variable' ) {
+            this.sections.open.fields['dates-open-offset'].visible = 'no';
+            this.sections.open.fields['dates-open-offset-mon'].visible = 'yes';
+            this.sections.open.fields['dates-open-offset-tue'].visible = 'yes';
+            this.sections.open.fields['dates-open-offset-wed'].visible = 'yes';
+            this.sections.open.fields['dates-open-offset-thu'].visible = 'yes';
+            this.sections.open.fields['dates-open-offset-fri'].visible = 'yes';
+            this.sections.open.fields['dates-open-offset-sat'].visible = 'yes';
+            this.sections.open.fields['dates-open-offset-sun'].visible = 'yes';
+            this.sections.open.fields['dates-open-time'].visible = 'yes';
+        }
+        this.showHideFormField('open', 'dates-open-offset');
+        this.showHideFormField('open', 'dates-open-offset-mon');
+        this.showHideFormField('open', 'dates-open-offset-tue');
+        this.showHideFormField('open', 'dates-open-offset-wed');
+        this.showHideFormField('open', 'dates-open-offset-thu');
+        this.showHideFormField('open', 'dates-open-offset-fri');
+        this.showHideFormField('open', 'dates-open-offset-sat');
+        this.showHideFormField('open', 'dates-open-offset-sun');
+        this.showHideFormField('open', 'dates-open-time');
+        var l = this.formValue('dates-lock-auto');
+        if( l == 'no' ) {
+            this.sections.lock.fields['dates-lock-offset'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-mon'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-tue'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-wed'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-thu'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-fri'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-sat'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-sun'].visible = 'no';
+            this.sections.lock.fields['dates-lock-time'].visible = 'no';
+        } else if( l == 'fixed' ) {
+            this.sections.lock.fields['dates-lock-offset'].visible = 'yes';
+            this.sections.lock.fields['dates-lock-offset-mon'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-tue'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-wed'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-thu'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-fri'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-sat'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-sun'].visible = 'no';
+            this.sections.lock.fields['dates-lock-time'].visible = 'yes';
+        } else if( l == 'variable' ) {
+            this.sections.lock.fields['dates-lock-offset'].visible = 'no';
+            this.sections.lock.fields['dates-lock-offset-mon'].visible = 'yes';
+            this.sections.lock.fields['dates-lock-offset-tue'].visible = 'yes';
+            this.sections.lock.fields['dates-lock-offset-wed'].visible = 'yes';
+            this.sections.lock.fields['dates-lock-offset-thu'].visible = 'yes';
+            this.sections.lock.fields['dates-lock-offset-fri'].visible = 'yes';
+            this.sections.lock.fields['dates-lock-offset-sat'].visible = 'yes';
+            this.sections.lock.fields['dates-lock-offset-sun'].visible = 'yes';
+            this.sections.lock.fields['dates-lock-time'].visible = 'yes';
+        }
+        this.showHideFormField('lock', 'dates-lock-offset');
+        this.showHideFormField('lock', 'dates-lock-offset-mon');
+        this.showHideFormField('lock', 'dates-lock-offset-tue');
+        this.showHideFormField('lock', 'dates-lock-offset-wed');
+        this.showHideFormField('lock', 'dates-lock-offset-thu');
+        this.showHideFormField('lock', 'dates-lock-offset-fri');
+        this.showHideFormField('lock', 'dates-lock-offset-sat');
+        this.showHideFormField('lock', 'dates-lock-offset-sun');
+        this.showHideFormField('lock', 'dates-lock-time');
+    }
     this.dates.open = function(cb) {
         M.api.getJSONCb('ciniki.poma.settingsGet', {'tnid':M.curTenantID}, function(rsp) {
             if( rsp.stat != 'ok' ) {
@@ -325,6 +423,7 @@ function ciniki_poma_settings() {
             p.data = rsp.settings;
             p.refresh();
             p.show(cb);
+            p.showHideFields();
         });
     };
     this.dates.save = function() {
