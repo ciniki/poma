@@ -370,6 +370,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $tnid, $order_id) {
     if( $new_order['total_amount'] > 0 && $new_order['balance_amount'] <= 0 && $order['payment_status'] != 50 ) {
         $new_order['payment_status'] = 50;
     } 
+
     //
     // Check if partial paid
     //

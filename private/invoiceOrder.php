@@ -114,6 +114,8 @@ function ciniki_poma_invoiceOrder(&$ciniki, $tnid, $order_id) {
         } else {
             $update_args['payment_status'] = 40;
         }
+    } elseif( $order['total_amount'] == 0 ) {
+        $update_args['payment_status'] = 50;
     }
     if( $paid_amount != $order['paid_amount'] ) {
         $update_args['paid_amount'] = $paid_amount;
