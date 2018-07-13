@@ -21,6 +21,7 @@ function ciniki_poma_noteList($ciniki) {
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
         'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'customer_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Customer ID'),
+        'ntype'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Note Type'),
         'archive_note_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Archive Note ID'),
         'customers'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Customers'),
         ));
@@ -79,6 +80,7 @@ function ciniki_poma_noteList($ciniki) {
     $strsql = "SELECT ciniki_poma_notes.id, "
         . "ciniki_poma_notes.note_date, "
         . "DATE_FORMAT(ciniki_poma_notes.note_date, '" . ciniki_core_dbQuote($ciniki, $date_format) . "') AS note_date_text, "
+        . "ciniki_poma_notes.ntype, "
         . "ciniki_poma_notes.status, "
         . "ciniki_poma_notes.status AS status_text, "
         . "ciniki_poma_notes.customer_id, "
@@ -87,6 +89,9 @@ function ciniki_poma_noteList($ciniki) {
         . "WHERE ciniki_poma_notes.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "AND status = 10 "
         . "";
+    if( isset($args['ntype']) && $args['ntype'] >= 0 ) {
+        $strsql .= "AND ntype = '" . ciniki_core_dbQuote($ciniki, $args['ntype']) . "' ";
+    }
     if( isset($args['customer_id']) && $args['customer_id'] >= 0 ) {
         $strsql .= "AND customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' ";
     }
@@ -94,7 +99,7 @@ function ciniki_poma_noteList($ciniki) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'notes', 'fname'=>'id', 
-            'fields'=>array('id', 'note_date', 'note_date_text', 'status', 'status_text', 'customer_id', 'content'),
+            'fields'=>array('id', 'ntype', 'note_date', 'note_date_text', 'status', 'status_text', 'customer_id', 'content'),
             'maps'=>array('status_text'=>$maps['note']['status']),
             ),
         ));
@@ -118,6 +123,7 @@ function ciniki_poma_noteList($ciniki) {
     $strsql = "SELECT ciniki_poma_notes.id, "
         . "ciniki_poma_notes.note_date, "
         . "DATE_FORMAT(ciniki_poma_notes.note_date, '" . ciniki_core_dbQuote($ciniki, $date_format) . "') AS note_date_text, "
+        . "ciniki_poma_notes.ntype, "
         . "ciniki_poma_notes.status, "
         . "ciniki_poma_notes.status AS status_text, "
         . "ciniki_poma_notes.customer_id, "
@@ -126,6 +132,9 @@ function ciniki_poma_noteList($ciniki) {
         . "WHERE ciniki_poma_notes.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "AND status = 60 "
         . "";
+    if( isset($args['ntype']) && $args['ntype'] >= 0 ) {
+        $strsql .= "AND ntype = '" . ciniki_core_dbQuote($ciniki, $args['ntype']) . "' ";
+    }
     if( isset($args['customer_id']) && $args['customer_id'] >= 0 ) {
         $strsql .= "AND customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' ";
     }
@@ -133,7 +142,7 @@ function ciniki_poma_noteList($ciniki) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'notes', 'fname'=>'id', 
-            'fields'=>array('id', 'note_date', 'note_date_text', 'status', 'status_text', 'customer_id', 'content'),
+            'fields'=>array('id', 'ntype', 'note_date', 'note_date_text', 'status', 'status_text', 'customer_id', 'content'),
             'maps'=>array('status_text'=>$maps['note']['status']),
             ),
         ));
@@ -167,7 +176,11 @@ function ciniki_poma_noteList($ciniki) {
                 . "AND ciniki_customers.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
                 . ") "
             . "WHERE ciniki_poma_notes.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
-            . "GROUP BY customer_id, status "
+            . "";
+        if( isset($args['ntype']) && $args['ntype'] != '' ) {
+            $strsql .= "AND ciniki_poma_notes.ntype = '" . ciniki_core_dbQuote($ciniki, $args['ntype']) . "' ";
+        }
+        $strsql .= "GROUP BY customer_id, status "
             . "ORDER BY ciniki_customers.display_name "
             . "";
         $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(

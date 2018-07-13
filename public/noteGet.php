@@ -62,6 +62,7 @@ function ciniki_poma_noteGet($ciniki) {
         $dt = new DateTime('now', new DateTimezone($intl_timezone));
         $note = array('id'=>0,
             'note_date'=>$dt->format($date_format),
+            'ntype'=>'30',
             'status'=>'10',
             'customer_id'=>(isset($args['customer_id']) ? $args['customer_id'] : '0'),
             'content'=>'',

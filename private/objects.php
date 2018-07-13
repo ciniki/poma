@@ -194,6 +194,7 @@ function ciniki_poma_objects(&$ciniki) {
         'table'=>'ciniki_poma_notes',
         'fields'=>array(
             'note_date'=>array('name'=>'Date', 'type'=>'date'),
+            'ntype'=>array('name'=>'Type', 'default'=>'30'),
             'status'=>array('name'=>'Status', 'default'=>'10'),
             'customer_id'=>array('name'=>'Customer', 'ref'=>'ciniki.customers.customer', 'default'=>'0'),
             'content'=>array('name'=>'Content'),

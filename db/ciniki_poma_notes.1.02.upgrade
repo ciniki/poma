@@ -1,0 +1,5 @@
+#
+#
+ALTER TABLE ciniki_poma_notes ADD COLUMN ntype tinyint unsigned not null AFTER note_date;
+UPDATE ciniki_poma_notes SET ntype = 30;
+ALTER TABLE ciniki_poma_notes COMMENT='v1.02';

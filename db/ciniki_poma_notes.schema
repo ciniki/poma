@@ -11,6 +11,11 @@
 #
 # note_date:            The date for the note
 #
+# ntype:                The type of note.
+#
+#                           30 - General Notes
+#                           70 - Packing Slip Notes
+#
 # status:               The current status of the note
 #
 #                           10 - Active
@@ -28,6 +33,7 @@ create table ciniki_poma_notes (
     uuid char(36) not null,
     tnid int not null,
     note_date date not null,
+    ntype tinyint unsigned not null,
     status tinyint unsigned not null,
     customer_id int not null,
     content varchar(20000) not null,
@@ -37,4 +43,4 @@ create table ciniki_poma_notes (
     unique index (uuid),
     index (customer_id),
     index sync (tnid, uuid, last_updated)
-) ENGINE='InnoDB', COMMENT='v1.01';
+) ENGINE='InnoDB', COMMENT='v1.02';

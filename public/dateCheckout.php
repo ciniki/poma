@@ -660,6 +660,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         . "FROM ciniki_poma_orders AS orders "
         . "LEFT JOIN ciniki_poma_notes AS notes ON ("
             . "orders.customer_id = notes.customer_id "
+            . "AND notes.ntype = 30 "
             . "AND notes.status = 10 "
             . "AND notes.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
             . ") "

@@ -21,6 +21,7 @@ function ciniki_poma_noteAdd(&$ciniki) {
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
         'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'note_date'=>array('required'=>'yes', 'blank'=>'no', 'type'=>'date', 'name'=>'Date'),
+        'ntype'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Note Type'),
         'status'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Status'),
         'customer_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Customer'),
         'content'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Content'),

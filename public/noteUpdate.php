@@ -18,6 +18,7 @@ function ciniki_poma_noteUpdate(&$ciniki) {
         'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'note_id'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Note'),
         'note_date'=>array('required'=>'no', 'blank'=>'no', 'type'=>'date', 'name'=>'Date'),
+        'ntype'=>array('required'=>'no', 'blank'=>'no', 'name'=>'Note Type'),
         'status'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Status'),
         'customer_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Customer'),
         'content'=>array('required'=>'no', 'blank'=>'no', 'name'=>'Content'),
