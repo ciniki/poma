@@ -67,7 +67,7 @@ function ciniki_poma_orderRemoveFromInventory(&$ciniki, $tnid, $order_id) {
         list($pkg, $mod, $obj) = explode('.', $item['object']);
         $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemInventoryRemove');
         if( $rc['stat'] != 'ok' ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.99', 'msg'=>'Unable to find the item.'));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.205', 'msg'=>'Unable to find the item.'));
         }
         $fn = $rc['function_call'];
         $rc = $fn($ciniki, $tnid, array('object'=>$item['object'], 'object_id'=>$item['object_id'], 'quantity'=>$qty));

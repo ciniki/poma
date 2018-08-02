@@ -459,7 +459,7 @@ function ciniki_poma_dateCheckout($ciniki) {
                 ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderRemoveFromInventory');
                 $rc = ciniki_poma_orderRemoveFromInventory($ciniki, $args['tnid'], $args['order_id']);
                 if( $rc['stat'] != 'ok' ) {
-                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.foodmarket.95', 'msg'=>'Unable to remove items from inventory', 'err'=>$rc['err']));
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.204', 'msg'=>'Unable to remove items from inventory', 'err'=>$rc['err']));
                 }
             }
 
@@ -497,7 +497,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             return $rc;
         }
         if( !isset($rc['order']) ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.28', 'msg'=>'Unable to find order'));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.194', 'msg'=>'Unable to find order'));
         }
         $rsp['order'] = $rc['order'];
         $rsp['order']['default_payment_amount'] = $rc['order']['balance_amount'];

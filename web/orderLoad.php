@@ -214,7 +214,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $tnid, $args) {
                     return $rc;
                 }
                 if( !isset($rc['item']) ) {
-                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.58', 'msg'=>'Unable to find order item.'));
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.195', 'msg'=>'Unable to find order item.'));
                 }
                 $o_item = $rc['item'];
                 $item['inventory'] = $rc['item']['inventory'];

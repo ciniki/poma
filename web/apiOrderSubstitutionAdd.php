@@ -53,7 +53,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $tnid, $ar
     list($pkg, $mod, $obj) = explode('.', $args['object']);
     $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemLookup');
     if( $rc['stat'] != 'ok' ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.88', 'msg'=>'Unable to add item.'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.196', 'msg'=>'Unable to add item.'));
     }
     $fn = $rc['function_call'];
     $rc = $fn($ciniki, $tnid, $args);
@@ -61,7 +61,7 @@ function ciniki_poma_web_apiOrderSubstitutionAdd(&$ciniki, $settings, $tnid, $ar
         return $rc;
     }
     if( !isset($rc['item']) ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.89', 'msg'=>'Unable to add item.'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.197', 'msg'=>'Unable to add item.'));
     }
     $newitem = $rc['item'];
 

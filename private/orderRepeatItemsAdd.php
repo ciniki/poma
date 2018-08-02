@@ -38,7 +38,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $tnid, $args) {
     if( isset($args['date']['order_date']) ) {
         $order_date = $args['date']['order_date'];
     } else {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.102', 'msg'=>'No date specified.'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.198', 'msg'=>'No date specified.'));
     }
 
     $odt = new DateTime($order_date, new DateTimezone($intl_timezone));
@@ -158,7 +158,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $tnid, $args) {
             list($pkg, $mod, $obj) = explode('.', $item['object']);
             $rc = ciniki_core_loadMethod($ciniki, $pkg, $mod, 'poma', 'itemLookup');
             if( $rc['stat'] != 'ok' ) {
-                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.99', 'msg'=>'Unable to find the item.'));
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.199', 'msg'=>'Unable to find the item.'));
             }
             $fn = $rc['function_call'];
             $rc = $fn($ciniki, $tnid, array('object'=>$item['object'], 'object_id'=>$item['object_id'], 'date_id'=>$date_id));
@@ -166,7 +166,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $tnid, $args) {
                 return $rc;
             }
             if( !isset($rc['item']) ) {
-                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.100', 'msg'=>'Unable to find the item.'));
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.200', 'msg'=>'Unable to find the item.'));
             }
             $object_item = $rc['item'];
             $object_item['line_number'] = $line_number++;
@@ -183,7 +183,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $tnid, $args) {
             //
             $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.orderitem', $object_item, 0x04);
             if( $rc['stat'] != 'ok' ) {
-                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.114', 'msg'=>'Unable to add repeat item', 'err'=>$rc['err']));
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.201', 'msg'=>'Unable to add repeat item', 'err'=>$rc['err']));
             }
             $parent_id = $rc['id'];
             $order_updated = 'yes';
@@ -200,7 +200,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $tnid, $args) {
                     $subitem['parent_id'] = $parent_id;
                     $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.orderitem', $subitem, 0x04);
                     if( $rc['stat'] != 'ok' ) {
-                        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.115', 'msg'=>'Unable to add repeat subitem', 'err'=>$rc['err']));
+                        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.202', 'msg'=>'Unable to add repeat subitem', 'err'=>$rc['err']));
                     }
                 }
             }
@@ -226,7 +226,7 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $tnid, $args) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderUpdateStatusBalance');
     $rc = ciniki_poma_orderUpdateStatusBalance($ciniki, $tnid, $order['id']);
     if( $rc['stat'] != 'ok' ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.117', 'msg'=>'Unable to update update order status', 'err'=>$rc['err']));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.203', 'msg'=>'Unable to update update order status', 'err'=>$rc['err']));
     }
 
     //
