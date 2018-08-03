@@ -53,7 +53,6 @@ function ciniki_poma_cron_jobs(&$ciniki) {
                 return $rc;
             }
             
-            error_log("Opening date: " . $row['id']);
             $rc = ciniki_poma_dateOpen($ciniki, $row['tnid'], $row['id']);
             if( $rc['stat'] != 'ok' ) {
                 ciniki_cron_logMsg($ciniki, $row['tnid'], array('code'=>'ciniki.poma.186', 'msg'=>'Unable to open dates.',
@@ -97,7 +96,6 @@ function ciniki_poma_cron_jobs(&$ciniki) {
                 return $rc;
             }
             
-            error_log("Adding repeats: " . $row['id']);
             $rc = ciniki_poma_dateRepeatsAdd($ciniki, $row['tnid'], $row['id']);
             if( $rc['stat'] != 'ok' ) {
                 ciniki_cron_logMsg($ciniki, $row['tnid'], array('code'=>'ciniki.poma.104', 'msg'=>'Unable to add repeats.',
@@ -142,7 +140,6 @@ function ciniki_poma_cron_jobs(&$ciniki) {
                 return $rc;
             }
 
-            error_log("locking: " . $row['id']);
             $rc = ciniki_poma_dateLock($ciniki, $row['tnid'], $row['id']);
             if( $rc['stat'] != 'ok' ) {
                 ciniki_cron_logMsg($ciniki, $row['tnid'], array('code'=>'ciniki.poma.98', 'msg'=>'Unable to lock date.',

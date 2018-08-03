@@ -60,7 +60,6 @@ function ciniki_poma_dateLock(&$ciniki, $tnid, $date_id) {
             //
             // Apply the standing order items
             //
-            error_log('applying repeats: ' . $customer_id);
             $rc = ciniki_poma_orderRepeatItemsAdd($ciniki, $tnid, array(
                 'date'=>$date,
                 'customer_id'=>$customer_id,
@@ -91,7 +90,6 @@ function ciniki_poma_dateLock(&$ciniki, $tnid, $date_id) {
             //
             // Close the order
             //
-            error_log('locking order: ' . $order['id']);
             $rc = ciniki_core_objectUpdate($ciniki, $tnid, 'ciniki.poma.orderitem', $order['id'], array('status'=>30), 0x04);
             if( $rc['stat'] != 'ok' ) {
                 return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.124', 'msg'=>'Unable to lock order', 'err'=>$rc['err']));
@@ -99,7 +97,6 @@ function ciniki_poma_dateLock(&$ciniki, $tnid, $date_id) {
         }
     }
 
-    error_log('locking date');
     //
     // Lock the date
     //

@@ -31,6 +31,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         'new_unit_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Unit Quantity'),
         'new_weight_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Weight Quantity'),
         'action'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Action'),
+        'newdate_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'New Date'),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -418,7 +419,32 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
     }
     
-    if( isset($args['action']) && $args['action'] == 'closeorder' && isset($args['order_id']) && $args['order_id'] > 0 ) {
+    if( isset($args['action']) && $args['action'] == 'moveorder' && isset($args['order_id']) && $args['order_id'] > 0 ) {
+        if( !isset($args['newdate_id']) || $args['newdate_id'] <= 0 ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.191', 'msg'=>'No date specified to move order to.'));
+        }
+        $moved = 'no';
+        foreach($rsp['dates'] as $orderdate) {
+            if( $orderdate['id'] == $args['newdate_id'] ) {
+                // 
+                // Move the order
+                //
+                ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderMoveDate');
+                $rc = ciniki_poma_orderMoveDate($ciniki, $args['tnid'], $args['order_id'], $args['newdate_id']);
+                if( $rc['stat'] != 'ok' ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.207', 'msg'=>'Unable to move order', 'err'=>$rc['err']));
+                }
+                $moved = 'yes';
+                $args['order_id'] = 0;
+                $args['customer_id'] = 0;
+                break;
+            }
+        }
+        if( $moved == 'no' ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.192', 'msg'=>'Invalid date specified to move order to.'));
+        }
+        
+    } elseif( isset($args['action']) && $args['action'] == 'closeorder' && isset($args['order_id']) && $args['order_id'] > 0 ) {
         //
         // Check the current status
         //
@@ -526,6 +552,35 @@ function ciniki_poma_dateCheckout($ciniki) {
                 $rsp['order']['messages'] = array();
             }
         } 
+
+        //
+        // Get the dates available to move the order to
+        //
+        $dt = new DateTime('now', new DateTimezone($intl_timezone));
+        $strsql = "SELECT ciniki_poma_order_dates.id, "
+            . "ciniki_poma_order_dates.order_date, "
+            . "ciniki_poma_order_dates.display_name, "
+            . "ciniki_poma_order_dates.status, "
+            . "ciniki_poma_order_dates.flags "
+            . "FROM ciniki_poma_order_dates "
+            . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
+            . "AND order_date >= '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
+            . "AND id <> '" . ciniki_core_dbQuote($ciniki, $rsp['order']['date_id']) . "' "
+            . "ORDER BY ciniki_poma_order_dates.order_date ASC "
+            . "LIMIT 15"
+            . "";
+        $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
+            array('container'=>'dates', 'fname'=>'id', 'fields'=>array('id', 'order_date', 'display_name', 'status', 'flags')),
+            ));
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        if( isset($rc['dates']) ) {
+            $rsp['move_orderdates'] = $rc['dates'];
+            foreach($rsp['move_orderdates'] as $did => $date) {
+                $rsp['move_orderdates'][$did]['name_status'] = $date['display_name'] . ' - ' . $maps['orderdate']['status'][$date['status']];
+            }
+        }
     }
 
     if( isset($rsp['order']['customer_id']) && $rsp['order']['customer_id'] > 0 ) {

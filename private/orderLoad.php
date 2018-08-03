@@ -42,6 +42,7 @@ function ciniki_poma_orderLoad(&$ciniki, $tnid, $order_id) {
     // Get the order information
     //
     $strsql = "SELECT ciniki_poma_orders.id, "
+        . "ciniki_poma_orders.date_id, "
         . "ciniki_poma_orders.order_number, "
         . "ciniki_poma_orders.customer_id, "
         . "ciniki_poma_orders.status, "
