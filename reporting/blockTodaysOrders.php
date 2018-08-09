@@ -55,6 +55,7 @@ function ciniki_poma_reporting_blockTodaysOrders(&$ciniki, $tnid, $args) {
     $strsql = "SELECT orders.id, "
         . "orders.order_number, "
         . "orders.billing_name, "
+        . "orders.balance_amount, "
         . "items.description "
         . "FROM ciniki_poma_orders AS orders "
         . "LEFT JOIN ciniki_poma_order_items AS items ON ("
@@ -68,7 +69,7 @@ function ciniki_poma_reporting_blockTodaysOrders(&$ciniki, $tnid, $args) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'orders', 'fname'=>'id', 
-            'fields'=>array('id', 'order_number', 'billing_name', 'description'),
+            'fields'=>array('id', 'order_number', 'billing_name', 'description', 'balance_amount'),
             'dlists'=>array('description'=>', '), 
             ),
         ));
@@ -83,11 +84,15 @@ function ciniki_poma_reporting_blockTodaysOrders(&$ciniki, $tnid, $args) {
     //
     // Create the report blocks
     //
+    foreach($orders as $oid => $order) {
+        $orders[$oid]['balance_amount_display'] = '$' . number_format($order['balance_amount'], 2);
+    }
     $chunk = array(
         'type'=>'table',
         'columns'=>array(
-            array('label'=>'Name', 'pdfwidth'=>'30%', 'field'=>'billing_name'),
-            array('label'=>'Items', 'pdfwidth'=>'70%', 'field'=>'description'),
+            array('label'=>'Name', 'pdfwidth'=>'25%', 'field'=>'billing_name'),
+            array('label'=>'Items', 'pdfwidth'=>'65%', 'field'=>'description'),
+            array('label'=>'Owing', 'pdfwidth'=>'10%', 'field'=>'balance_amount_display'),
             ),
         'data'=>$orders,
         'textlist'=>'',
