@@ -53,6 +53,7 @@ function ciniki_poma_reporting_blockTodaysOrders(&$ciniki, $tnid, $args) {
     //
     $dt = new DateTime('now', new DateTimezone($intl_timezone));
     $strsql = "SELECT orders.id, "
+        . "orders.order_number, "
         . "orders.billing_name, "
         . "items.description "
         . "FROM ciniki_poma_orders AS orders "
