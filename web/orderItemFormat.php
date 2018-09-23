@@ -61,7 +61,7 @@ function ciniki_poma_web_orderItemFormat($ciniki, $settings, $tnid, $item) {
     } else {
         $item['quantity'] = (float)$item['unit_quantity'];
         $item['price_text'] = "$" . number_format($item['unit_amount'], 2, '.', ',') 
-            . ($item['unit_suffix'] != '' ? ' ' . $item['unit_suffix'] : '');
+            . (isset($item['item_suffix']) && $item['unit_suffix'] != '' ? ' ' . $item['unit_suffix'] : '');
         $item['total_text'] = "$" . number_format($item['total_amount'], 2, '.', ',');
     }
 
