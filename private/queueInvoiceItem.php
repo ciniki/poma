@@ -147,7 +147,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $tnid, $item_id) {
     //
     $sdt = new DateTime('now', new DateTimezone($intl_timezone));
     $edt = clone $sdt;
-    $edt->add(new DateInterval('P8D'));
+    $edt->add(new DateInterval('P13D'));
     $strsql = "SELECT dates.id, "
         . "DATE_FORMAT(dates.order_date, '%Y-%m-%d') AS order_date, "
         . "IFNULL(orders.id, 0) AS order_id, "
