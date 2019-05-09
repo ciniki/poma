@@ -327,6 +327,9 @@ function ciniki_poma_main() {
             'changeTxt':'Edit',
             'changeFn':'M.startApp(\'ciniki.customers.edit\',null,\'M.ciniki_poma_main.account.open();\',\'mc\',{\'customer_id\':M.ciniki_poma_main.account.customer_id});',
             },
+        'customer_buttons':{'label':'', 'aside':'yes', 'buttons':{
+            'addcredit':{'label':'Add Credit', 'fn':'M.ciniki_poma_main.account.addCredit();'},
+            }},
         'orders':{'label':'Orders', 'aside':'yes', 'type':'simplegrid', 'num_cols':3,
             'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'orders') ? 'yes' : 'no'; },
             'cellClasses':['alignright', '', 'alignright'],
@@ -463,7 +466,23 @@ function ciniki_poma_main() {
         this.sections._tabs.selected = t;
         this.open();
     }
+    this.account.addCredit = function() {
+        var c = prompt('How much credit to add to the account: ');
+        if( c != null && c != '' && c != 0 ) {
+            M.api.getJSONCb('ciniki.poma.customerLedgerAdd', {'tnid':M.curTenantID, 
+                'customer_id':this.customer_id, 
+                'transaction_type':10,
+                'customer_amount':c}, function(rsp) {
+                if( rsp.stat != 'ok' ) {
+                    M.api.err(rsp);
+                    return false;
+                }
+                M.ciniki_poma_main.account.open(); 
+            });
+        }
+    }
     this.account.open = function(cb, cid, oid) {
+        console.log('open');
         if( cid != null ) { this.customer_id = cid; }
         if( oid != null ) { this.order_id = oid; }
         var args = {'tnid':M.curTenantID, 'customer_id':this.customer_id, 'order_id':this.order_id};

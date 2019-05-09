@@ -111,6 +111,15 @@ function ciniki_poma_customerLedgerAdd(&$ciniki) {
     $entry_id = $rc['id'];
 
     //
+    // Update account balances
+    //
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'accountUpdate');
+    $rc = ciniki_poma_accountUpdate($ciniki, $args['tnid'], array('customer_id'=>$args['customer_id']));
+    if( $rc['stat'] != 'ok' ) {
+        return $rc;
+    }
+
+    //
     // Commit the transaction
     //
     $rc = ciniki_core_dbTransactionCommit($ciniki, 'ciniki.poma');
