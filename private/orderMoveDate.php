@@ -31,7 +31,7 @@ function ciniki_poma_orderMoveDate(&$ciniki, $tnid, $order_id, $newdate_id) {
         return $rc;
     }
     if( !isset($rc['date']) ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.46', 'msg'=>'No date specified.'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.208', 'msg'=>'No date specified.'));
     } 
     $odate = $rc['date'];
 
