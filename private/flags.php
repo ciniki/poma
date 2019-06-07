@@ -18,7 +18,7 @@ function ciniki_poma_flags(&$ciniki) {
         // 0x01
         array('flag'=>array('bit'=>'1', 'name'=>'Standing Orders')),
         array('flag'=>array('bit'=>'2', 'name'=>'Queue')),
-//        array('flag'=>array('bit'=>'3', 'name'=>'')),
+        array('flag'=>array('bit'=>'3', 'name'=>'CSA')),
 //        array('flag'=>array('bit'=>'4', 'name'=>'')),
         // 0x10
 //        array('flag'=>array('bit'=>'5', 'name'=>'')),

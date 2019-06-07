@@ -65,6 +65,17 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $tnid, $args) {
         $page = $rc['page'];
     } 
     elseif( isset($args['module_page']) && $args['module_page'] == 'ciniki.poma.orders' 
+        && isset($args['uri_split'][0]) && $args['uri_split'][0] == 'csa' 
+        ) {
+        array_shift($args['uri_split']);
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestCSA');
+        $rc = ciniki_poma_web_processRequestCSA($ciniki, $settings, $tnid, $args);
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        $page = $rc['page'];
+    } 
+    elseif( isset($args['module_page']) && $args['module_page'] == 'ciniki.poma.orders' 
         && isset($args['uri_split'][0]) && $args['uri_split'][0] == 'queue' 
         ) {
         array_shift($args['uri_split']);
@@ -111,6 +122,9 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $tnid, $args) {
     //
     $page['submenu'] = array();
     $page['submenu']['upcoming'] = array('name'=>'Upcoming', 'url'=>$args['base_url'] . '');
+    if( ciniki_core_checkModuleFlags($ciniki, 'ciniki.poma', 0x04) ) {  
+        $page['submenu']['csa'] = array('name'=>'CSA Season', 'url'=>$args['base_url'] . '/csa');
+    }
     if( ciniki_core_checkModuleFlags($ciniki, 'ciniki.poma', 0x01) ) {  
         $page['submenu']['standing'] = array('name'=>'Standing', 'url'=>$args['base_url'] . '/standing');
     }
