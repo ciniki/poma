@@ -38,6 +38,7 @@ function ciniki_poma_web_accountSessionLoad(&$ciniki, $settings, $tnid) {
                 . "FROM ciniki_poma_order_dates "
                 . "WHERE tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
                 . "AND id = '" . ciniki_core_dbQuote($ciniki['session']['ciniki.poma']['date_id']) . "' "
+                . "AND status > 5 "
                 . "";
             $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
             if( $rc['stat'] != 'ok' ) {
@@ -61,6 +62,7 @@ function ciniki_poma_web_accountSessionLoad(&$ciniki, $settings, $tnid) {
             $strsql = "SELECT id, order_date, display_name, status, flags "
                 . "FROM ciniki_poma_order_dates "
                 . "WHERE tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
+                . "AND status > 5 "
                 . "AND status < 50 "
                 . "AND order_date >= '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
                 . "ORDER BY order_date ASC "
