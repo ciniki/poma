@@ -21,6 +21,8 @@ function ciniki_poma_dateList($ciniki) {
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
         'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'upcoming'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Upcoming'),
+        'year'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Year'),
+        'month'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Month'),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -66,6 +68,29 @@ function ciniki_poma_dateList($ciniki) {
     $maps = $rc['maps'];
 
     //
+    // Get the first date of orders
+    //
+    $strsql = "SELECT MIN(YEAR(order_date)) AS first_order_year, MAX(YEAR(order_date)) AS last_order_year "
+        . "FROM ciniki_poma_order_dates "
+        . "ORDER BY order_date "
+        . "LIMIT 1 ";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.foodmarket', 'date');
+    if( $rc['stat'] != 'ok' ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.foodmarket.149', 'msg'=>'Unable to load date', 'err'=>$rc['err']));
+    }
+    if( isset($rc['date']['first_order_year']) ) {
+        $first_order_year = $rc['date']['first_order_year'];
+        $last_order_year = $rc['date']['first_order_year'];
+    } else {
+        $first_order_year = date('Y');
+        $last_order_year = date('Y');
+    }
+
+    if( !isset($args['year']) || $args['year'] == '' ) {
+        $args['year'] = $last_order_year;
+    }
+
+    //
     // Get the list of dates
     //
     if( isset($args['upcoming']) && $args['upcoming'] == 'yes' ) {
@@ -101,8 +126,14 @@ function ciniki_poma_dateList($ciniki) {
                 . "ciniki_poma_order_dates.id = ciniki_poma_orders.date_id "
                 . "AND ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
                 . ") "
-            . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
-            . "GROUP BY ciniki_poma_order_dates.id "
+            . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' ";
+        if( isset($args['year']) && $args['year'] != '' ) {
+            $strsql .= "AND YEAR(ciniki_poma_order_dates.order_date) = '" . ciniki_core_dbQuote($ciniki, $args['year']) . "' ";
+            if( isset($args['month']) && $args['month'] != '' ) {
+                $strsql .= "AND MONTH(ciniki_poma_order_dates.order_date) = '" . ciniki_core_dbQuote($ciniki, $args['month']) . "' ";
+            }
+        }
+        $strsql .= "GROUP BY ciniki_poma_order_dates.id "
             . "ORDER BY order_date DESC "
             . "";
     }
@@ -131,6 +162,6 @@ function ciniki_poma_dateList($ciniki) {
         $date_ids = array();
     }
 
-    return array('stat'=>'ok', 'dates'=>$dates, 'nplist'=>$date_ids);
+    return array('stat'=>'ok', 'dates'=>$dates, 'first_year'=>$first_order_year, 'nplist'=>$date_ids);
 }
 ?>
