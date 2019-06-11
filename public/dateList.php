@@ -129,7 +129,7 @@ function ciniki_poma_dateList($ciniki) {
             . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' ";
         if( isset($args['year']) && $args['year'] != '' ) {
             $strsql .= "AND YEAR(ciniki_poma_order_dates.order_date) = '" . ciniki_core_dbQuote($ciniki, $args['year']) . "' ";
-            if( isset($args['month']) && $args['month'] != '' ) {
+            if( isset($args['month']) && $args['month'] != '' && $args['month'] != '0' ) {
                 $strsql .= "AND MONTH(ciniki_poma_order_dates.order_date) = '" . ciniki_core_dbQuote($ciniki, $args['month']) . "' ";
             }
         }
