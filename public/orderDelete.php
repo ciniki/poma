@@ -22,6 +22,7 @@ function ciniki_poma_orderDelete(&$ciniki) {
     $rc = ciniki_core_prepareArgs($ciniki, 'no', array(
         'tnid'=>array('required'=>'yes', 'blank'=>'no', 'name'=>'Tenant'),
         'order_id'=>array('required'=>'yes', 'blank'=>'yes', 'name'=>'Order Item'),
+        'removeitems'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Remove Items'),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -61,7 +62,7 @@ function ciniki_poma_orderDelete(&$ciniki) {
     }
     $order = $rc['order'];
 
-    if( $order['num_items'] > 0 ) {
+    if( $order['num_items'] > 0 && (!isset($args['removeitems']) || $args['removeitems'] != 'yes') ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.70', 'msg'=>'Order still has items and can not be removed.'));
     }
 
@@ -98,6 +99,20 @@ function ciniki_poma_orderDelete(&$ciniki) {
     if( $rc['num'] > 0 ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.126', 'msg'=>'This order has been invoiced and cannot be removed'));
     }
+    
+    //
+    // Load the items for the order
+    //
+    $strsql = "SELECT id, uuid "
+        . "FROM ciniki_poma_order_items "
+        . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+        . "AND  tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.foodmarket', 'item');
+    if( $rc['stat'] != 'ok' ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.foodmarket.149', 'msg'=>'Unable to load item', 'err'=>$rc['err']));
+    }
+    $items = isset($rc['rows']) ? $rc['rows'] : array();
 
     //
     // Start transaction
@@ -111,6 +126,17 @@ function ciniki_poma_orderDelete(&$ciniki) {
     $rc = ciniki_core_dbTransactionStart($ciniki, 'ciniki.poma');
     if( $rc['stat'] != 'ok' ) {
         return $rc;
+    }
+
+    //
+    // Remove the order items
+    //
+    foreach($items as $item) {
+        $rc = ciniki_core_objectDelete($ciniki, $args['tnid'], 'ciniki.poma.orderitem', $item['id'], $item['uuid'], 0x04);
+        if( $rc['stat'] != 'ok' ) {
+            ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');
+            return $rc;
+        }
     }
 
     //
