@@ -106,7 +106,7 @@ function ciniki_poma_orderDelete(&$ciniki) {
     $strsql = "SELECT id, uuid "
         . "FROM ciniki_poma_order_items "
         . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
-        . "AND  tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
+        . "AND  tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.foodmarket', 'item');
     if( $rc['stat'] != 'ok' ) {
