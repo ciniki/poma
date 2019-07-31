@@ -209,21 +209,23 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $tnid, $date_id) {
         //
         // Add the message to the outgoing queue
         //
-        $rc = ciniki_mail_hooks_addMessage($ciniki, $tnid, array(
-            'object'=>'ciniki.poma.order',
-            'object_id'=>$order_id,
-            'customer_id'=>$order['customer_id'],
-            'customer_email'=>$customer['emails'][0]['email']['address'],
-            'customer_name'=>(isset($customer['display_name'])?$customer['display_name']:''),
-            'subject'=>$subject,
-            'html_content'=>$html_message,
-            'text_content'=>$text_message,
-//            'attachments'=>array(array('content'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename)),
-            ));
-        if( $rc['stat'] != 'ok' ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.157', 'msg'=>'Unable to create mail message.', 'err'=>$rc['err']));
-        }
-        
+        if( isset($customer['emails'][0]['email']['address']) ) {
+            $rc = ciniki_mail_hooks_addMessage($ciniki, $tnid, array(
+                'object'=>'ciniki.poma.order',
+                'object_id'=>$order_id,
+                'customer_id'=>$order['customer_id'],
+                'customer_email'=>$customer['emails'][0]['email']['address'],
+                'customer_name'=>(isset($customer['display_name'])?$customer['display_name']:''),
+                'subject'=>$subject,
+                'html_content'=>$html_message,
+                'text_content'=>$text_message,
+    //            'attachments'=>array(array('content'=>$pdf->Output('invoice', 'S'), 'filename'=>$filename)),
+                ));
+            if( $rc['stat'] != 'ok' ) {
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.157', 'msg'=>'Unable to create mail message.', 'err'=>$rc['err']));
+            }
+        } 
+
         //
         // Mark the pickup reminder for this order as emailed
         //
