@@ -78,7 +78,6 @@ function ciniki_poma_dateList($ciniki) {
     if( $rc['stat'] != 'ok' ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.foodmarket.149', 'msg'=>'Unable to load date', 'err'=>$rc['err']));
     }
-    error_log(print_r($rc, true));
     if( isset($rc['date']['first_order_year']) ) {
         $first_order_year = $rc['date']['first_order_year'];
         $last_order_year = $rc['date']['last_order_year'];
@@ -138,7 +137,6 @@ function ciniki_poma_dateList($ciniki) {
             . "ORDER BY order_date DESC "
             . "";
     }
-    error_log($strsql);
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'dates', 'fname'=>'id', 
