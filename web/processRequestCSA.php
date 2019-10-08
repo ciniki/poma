@@ -180,6 +180,32 @@ function ciniki_poma_web_processRequestCSA(&$ciniki, $settings, $tnid, $args) {
         if( $rc['stat'] != 'ok' ) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.209', 'msg'=>'Unable to update the order'));
         }
+
+        //
+        // Remove any basket items for the order so they are re-added when basket is setup for that week
+        //
+        $strsql = "SELECT id, uuid, parent_id "
+            . "FROM ciniki_poma_order_items "
+            . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $skip_order['id']) . "' "
+            . "AND parent_id > 0 "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
+            . "";
+        $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
+        if( $rc['stat'] != 'ok' ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.214', 'msg'=>'Unable to load item', 'err'=>$rc['err']));
+        }
+        if( isset($rc['rows']) ) {
+            $items = $rc['rows'];
+            foreach($items as $item) {
+                if( $item['parent_id'] > 0 ) {
+                    ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectDelete');
+                    $rc = ciniki_core_objectDelete($ciniki, $tnid, 'ciniki.poma.orderitem', $item['id'], $item['uuid'], 0x04);
+                    if( $rc['stat'] != 'ok' ) {
+                        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.215', 'msg'=>'Unable to remove item', 'err'=>$rc['err']));
+                    }
+                }
+            }
+        }
             
         //
         // Reload the page
