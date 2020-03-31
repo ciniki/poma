@@ -329,6 +329,9 @@ function ciniki_poma_main() {
             },
         'customer_buttons':{'label':'', 'aside':'yes', 'buttons':{
             'addcredit':{'label':'Add Credit', 'fn':'M.ciniki_poma_main.account.addCredit();'},
+            'recalc':{'label':'Re-Calculate Account', 'fn':'M.ciniki_poma_main.account.recalcAccount();',
+                'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'records') ? 'yes' : 'no'; },
+                },
             }},
         'orders':{'label':'Orders', 'aside':'yes', 'type':'simplegrid', 'num_cols':3,
             'visible':function() { return (M.ciniki_poma_main.account.sections._tabs.selected == 'orders') ? 'yes' : 'no'; },
@@ -465,6 +468,15 @@ function ciniki_poma_main() {
     this.account.switchTab = function(t) {
         this.sections._tabs.selected = t;
         this.open();
+    }
+    this.account.recalcAccount = function() {
+        M.api.getJSONCb('ciniki.poma.customerLedgerRecalc', {'tnid':M.curTenantID, 'customer_id':this.customer_id}, function(rsp) {
+            if( rsp.stat != 'ok' ) {
+                M.api.err(rsp);
+                return false;
+            }
+            M.ciniki_poma_main.account.open();
+            });
     }
     this.account.addCredit = function() {
         var c = prompt('How much credit to add to the account: ');
