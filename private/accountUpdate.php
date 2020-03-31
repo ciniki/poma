@@ -154,6 +154,14 @@ function ciniki_poma_accountUpdate(&$ciniki, $tnid, $args) {
             elseif( $entry['transaction_type'] == 60 ) {
                 $new_balance = bcadd($prev_balance, $entry['customer_amount'], 6);
             }
+           
+            //
+            // Zero out any fractions left over
+            // Not ideal way to do this, but fixed past mistakes with decimal places and taxes
+            //
+            if( floor(abs($new_balance)*100) != (abs($new_balance)*100) && floor(abs($new_balance)*100) == 0 ) {
+                $new_balance = 0;
+            }
             
             if( $new_balance != $entry['balance'] ) {
                 $update_args = array('balance'=>$new_balance);

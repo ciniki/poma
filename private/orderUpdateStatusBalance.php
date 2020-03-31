@@ -266,7 +266,7 @@ function ciniki_poma_orderUpdateStatusBalance(&$ciniki, $tnid, $order_id) {
     $order_tax_amount = 0;
     $included_tax_amount = 0;
     foreach($new_taxes as $tid => $tax) {
-        $tax_amount = bcadd($tax['calculated_items_amount'], $tax['calculated_invoice_amount'], 4);
+        $tax_amount = round(bcadd($tax['calculated_items_amount'], $tax['calculated_invoice_amount'], 4), 2);
         if( isset($old_taxes[$tid]) ) {
             $args = array();
             if( $tax_amount != $old_taxes[$tid]['amount'] ) {
