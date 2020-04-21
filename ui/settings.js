@@ -318,6 +318,12 @@ function ciniki_poma_settings() {
             'dates-apply-repeats-offset':{'label':'Days Prior', 'type':'toggle', 'toggles':{'0':'0', '1':'1', '2':'2', '3':'3', '4':'4', '5':'5', '6':'6'}},
             'dates-apply-repeats-time':{'label':'Time', 'type':'text', 'size':'small'},
             }},
+        '_pickuptimes':{'label':'Pickup Times', 
+            'active':function() { return M.modFlagSet('ciniki.poma', 0x08); },
+            'fields':{
+                'dates-pickup-start':{'label':'Start Time', 'type':'text', 'size':'small'},
+                'dates-pickup-end':{'label':'End Time', 'type':'text', 'size':'small'},
+            }},
         '_buttons':{'label':'', 'buttons':{
             'save':{'label':'Save', 'fn':'M.ciniki_poma_settings.dates.save();'},
             }},

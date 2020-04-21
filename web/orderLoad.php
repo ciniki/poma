@@ -41,6 +41,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $tnid, $args) {
     $strsql = "SELECT ciniki_poma_orders.id, "
         . "ciniki_poma_orders.status, "
         . "ciniki_poma_orders.payment_status, "
+        . "ciniki_poma_orders.pickup_time, "
         . "ciniki_poma_orders.date_id, "
         . "ciniki_poma_orders.order_date, "
         . "ciniki_poma_orders.subtotal_amount, "

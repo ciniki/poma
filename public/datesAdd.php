@@ -143,6 +143,26 @@ function ciniki_poma_datesAdd(&$ciniki) {
         }
     }
     
+    //
+    // Prepare the pickup start and end times
+    //
+    if( isset($settings['dates-pickup-start']) && $settings['dates-pickup-start'] != '' ) {
+        $pickupstart_dt = new DateTime($args['order_date'] . ' ' . $settings['dates-pickup-start'], new DateTimeZOne($intl_timezone));
+        if( $pickupstart_dt === FALSE || $pickupstart_dt < 1 ) {
+            unset($pickupstart_dt);
+        } else {
+            $pickupstart_dt->setTimezone(new DateTimeZone('UTC'));
+        }
+    }
+    if( isset($settings['dates-pickup-end']) && $settings['dates-pickup-end'] != '' ) {
+        $pickupend_dt = new DateTime($args['order_date'] . ' ' . $settings['dates-pickup-end'], new DateTimeZone($intl_timezone));
+        if( $pickupend_dt === FALSE || $pickupend_dt < 1 ) {
+            unset($pickupend_dt);
+        } else {
+            $pickupend_dt->setTimezone(new DateTimeZone('UTC'));
+        }
+    }
+    
 
     //
     // Start transaction
@@ -258,6 +278,18 @@ function ciniki_poma_datesAdd(&$ciniki) {
             }
             $args['repeats_dt'] = $repeats_dt->format('Y-m-d H:i:s');
         }
+        if( isset($pickupstart_dt) ) {
+            if( $i > 0 ) {
+                $pickupstart_dt->add(new DateInterval('P1D'));
+            }
+            $args['pickupstart_dt'] = $pickupstart_dt->format('Y-m-d H:i:s');
+        }
+        if( isset($pickupend_dt) ) {
+            if( $i > 0 ) {
+                $pickupend_dt->add(new DateInterval('P1D'));
+            }
+            $args['pickupend_dt'] = $pickupend_dt->format('Y-m-d H:i:s');
+        } 
 
         //
         // Add the date

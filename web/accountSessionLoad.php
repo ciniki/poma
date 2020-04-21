@@ -34,7 +34,7 @@ function ciniki_poma_web_accountSessionLoad(&$ciniki, $settings, $tnid) {
         // If a session order date has been setup, then make sure it is still valid for orders.
         //
         if( isset($ciniki['session']['ciniki.poma']['date']['id']) && $ciniki['session']['ciniki.poma']['date']['id'] > 0 ) {
-            $strsql = "SELECT id, order_date, display_name, status, flags "
+            $strsql = "SELECT id, order_date, display_name, status, flags, pickupstart_dt, pickupend_dt "
                 . "FROM ciniki_poma_order_dates "
                 . "WHERE tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
                 . "AND id = '" . ciniki_core_dbQuote($ciniki['session']['ciniki.poma']['date_id']) . "' "
@@ -59,7 +59,7 @@ function ciniki_poma_web_accountSessionLoad(&$ciniki, $settings, $tnid) {
                 unset($ciniki['session']['ciniki.poma']['date']);
             }
             $dt = new DateTime('now', new DateTimezone($intl_timezone));
-            $strsql = "SELECT id, order_date, display_name, status, flags "
+            $strsql = "SELECT id, order_date, display_name, status, flags, pickupstart_dt, pickupend_dt "
                 . "FROM ciniki_poma_order_dates "
                 . "WHERE tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
                 . "AND status > 5 "

@@ -207,6 +207,12 @@ function ciniki_poma_main() {
             'autolock_date':{'label':'Auto Lock Date', 'visible':'no', 'type':'date'},
             'autolock_time':{'label':'Auto Lock Time', 'visible':'no', 'type':'text', 'size':'small'},
             }},
+        '_pickuptimes':{'label':'Pickup Times', 
+            'active':function() { return M.modFlagSet('ciniki.poma', 0x08); },
+            'fields':{
+                'pickupstart_time':{'label':'Start Time', 'type':'text', 'size':'small'},
+                'pickupend_time':{'label':'End Time', 'type':'text', 'size':'small'},
+            }},
         '_repeats':{'label':'Apply repeats on', 'fields':{
             'repeats_date':{'label':'Date', 'type':'date'},
             'repeats_time':{'label':'Time', 'type':'text', 'size':'small'},
@@ -300,7 +306,7 @@ function ciniki_poma_main() {
     }
     this.editdate.prevButtonFn = function() {
         if( this.nplist != null && this.nplist.indexOf('' + this.date_id) > 0 ) {
-            return 'M.ciniki_poma_main.editdate.save(\'M.ciniki_poma_main.date_id.open(null,' + this.nplist[this.nplist.indexOf('' + this.date_id) - 1] + ');\');';
+            return 'M.ciniki_poma_main.editdate.save(\'M.ciniki_poma_main.editdate.open(null,' + this.nplist[this.nplist.indexOf('' + this.date_id) - 1] + ');\');';
         }
         return null;
     }

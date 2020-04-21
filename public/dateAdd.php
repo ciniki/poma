@@ -33,6 +33,8 @@ function ciniki_poma_dateAdd(&$ciniki) {
         'lockreminder_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Lock Reminder Time'),
         'pickupreminder_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Pickup Reminder Date'),
         'pickupreminder_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup Reminder Time'),
+        'pickupstart_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup Start Time'),
+        'pickupend_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup End Time'),
         'notices'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notices'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -116,6 +118,26 @@ function ciniki_poma_dateAdd(&$ciniki) {
         } else {
             $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
             $args['pickupreminder_dt'] = $dt->format('Y-m-d H:i:s');
+        }
+    }
+    $args['pickupstart_dt'] = (isset($args['order_date']) ? $args['order_date'] : '') . ' ' . (isset($args['pickupstart_time']) ? $args['pickupstart_time'] : '');
+    if( trim($args['pickupstart_dt']) != '' ) {
+        $ts = strtotime($args['pickupstart_dt']);
+        if( $ts === FALSE || $ts < 1 ) {
+            $args['pickupstart_dt'] = '';
+        } else {
+            $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+            $args['pickupstart_dt'] = $dt->format('Y-m-d H:i:s');
+        }
+    }
+    $args['pickupend_dt'] = (isset($args['order_date']) ? $args['order_date'] : '') . ' ' . (isset($args['pickupend_time']) ? $args['pickupend_time'] : '');
+    if( trim($args['pickupend_dt']) != '' ) {
+        $ts = strtotime($args['pickupend_dt']);
+        if( $ts === FALSE || $ts < 1 ) {
+            $args['pickupend_dt'] = '';
+        } else {
+            $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+            $args['pickupend_dt'] = $dt->format('Y-m-d H:i:s');
         }
     }
 

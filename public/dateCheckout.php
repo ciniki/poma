@@ -32,6 +32,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         'new_weight_quantity'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Weight Quantity'),
         'action'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Action'),
         'newdate_id'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'New Date'),
+        'pickup_time'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Pickup Time'),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
@@ -419,6 +420,61 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
     }
     
+    if( isset($args['action']) && $args['action'] == 'newpickuptime' && isset($args['pickup_time']) ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'orderLoad');
+        $rc = ciniki_poma_orderLoad($ciniki, $args['tnid'], $args['order_id']);
+        if( $rc['stat'] != 'ok' ) {
+            return $rc;
+        }
+        $order = $rc['order'];
+        //
+        // load the order date for start end of pickup time
+        //
+        $strsql = "SELECT id, order_date, pickupstart_dt, pickupend_dt "
+            . "FROM ciniki_poma_order_dates "
+            . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
+            . "";
+        $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
+        if( $rc['stat'] != 'ok' ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.218', 'msg'=>'Unable to load order date', 'err'=>$rc['err']));
+        }
+        if( !isset($rc['date']) ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.219', 'msg'=>'Unable to find requested order date'));
+        }
+        $date = $rc['date'];
+
+        $pickup_dt = new DateTime($date['order_date'] . ' ' . $args['pickup_time'], new DateTimezone($intl_timezone));
+        $start_dt = new DateTime($date['pickupstart_dt'], new DateTimezone('UTC'));
+        $start_dt->setTimezone(new DateTimezone($intl_timezone));
+        $end_dt = new DateTime($date['pickupend_dt'], new DateTimezone('UTC'));
+        $end_dt->setTimezone(new DateTimezone($intl_timezone));
+        
+        //
+        // Check if no am/pm specified, then make sure within pickup window
+        //
+        if( !preg_match("/(am|pm)/i", $args['pickup_time']) ) {
+            if( $pickup_dt < $start_dt ) { 
+                $pickup_dt->add(new DateInterval('PT12H'));
+            } elseif( $pickup_dt > $end_dt ) {
+                $pickup_dt->sub(new DateInterval('PT12H'));
+            }
+        }
+        $args['pickup_time'] = $pickup_dt->format("g:i a");
+
+        //
+        // Update the pickup time on the order
+        //
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectUpdate');
+        $rc = ciniki_core_objectUpdate($ciniki, $args['tnid'], 'ciniki.poma.order', $args['order_id'], array(
+            'pickup_time' => $args['pickup_time'],
+            ), 0x04);
+        if( $rc['stat'] != 'ok' ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.216', 'msg'=>'Unable to update the order', 'err'=>$rc['err']));
+        }
+    }
+    
+    
     if( isset($args['action']) && $args['action'] == 'moveorder' && isset($args['order_id']) && $args['order_id'] > 0 ) {
         if( !isset($args['newdate_id']) || $args['newdate_id'] <= 0 ) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.191', 'msg'=>'No date specified to move order to.'));
@@ -710,6 +766,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         . "IF(orders.status < 70, 'open', 'closed') AS state, "
         . "orders.status, "
         . "orders.payment_status, "
+        . "IF(orders.pickup_time='', '??', orders.pickup_time) AS pickup_time, "
         . "orders.billing_name, "
         . "COUNT(notes.id) AS num_notes "
         . "FROM ciniki_poma_orders AS orders "
@@ -721,12 +778,16 @@ function ciniki_poma_dateCheckout($ciniki) {
             . ") "
         . "WHERE orders.date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
         . "AND orders.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
-        . "GROUP BY state, orders.id "
-        . "ORDER BY state, orders.billing_name "
-        . "";
+        . "GROUP BY state, orders.id ";
+    if( ciniki_core_checkModuleFlags($ciniki, 'ciniki.poma', 0x08) ) {
+        $strsql .= "ORDER BY state, pickup_time, orders.billing_name ";
+    } else {
+        $strsql .= "ORDER BY state, orders.billing_name ";
+    }
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'states', 'fname'=>'state', 'fields'=>array('state')),
-        array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id', 'state', 'status', 'payment_status', 'billing_name', 'num_notes'),
+        array('container'=>'orders', 'fname'=>'id', 
+            'fields'=>array('id', 'state', 'status', 'payment_status', 'billing_name', 'num_notes', 'pickup_time'),
             'maps'=>array('payment_status'=>$maps['order']['payment_status']),
             ),
         ));

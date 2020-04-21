@@ -10,6 +10,7 @@
 // -------
 //
 function ciniki_poma_dateUpdate(&$ciniki) {
+error_log(print_r($ciniki['request']['args'],true));
     //
     // Find all the required and optional arguments
     //
@@ -30,6 +31,8 @@ function ciniki_poma_dateUpdate(&$ciniki) {
         'lockreminder_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Auto Lock Time'),
         'pickupreminder_date'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'date', 'name'=>'Pickup Reminder Date'),
         'pickupreminder_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup Reminder Time'),
+        'pickupstart_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup Start Time'),
+        'pickupend_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup End Time'),
         'notices'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notices'),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -95,6 +98,12 @@ function ciniki_poma_dateUpdate(&$ciniki) {
         . "ciniki_poma_order_dates.pickupreminder_dt, "
         . "ciniki_poma_order_dates.pickupreminder_dt AS pickupreminder_date, "
         . "ciniki_poma_order_dates.pickupreminder_dt AS pickupreminder_time, "
+        . "ciniki_poma_order_dates.pickupstart_dt, "
+        . "ciniki_poma_order_dates.pickupstart_dt AS pickupstart_date, "
+        . "ciniki_poma_order_dates.pickupstart_dt AS pickupstart_time, "
+        . "ciniki_poma_order_dates.pickupend_dt, "
+        . "ciniki_poma_order_dates.pickupend_dt AS pickupend_date, "
+        . "ciniki_poma_order_dates.pickupend_dt AS pickupend_time, "
         . "ciniki_poma_order_dates.notices "
         . "FROM ciniki_poma_order_dates "
         . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
@@ -109,6 +118,8 @@ function ciniki_poma_dateUpdate(&$ciniki) {
                 'autolock_dt', 'autolock_date', 'autolock_time', 
                 'lockreminder_dt', 'lockreminder_date', 'lockreminder_time', 
                 'pickupreminder_dt', 'pickupreminder_date', 'pickupreminder_time', 
+                'pickupstart_dt', 'pickupstart_date', 'pickupstart_time', 
+                'pickupend_dt', 'pickupend_date', 'pickupend_time', 
                 'notices'),
             'utctotz'=>array(
                 'order_date'=>array('timezone'=>'UTC', 'format'=>$date_format),
@@ -122,6 +133,10 @@ function ciniki_poma_dateUpdate(&$ciniki) {
                 'lockreminder_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                 'pickupreminder_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
                 'pickupreminder_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
+                'pickupstart_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
+                'pickupstart_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
+                'pickupend_date'=>array('timezone'=>$intl_timezone, 'format'=>$date_format),
+                'pickupend_time'=>array('timezone'=>$intl_timezone, 'format'=>$time_format),
                 ),
             ),
         ));
@@ -202,6 +217,36 @@ function ciniki_poma_dateUpdate(&$ciniki) {
                 $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
                 if( $dt->format('Y-m-d H:i:s') != $date['pickupreminder_dt'] ) {
                     $args['pickupreminder_dt'] = $dt->format('Y-m-d H:i:s');
+                }
+            }
+        }
+    }
+    if( isset($args['pickupstart_time']) ) {
+        $args['pickupstart_dt'] = (isset($args['order_date']) ? $args['order_date'] : $date['order_date']) 
+            . ' ' . $args['pickupstart_time'];
+        if( trim($args['pickupstart_dt']) != '' ) {
+            $ts = strtotime($args['pickupstart_dt']);
+            if( $ts === FALSE || $ts < 1 ) {
+                $args['pickupstart_dt'] = '';
+            } else {
+                $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+                if( $dt->format('Y-m-d H:i:s') != $date['pickupstart_dt'] ) {
+                    $args['pickupstart_dt'] = $dt->format('Y-m-d H:i:s');
+                }
+            }
+        }
+    }
+    if( isset($args['pickupend_time']) ) {
+        $args['pickupend_dt'] = (isset($args['order_date']) ? $args['order_date'] : $date['order_date']) 
+            . ' ' . $args['pickupend_time'];
+        if( trim($args['pickupend_dt']) != '' ) {
+            $ts = strtotime($args['pickupend_dt']);
+            if( $ts === FALSE || $ts < 1 ) {
+                $args['pickupend_dt'] = '';
+            } else {
+                $dt = new DateTime('@'.$ts, new DateTimeZone($intl_timezone));
+                if( $dt->format('Y-m-d H:i:s') != $date['pickupend_dt'] ) {
+                    $args['pickupend_dt'] = $dt->format('Y-m-d H:i:s');
                 }
             }
         }

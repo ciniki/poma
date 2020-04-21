@@ -1,0 +1,4 @@
+#
+#
+ALTER TABLE ciniki_poma_orders ADD COLUMN pickup_time varchar(25) not null AFTER order_date;
+ALTER TABLE ciniki_poma_orders COMMENT='v1.02';
