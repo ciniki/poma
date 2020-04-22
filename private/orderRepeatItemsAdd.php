@@ -68,14 +68,20 @@ function ciniki_poma_orderRepeatItemsAdd(&$ciniki, $tnid, $args) {
     } elseif( isset($rc['rows'][0]) ) {
         $order = $rc['rows'][0];
     } else {
+        $args = array(
+            'customer_id'=>$args['customer_id'],
+            'date_id'=>$date_id,
+            );
+        //
+        // Get last weeks pickup times
+        //
+        $args['pickup_time'] = 'last';
+
         //
         // Create a new order
         //
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'newOrderForDate');
-        $rc = ciniki_poma_newOrderForDate($ciniki, $tnid, array(
-            'customer_id'=>$args['customer_id'],
-            'date_id'=>$date_id,
-            ));
+        $rc = ciniki_poma_newOrderForDate($ciniki, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }

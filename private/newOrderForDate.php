@@ -99,6 +99,53 @@ function ciniki_poma_newOrderForDate(&$ciniki, $tnid, $args) {
         $order_number = 1;
     }
 
+    $pickup_time = '';
+    if( isset($args['pickup_time']) && $args['pickup_time'] == 'last' ) {
+        //
+        // Load all pickup times taken for this date
+        //
+        $strsql = "SELECT id, pickup_time " 
+            . "FROM ciniki_poma_orders "
+            . "WHERE date_id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
+            . "";
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryIDTree');
+        $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
+            array('container'=>'times', 'fname'=>'pickup_time', 'fields'=>array('pickup_time')),
+            array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id')),
+            ));
+        if( $rc['stat'] != 'ok' ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.217', 'msg'=>'Unable to load pickup times', 'err'=>$rc['err']));
+        }
+        $picked_times = isset($rc['times']) ? $rc['times'] : array();
+
+        //
+        // Get the last weeks order pickup time
+        //
+        $prev_odt = new DateTime($odate['order_date'], new DateTimezone($intl_timezone));
+        $prev_odt->sub(new DateInterval('P8D'));
+        $strsql = "SELECT order_date, pickup_time "
+            . "FROM ciniki_poma_orders "
+            . "WHERE customer_id = '" . ciniki_core_dbQuote($ciniki, $args['customer_id']) . "' "
+            . "AND order_date < '" . ciniki_core_dbQuote($ciniki, $odate['order_date']) . "' "
+            . "AND order_date >= '" . ciniki_core_dbQuote($ciniki, $prev_odt->format('Y-m-d')) . "' "
+            . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
+            . "ORDER BY order_date DESC "
+            . "LIMIT 1 "
+            . "";
+        $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
+        if( $rc['stat'] != 'ok' ) {
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.220', 'msg'=>'Unable to load order', 'err'=>$rc['err']));
+        }
+        if( isset($rc['order']) ) {
+            $last_order = $rc['order'];
+            
+            if( $last_order['pickup_time'] != '' && !isset($picked_times[$last_order['pickup_time']]) ) {
+                $pickup_time = $last_order['pickup_time'];
+            }
+        }
+    }
+
     //
     // Add the order
     //
@@ -112,6 +159,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $tnid, $args) {
         'payment_status'=>0,
         'flags'=>0,
         'items'=>array(),
+        'pickup_time'=>$pickup_time,
         );
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'objectAdd');
     $rc = ciniki_core_objectAdd($ciniki, $tnid, 'ciniki.poma.order', $order, 0x07);
