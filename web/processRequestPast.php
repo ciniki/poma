@@ -2,7 +2,7 @@
 //
 // Description
 // -----------
-// This function will process a web request for upcoming orders.
+// This function will process a web request for past orders.
 //
 // Arguments
 // ---------
@@ -26,7 +26,7 @@ function ciniki_poma_web_processRequestPast(&$ciniki, $settings, $tnid, $args) {
         'submenu'=>array(),
         );
 
-    $page['breadcrumbs'][] = array('name'=>'Upcoming', 'url'=>$args['base_url']);
+    $page['breadcrumbs'][] = array('name'=>'Past', 'url'=>$args['base_url']);
     
     //
     // Load tenant settings
