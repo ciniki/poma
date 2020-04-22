@@ -208,13 +208,14 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $tnid, $arg
                     $page['blocks'][] = array('type'=>'content', 'section'=>'order-date', 'html'=>$content);
                 }
 
-                if( isset($rc['order']['items']) && count($rc['order']['items']) > 0 ) {
+                if( isset($order['items']) && count($order['items']) > 0 ) {
+//                    $page['blocks'][] = array('type'=>'content', 'html'=>'<pre>' . print_r($order, true) . '</pre>');
                     $page['blocks'][] = array('type'=>'orderdetails', 'section'=>'order-details', 'size'=>'wide', 
                         'title'=>$rc['order']['order_date_text'], 
                         'api_item_update'=>$api_item_update,
                         'api_repeat_update'=>$api_repeat_update,
                         'base_url'=>$args['base_url'],
-                        'order'=>$rc['order']);
+                        'order'=>$order);
                 } else {
                     $page['blocks'][] = array('type'=>'message', 'title'=>'Order', 'size'=>'wide', 'level'=>'warning', 
                         'content'=>"Your order is currently empty.");

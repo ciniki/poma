@@ -194,15 +194,18 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $tnid, $date_id) {
         //
         $subject = str_ireplace('{_firstname_}', $customer['first'], $subject);
         $subject = str_ireplace('{_orderdate_}', $order['order_date_text'], $subject);
+        $subject = str_ireplace('{_pickuptime_}', $order['pickup_time'], $subject);
         $subject = str_ireplace('{_ordernumber_}', $order['order_number'], $subject);
 
         $html_message = str_ireplace('{_firstname_}', $customer['first'], $html_message);
         $html_message = str_ireplace('{_orderdate_}', $order['order_date_text'], $html_message);
+        $html_message = str_ireplace('{_pickuptime_}', $order['pickup_time'], $html_message);
         $html_message = str_ireplace('{_ordernumber_}', $order['order_number'], $html_message);
         $html_message = str_ireplace('{_orderitems_}', $html_items, $html_message);
 
         $text_message = str_ireplace('{_firstname_}', $customer['first'], $text_message);
         $text_message = str_ireplace('{_orderdate_}', $order['order_date_text'], $text_message);
+        $text_message = str_ireplace('{_pickuptime_}', $order['pickup_time'], $text_message);
         $text_message = str_ireplace('{_ordernumber_}', $order['order_number'], $text_message);
         $text_message = str_ireplace('{_orderitems_}', $text_items, $text_message);
 
