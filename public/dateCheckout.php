@@ -444,23 +444,25 @@ function ciniki_poma_dateCheckout($ciniki) {
         }
         $date = $rc['date'];
 
-        $pickup_dt = new DateTime($date['order_date'] . ' ' . $args['pickup_time'], new DateTimezone($intl_timezone));
-        $start_dt = new DateTime($date['pickupstart_dt'], new DateTimezone('UTC'));
-        $start_dt->setTimezone(new DateTimezone($intl_timezone));
-        $end_dt = new DateTime($date['pickupend_dt'], new DateTimezone('UTC'));
-        $end_dt->setTimezone(new DateTimezone($intl_timezone));
-        
-        //
-        // Check if no am/pm specified, then make sure within pickup window
-        //
-        if( !preg_match("/(am|pm)/i", $args['pickup_time']) ) {
-            if( $pickup_dt < $start_dt ) { 
-                $pickup_dt->add(new DateInterval('PT12H'));
-            } elseif( $pickup_dt > $end_dt ) {
-                $pickup_dt->sub(new DateInterval('PT12H'));
+        if( $args['pickup_time'] != '' ) {
+            $pickup_dt = new DateTime($date['order_date'] . ' ' . $args['pickup_time'], new DateTimezone($intl_timezone));
+            $start_dt = new DateTime($date['pickupstart_dt'], new DateTimezone('UTC'));
+            $start_dt->setTimezone(new DateTimezone($intl_timezone));
+            $end_dt = new DateTime($date['pickupend_dt'], new DateTimezone('UTC'));
+            $end_dt->setTimezone(new DateTimezone($intl_timezone));
+            
+            //
+            // Check if no am/pm specified, then make sure within pickup window
+            //
+            if( !preg_match("/(am|pm)/i", $args['pickup_time']) ) {
+                if( $pickup_dt < $start_dt ) { 
+                    $pickup_dt->add(new DateInterval('PT12H'));
+                } elseif( $pickup_dt > $end_dt ) {
+                    $pickup_dt->sub(new DateInterval('PT12H'));
+                }
             }
+            $args['pickup_time'] = $pickup_dt->format("g:i a");
         }
-        $args['pickup_time'] = $pickup_dt->format("g:i a");
 
         //
         // Update the pickup time on the order
