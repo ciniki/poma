@@ -161,6 +161,8 @@ function ciniki_poma_emailRepeatsAdded(&$ciniki, $tnid, $order_id, $added_items)
     //
     // Add the message to the outgoing queue
     //
+    error_log("Add emamil to " . $customer['display_name'] . " - " . $subject);
+    error_log($text_message);
     ciniki_core_loadMethod($ciniki, 'ciniki', 'mail', 'hooks', 'addMessage');
     $rc = ciniki_mail_hooks_addMessage($ciniki, $tnid, array(
         'object'=>'ciniki.poma.order',
