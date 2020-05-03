@@ -29,7 +29,7 @@ function ciniki_poma_emailPickupReminders(&$ciniki, $tnid, $date_id) {
         return $rc;
     }
     if( !isset($rc['date']) ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.149', 'msg'=>'Order date not found.'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.229', 'msg'=>'Order date not found.'));
     }
     $date = $rc['date'];
 

@@ -115,7 +115,7 @@ function ciniki_poma_newOrderForDate(&$ciniki, $tnid, $args) {
             array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id')),
             ));
         if( $rc['stat'] != 'ok' ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.217', 'msg'=>'Unable to load pickup times', 'err'=>$rc['err']));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.235', 'msg'=>'Unable to load pickup times', 'err'=>$rc['err']));
         }
         $picked_times = isset($rc['times']) ? $rc['times'] : array();
 

@@ -120,6 +120,7 @@ function ciniki_poma_orderItemUpdate(&$ciniki) {
                 'customer_id'=>$item['customer_id'],
                 'date_id'=>$args['date_id'],
                 'checkdate'=>'no',
+                'pickup_time'=>'last',
                 ));
             if( $rc['stat'] != 'ok' ) {
                 ciniki_core_dbTransactionRollback($ciniki, 'ciniki.poma');

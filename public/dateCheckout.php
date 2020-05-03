@@ -139,6 +139,7 @@ function ciniki_poma_dateCheckout($ciniki) {
             'customer_id'=>$args['customer_id'],
             'date_id'=>$args['date_id'],
             'checkdate'=>'no',
+            'pickup_time'=>'last',
             ));
         if( $rc['stat'] != 'ok' ) {
             return $rc;

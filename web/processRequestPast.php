@@ -65,7 +65,7 @@ function ciniki_poma_web_processRequestPast(&$ciniki, $settings, $tnid, $args) {
             'pickupstart_dt', 'pickupend_dt')),
         ));
     if( $rc['stat'] != 'ok' ) {
-        return array('stat'=>'500', 'err'=>array('code'=>'ciniki.poma.19', 'msg'=>'Unable to find order dates'));
+        return array('stat'=>'500', 'err'=>array('code'=>'ciniki.poma.225', 'msg'=>'Unable to find order dates'));
     }
     $date_id = 0;
     if( !isset($rc['dates']) || count($rc['dates']) == 0 ) {

@@ -108,9 +108,9 @@ function ciniki_poma_orderDelete(&$ciniki) {
         . "WHERE order_id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
         . "AND  tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
         . "";
-    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.foodmarket', 'item');
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'item');
     if( $rc['stat'] != 'ok' ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.foodmarket.149', 'msg'=>'Unable to load item', 'err'=>$rc['err']));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.230', 'msg'=>'Unable to load item', 'err'=>$rc['err']));
     }
     $items = isset($rc['rows']) ? $rc['rows'] : array();
 

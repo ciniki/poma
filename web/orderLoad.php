@@ -125,7 +125,7 @@ function ciniki_poma_web_orderLoad(&$ciniki, $settings, $tnid, $args) {
                 return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.118', 'msg'=>"Oops, we seem to have trouble loading your order. Please try again or contact us for help."));
             }
             if( !isset($rc['date']) ) {
-                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.123', 'msg'=>"Oops, we seem to have trouble loading your order. Please try again or contact us for help."));
+                return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.228', 'msg'=>"Oops, we seem to have trouble loading your order. Please try again or contact us for help."));
             }
             $odate = $rc['date'];
             $order['order_date_status'] = $odate['status'];

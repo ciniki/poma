@@ -110,7 +110,7 @@ function ciniki_poma_customerLedgerGet($ciniki) {
                 ),
             ));
         if( $rc['stat'] != 'ok' ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.110', 'msg'=>'Customer Ledger Entry not found', 'err'=>$rc['err']));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.226', 'msg'=>'Customer Ledger Entry not found', 'err'=>$rc['err']));
         }
         if( !isset($rc['entries'][0]) ) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.111', 'msg'=>'Unable to find Customer Ledger Entry'));

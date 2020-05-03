@@ -53,12 +53,12 @@ function ciniki_poma_web_processRequestCSA(&$ciniki, $settings, $tnid, $args) {
     }
     $strsql .= "ORDER BY end_date DESC "
         . "LIMIT 1 ";
-    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.foodmarket', 'season');
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'season');
     if( $rc['stat'] != 'ok' ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.foodmarket.110', 'msg'=>'Unable to load season', 'err'=>$rc['err']));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.110', 'msg'=>'Unable to load season', 'err'=>$rc['err']));
     }
     if( !isset($rc['season']) ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.foodmarket.111', 'msg'=>'No seasons setup'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.227', 'msg'=>'No seasons setup'));
     }
     $season = $rc['season'];
 
@@ -93,7 +93,7 @@ function ciniki_poma_web_processRequestCSA(&$ciniki, $settings, $tnid, $args) {
         . "ORDER BY orders.order_date ASC "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
-    $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.foodmarket', array(
+    $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'orders', 'fname'=>'id', 
             'fields'=>array('id', 'order_number', 'order_date', 'date_status', 'status'),
             'utctotz'=>array('order_date'=>array('format'=>'D M j, Y', 'timezone'=>'UTC')),
@@ -103,7 +103,7 @@ function ciniki_poma_web_processRequestCSA(&$ciniki, $settings, $tnid, $args) {
             ),
         ));
     if( $rc['stat'] != 'ok' ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.foodmarket.123', 'msg'=>'Unable to load orders', 'err'=>$rc['err']));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.123', 'msg'=>'Unable to load orders', 'err'=>$rc['err']));
     }
     $last_order = null;
     $skip_available = 'no';
@@ -162,7 +162,7 @@ function ciniki_poma_web_processRequestCSA(&$ciniki, $settings, $tnid, $args) {
             . "";
         $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
         if( $rc['stat'] != 'ok' ) {
-            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.209', 'msg'=>'Unable to load date', 'err'=>$rc['err']));
+            return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.234', 'msg'=>'Unable to load date', 'err'=>$rc['err']));
         }
         if( !isset($rc['date']) ) {
             return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.210', 'msg'=>'Unable to find requested date'));
