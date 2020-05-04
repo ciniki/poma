@@ -54,11 +54,11 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $tnid, $args) {
     // Decide where to direct the request
     //
     if( isset($args['module_page']) && $args['module_page'] == 'ciniki.poma.orders' 
-        && isset($args['uri_split'][0]) && $args['uri_split'][0] == 'past' 
+        && isset($args['uri_split'][0]) && $args['uri_split'][0] == 'closed' 
         ) {
         array_shift($args['uri_split']);
-        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestPast');
-        $rc = ciniki_poma_web_processRequestPast($ciniki, $settings, $tnid, $args);
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestClosed');
+        $rc = ciniki_poma_web_processRequestClosed($ciniki, $settings, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -109,8 +109,8 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $tnid, $args) {
         $page = $rc['page'];
     } 
     else {
-        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestUpcoming');
-        $rc = ciniki_poma_web_processRequestUpcoming($ciniki, $settings, $tnid, $args);
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'web', 'processRequestOpen');
+        $rc = ciniki_poma_web_processRequestOpen($ciniki, $settings, $tnid, $args);
         if( $rc['stat'] != 'ok' ) {
             return $rc;
         }
@@ -121,7 +121,7 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $tnid, $args) {
     // Add the submenu
     //
     $page['submenu'] = array();
-    $page['submenu']['upcoming'] = array('name'=>'Upcoming', 'url'=>$args['base_url'] . '');
+    $page['submenu']['open'] = array('name'=>'Open', 'url'=>$args['base_url'] . '');
     if( ciniki_core_checkModuleFlags($ciniki, 'ciniki.poma', 0x04) ) {  
         $page['submenu']['csa'] = array('name'=>'CSA Season', 'url'=>$args['base_url'] . '/csa');
     }
@@ -131,7 +131,7 @@ function ciniki_poma_web_processRequest(&$ciniki, $settings, $tnid, $args) {
     if( ciniki_core_checkModuleFlags($ciniki, 'ciniki.poma', 0x02) ) {  
         $page['submenu']['queue'] = array('name'=>'Queue', 'url'=>$args['base_url'] . '/queue');
     }
-    $page['submenu']['past'] = array('name'=>'Past', 'url'=>$args['base_url'] . '/past');
+    $page['submenu']['closed'] = array('name'=>'Closed', 'url'=>$args['base_url'] . '/closed');
 
     return array('stat'=>'ok', 'page'=>$page);
 }

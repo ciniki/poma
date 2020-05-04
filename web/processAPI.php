@@ -18,6 +18,7 @@
 //
 function ciniki_poma_web_processAPI(&$ciniki, $settings, $tnid, $args) {
 
+error_log(print_r($args,true));
     //
     // Check to make sure the module is enabled
     //

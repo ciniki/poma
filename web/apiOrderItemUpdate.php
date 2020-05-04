@@ -53,6 +53,27 @@ function ciniki_poma_web_apiOrderItemUpdate(&$ciniki, $settings, $tnid, $args) {
     $existing_item = $rc['item'];
 
     //
+    // Check to make sure the date is still open
+    //
+    $strsql = "SELECT ciniki_poma_order_dates.status "
+        . "FROM ciniki_poma_orders, ciniki_poma_order_dates "
+        . "WHERE ciniki_poma_orders.id = '" . ciniki_core_dbQuote($ciniki, $existing_item['order_id']) . "' "
+        . "AND ciniki_poma_orders.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
+        . "AND ciniki_poma_orders.date_id = ciniki_poma_order_dates.id "
+        . "AND ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
+    if( $rc['stat'] != 'ok' ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.221', 'msg'=>'Unable to load order date', 'err'=>$rc['err']));
+    }
+    if( !isset($rc['date']) ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.222', 'msg'=>'Unable to find requested order date'));
+    }
+    if( $rc['date']['status'] < 10 || $rc['date']['status'] > 30 ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.223', 'msg'=>'Order date is closed.'));
+    }
+    
+    //
     // Get the details for the item
     //
     if( $existing_item['object'] != '' ) {

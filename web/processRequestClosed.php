@@ -2,7 +2,7 @@
 //
 // Description
 // -----------
-// This function will process a web request for past orders.
+// This function will process a web request for closed orders.
 //
 // Arguments
 // ---------
@@ -16,7 +16,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_processRequestPast(&$ciniki, $settings, $tnid, $args) {
+function ciniki_poma_web_processRequestClosed(&$ciniki, $settings, $tnid, $args) {
 
     
     $page = array(
@@ -26,7 +26,7 @@ function ciniki_poma_web_processRequestPast(&$ciniki, $settings, $tnid, $args) {
         'submenu'=>array(),
         );
 
-    $page['breadcrumbs'][] = array('name'=>'Past', 'url'=>$args['base_url']);
+    $page['breadcrumbs'][] = array('name'=>'Closed', 'url'=>$args['base_url']);
     
     //
     // Load tenant settings
@@ -55,7 +55,7 @@ function ciniki_poma_web_processRequestPast(&$ciniki, $settings, $tnid, $args) {
             . "AND ciniki_poma_orders.customer_id = '" . ciniki_core_dbQuote($ciniki, $ciniki['session']['customer']['id']) . "' "
             . ") "
         . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
-        . "AND ciniki_poma_order_dates.order_date < '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
+//        . "AND ciniki_poma_order_dates.order_date < '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
         . "AND ciniki_poma_order_dates.status >= 50 "
         . "ORDER BY order_date DESC "
         . "";
@@ -71,7 +71,7 @@ function ciniki_poma_web_processRequestPast(&$ciniki, $settings, $tnid, $args) {
     if( !isset($rc['dates']) || count($rc['dates']) == 0 ) {
         $page['blocks'][] = array('type'=>'formmessage', 'level'=>'error', 'message'=>"Oops, it looks like we forgot to add more available dates. Please contact us and we'll get more dates added.");
     } else {
-        $content = "<form action='" . $args['base_url'] . "/past' method='GET'>"
+        $content = "<form action='" . $args['base_url'] . "/closed' method='GET'>"
             . "Your current order date: ";
         $content .= "<select name='d' onchange='this.form.submit();'>";
         foreach($rc['dates'] as $odate) {

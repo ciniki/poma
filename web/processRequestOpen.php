@@ -16,7 +16,7 @@
 // Returns
 // -------
 //
-function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $tnid, $args) {
+function ciniki_poma_web_processRequestOpen(&$ciniki, $settings, $tnid, $args) {
 
     
     $page = array(
@@ -26,7 +26,7 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $tnid, $arg
         'submenu'=>array(),
         );
 
-    $page['breadcrumbs'][] = array('name'=>'Upcoming', 'url'=>$args['base_url']);
+    $page['breadcrumbs'][] = array('name'=>'Open', 'url'=>$args['base_url']);
     
     $api_item_update = 'ciniki/poma/orderItemUpdate/';
     $api_repeat_update = 'ciniki/poma/repeatObjectUpdate/';
@@ -60,7 +60,7 @@ function ciniki_poma_web_processRequestUpcoming(&$ciniki, $settings, $tnid, $arg
         . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "AND ciniki_poma_order_dates.order_date >= '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "' "
         . "AND ciniki_poma_order_dates.status > 5 "
-        . "AND ciniki_poma_order_dates.status <= 50 "
+        . "AND ciniki_poma_order_dates.status < 50 "
         . "ORDER BY order_date ASC "
         . "";
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
