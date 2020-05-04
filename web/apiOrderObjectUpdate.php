@@ -35,6 +35,26 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $tnid, $args)
     $args['date_id'] = $ciniki['session']['ciniki.poma']['date']['id'];
 
     //
+    // Check to make sure the date is still open
+    //
+    $strsql = "SELECT status "
+        . "FROM ciniki_poma_order_dates "
+        . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['date_id']) . "' "
+        . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
+        . "";
+    $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
+    if( $rc['stat'] != 'ok' ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.221', 'msg'=>'Unable to load order date', 'err'=>$rc['err']));
+    }
+    if( !isset($rc['date']) ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.222', 'msg'=>'Unable to find requested order date'));
+    }
+    if( $rc['date']['status'] < 10 || $rc['date']['status'] > 30 ) {
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.223', 'msg'=>'Order date is closed.'));
+    }
+    
+
+    //
     // The list of fields the customer is allowed to change
     //
     $fields = array('unit_quantity', 'weight_quantity');
