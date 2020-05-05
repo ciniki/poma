@@ -196,7 +196,6 @@ function ciniki_poma_web_processRequestClosed(&$ciniki, $settings, $tnid, $args)
             else {
                 // Make sure order date is in the future, can't change pickup time of past orders
                 $cur_order_dt->setTime(23, 59, 59);
-                $cur_dt->add(new DateInterval('P2D'));
                 if( ciniki_core_checkModuleFlags($ciniki, 'ciniki.poma', 0x08) && $order['id'] > 0 && $cur_dt <= $cur_order_dt ) {
                     if( $order['pickup_time'] == '' ) {
                         $content = "<br/><b>Please <a href='{$args['base_url']}/closed/pickuptime?d=" . $cur_order_dt->format('Y-m-d') . "'>Choose A Pickup Time</a> for your order.</b>";
