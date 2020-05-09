@@ -10,7 +10,7 @@
 // -------
 //
 function ciniki_poma_dateUpdate(&$ciniki) {
-error_log(print_r($ciniki['request']['args'],true));
+
     //
     // Find all the required and optional arguments
     //
