@@ -288,15 +288,15 @@ function ciniki_poma_main() {
         }
     }
     this.editdate.remove = function() {
-        if( confirm('Are you sure you want to remove order date?') ) {
-            M.api.getJSONCb('ciniki.poma.dateDelete', {'tnid':M.curTenantID, 'date_id':this.date_id}, function(rsp) {
+        M.confirm('Are you sure you want to remove order date?',null,function() {
+            M.api.getJSONCb('ciniki.poma.dateDelete', {'tnid':M.curTenantID, 'date_id':M.ciniki_poma_main.editdate.date_id}, function(rsp) {
                 if( rsp.stat != 'ok' ) {
                     M.api.err(rsp);
                     return false;
                 }
                 M.ciniki_poma_main.editdate.close();
             });
-        }
+        });
     }
     this.editdate.nextButtonFn = function() {
         if( this.nplist != null && this.nplist.indexOf('' + this.date_id) < (this.nplist.length - 1) ) {
@@ -623,7 +623,7 @@ function ciniki_poma_main() {
         //
         var ac = M.createContainer(ap, 'ciniki_poma_main', 'yes');
         if( ac == null ) {
-            alert('App Error');
+            M.alert('App Error');
             return false;
         }
        

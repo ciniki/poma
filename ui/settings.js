@@ -464,7 +464,7 @@ function ciniki_poma_settings() {
         //
         var appContainer = M.createContainer(appPrefix, 'ciniki_poma_settings', 'yes');
         if( appContainer == null ) {
-            alert('App Error');
+            M.alert('App Error');
             return false;
         } 
     
