@@ -150,6 +150,7 @@ function ciniki_poma_objects(&$ciniki) {
             'pickupreminder_dt'=>array('name'=>'Pickup Reminder Date', 'default'=>''),
             'pickupstart_dt'=>array('name'=>'Pickup Start Date Time', 'default'=>''),
             'pickupend_dt'=>array('name'=>'Pickup End Date Time', 'default'=>''),
+            'pickupinterval'=>array('name'=>'Pickup Interval Minutes', 'default'=>'5'),
             'notices'=>array('name'=>'Notices', 'default'=>''),
             ),
         'history_table'=>'ciniki_poma_history',

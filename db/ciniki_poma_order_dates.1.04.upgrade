@@ -3,4 +3,5 @@
 #
 ALTER TABLE ciniki_poma_order_dates ADD COLUMN pickupstart_dt datetime not null AFTER pickupreminder_dt;
 ALTER TABLE ciniki_poma_order_dates ADD COLUMN pickupend_dt datetime not null AFTER pickupstart_dt;
+ALTER TABLE ciniki_poma_order_dates ADD COLUMN pickupinterval int not null AFTER pickupend_dt;
 ALTER TABLE ciniki_poma_order_dates COMMENT='v1.04';

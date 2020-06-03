@@ -115,6 +115,7 @@ function ciniki_poma_settingsUpdate(&$ciniki) {
         'dates-pickup-reminder-time',
         'dates-pickup-start',
         'dates-pickup-end',
+        'dates-pickup-interval',
         'dates-apply-repeats-offset',
         'dates-apply-repeats-time',
         );

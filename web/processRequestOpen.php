@@ -169,7 +169,13 @@ function ciniki_poma_web_processRequestOpen(&$ciniki, $settings, $tnid, $args) {
                 $start_dt->setTimezone(new DateTimezone($intl_timezone));
                 $end_dt = new DateTime($ciniki['session']['ciniki.poma']['date']['pickupend_dt'], new DateTimezone('UTC'));
                 $end_dt->setTimezone(new DateTimezone($intl_timezone));
-                $interval = new DateInterval('PT5M');
+                if( isset($ciniki['session']['ciniki.poma']['date']['pickupinterval']) 
+                    && $ciniki['session']['ciniki.poma']['date']['pickupinterval'] > 0 
+                    ) {
+                    $interval = new DateInterval('PT' . $ciniki['session']['ciniki.poma']['date']['pickupinterval'] . 'M');
+                } else {
+                    $interval = new DateInterval('PT5M');
+                }
                 $options = array();
                 while($start_dt < $end_dt) {
                     $option = array(

@@ -47,6 +47,7 @@
 #
 # pickupstart_dt:       The UTC date and time that pickups start.
 # pickupend_dt:         The UTC date and time of the last pickup.
+# pickupinterval:       The number of minutes alloted for each pickup.
 #
 # notices:          Any public notices that should be displayed to the customer on their orders for this date.
 #                   Allows for reminders, etc. **future**
@@ -69,6 +70,7 @@ create table ciniki_poma_order_dates (
     pickupreminder_dt datetime not null,  
     pickupstart_dt datetime not null,
     pickupend_dt datetime not null,
+    pickupinterval int not null,
     notices varchar(2000) not null,
     date_added datetime not null,
     last_updated datetime not null,

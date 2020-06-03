@@ -323,6 +323,7 @@ function ciniki_poma_settings() {
             'fields':{
                 'dates-pickup-start':{'label':'Start Time', 'type':'text', 'size':'small'},
                 'dates-pickup-end':{'label':'End Time', 'type':'text', 'size':'small'},
+                'dates-pickup-interval':{'label':'Alloted Minutes', 'type':'text', 'size':'small'},
             }},
         '_buttons':{'label':'', 'buttons':{
             'save':{'label':'Save', 'fn':'M.ciniki_poma_settings.dates.save();'},

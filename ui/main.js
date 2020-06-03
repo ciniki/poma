@@ -212,6 +212,7 @@ function ciniki_poma_main() {
             'fields':{
                 'pickupstart_time':{'label':'Start Time', 'type':'text', 'size':'small'},
                 'pickupend_time':{'label':'End Time', 'type':'text', 'size':'small'},
+                'pickupinterval':{'label':'Alloted Minutes', 'type':'text', 'size':'small'},
             }},
         '_repeats':{'label':'Apply repeats on', 'fields':{
             'repeats_date':{'label':'Date', 'type':'date'},

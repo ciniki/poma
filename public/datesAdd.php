@@ -148,7 +148,9 @@ function ciniki_poma_datesAdd(&$ciniki) {
     //
     if( isset($settings['dates-pickup-start']) && $settings['dates-pickup-start'] != '' ) {
         $pickupstart_dt = new DateTime($args['order_date'] . ' ' . $settings['dates-pickup-start'], new DateTimeZOne($intl_timezone));
-        if( $pickupstart_dt === FALSE || $pickupstart_dt < 1 ) {
+
+        error_log(print_r($pickupstart_dt,true));
+        if( $pickupstart_dt === FALSE ) {
             unset($pickupstart_dt);
         } else {
             $pickupstart_dt->setTimezone(new DateTimeZone('UTC'));
@@ -156,11 +158,16 @@ function ciniki_poma_datesAdd(&$ciniki) {
     }
     if( isset($settings['dates-pickup-end']) && $settings['dates-pickup-end'] != '' ) {
         $pickupend_dt = new DateTime($args['order_date'] . ' ' . $settings['dates-pickup-end'], new DateTimeZone($intl_timezone));
-        if( $pickupend_dt === FALSE || $pickupend_dt < 1 ) {
+        if( $pickupend_dt === FALSE ) {
             unset($pickupend_dt);
         } else {
             $pickupend_dt->setTimezone(new DateTimeZone('UTC'));
         }
+    }
+    if( isset($settings['dates-pickup-interval']) && $settings['dates-pickup-interval'] != '' && $settings['dates-pickup-interval'] > 0 ) {
+        $pickupinterval = $settings['dates-pickup-interval'];
+    } else {
+        $pickupinterval = 5;
     }
     
 
@@ -290,6 +297,9 @@ function ciniki_poma_datesAdd(&$ciniki) {
             }
             $args['pickupend_dt'] = $pickupend_dt->format('Y-m-d H:i:s');
         } 
+        if( isset($pickupinterval) ) {
+            $args['pickupinterval'] = $pickupinterval;
+        }
 
         //
         // Add the date

@@ -33,6 +33,7 @@ function ciniki_poma_dateUpdate(&$ciniki) {
         'pickupreminder_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup Reminder Time'),
         'pickupstart_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup Start Time'),
         'pickupend_time'=>array('required'=>'no', 'blank'=>'yes', 'type'=>'time', 'name'=>'Pickup End Time'),
+        'pickupinterval'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Pickup Alloted Minutes'),
         'notices'=>array('required'=>'no', 'blank'=>'yes', 'name'=>'Notices'),
         ));
     if( $rc['stat'] != 'ok' ) {

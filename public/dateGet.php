@@ -123,13 +123,13 @@ function ciniki_poma_dateGet($ciniki) {
             $settings = $rc['settings'];
 
             if( isset($settings['dates-pickup-start']) && $settings['dates-pickup-start'] != '' ) {
-                $pickupstart_dt = new DateTime($args['order_date'] . ' ' . $settings['dates-pickup-start'], new DateTimeZone($intl_timezone));
+                $pickupstart_dt = new DateTime($date['order_date'] . ' ' . $settings['dates-pickup-start'], new DateTimeZone($intl_timezone));
                 if( $pickupstart_dt !== FALSE || $pickupstart_dt < 1 ) {
                     $date['pickupstart_time'] = $pickupstart_dt->format('g:i a');
                 }
             }
             if( isset($settings['dates-pickup-end']) && $settings['dates-pickup-end'] != '' ) {
-                $pickupend_dt = new DateTime($args['order_date'] . ' ' . $settings['dates-pickup-end'], new DateTimeZone($intl_timezone));
+                $pickupend_dt = new DateTime($date['order_date'] . ' ' . $settings['dates-pickup-end'], new DateTimeZone($intl_timezone));
                 if( $pickupend_dt !== FALSE || $pickupend_dt < 1 ) {
                     $date['pickupend_time'] = $pickupend_dt->format('g:i a');
                 }
@@ -140,6 +140,11 @@ function ciniki_poma_dateGet($ciniki) {
             }
             if( isset($pickupend_dt) ) {
                 $date['pickupend_dt'] = $pickupend_dt->format('Y-m-d H:i:s');
+            }
+            if( isset($settings['dates-pickup-interval']) && $settings['dates-pickup-interval'] != '' && $settings['dates-pickup-interval'] > 0 ) {
+                $date['pickupinterval'] = $settings['dates-pickup-interval'];
+            } else {
+                $date['pickupinterval'] = '5';
             }
         }
     }
@@ -165,6 +170,7 @@ function ciniki_poma_dateGet($ciniki) {
             . "ciniki_poma_order_dates.pickupreminder_dt AS pickupreminder_time, "
             . "ciniki_poma_order_dates.pickupstart_dt AS pickupstart_time, "
             . "ciniki_poma_order_dates.pickupend_dt AS pickupend_time, "
+            . "ciniki_poma_order_dates.pickupinterval, "
             . "ciniki_poma_order_dates.notices "
             . "FROM ciniki_poma_order_dates "
             . "WHERE ciniki_poma_order_dates.tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
@@ -175,7 +181,7 @@ function ciniki_poma_dateGet($ciniki) {
             array('container'=>'dates', 'fname'=>'id', 
                 'fields'=>array('order_date', 'display_name', 'status', 'flags', 'open_date', 'open_time', 'repeats_date', 'repeats_time', 
                     'autolock_date', 'autolock_time', 'lockreminder_date', 'lockreminder_time', 'pickupreminder_date', 'pickupreminder_time', 
-                    'pickupstart_time', 'pickupend_time',
+                    'pickupstart_time', 'pickupend_time', 'pickupinterval',
                     'notices'),
                 'utctotz'=>array(
                     'order_date'=>array('timezone'=>'UTC', 'format'=>$date_format),
