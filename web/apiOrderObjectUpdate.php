@@ -182,7 +182,7 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $tnid, $args)
             } else {
                 $qty_diff = bcsub($item['unit_quantity'], $rc['item']['unit_quantity'], 6);
             }
-            if( $qty_diff > $item['num_available'] ) {
+            if( $qty_diff > 0 && $qty_diff > $item['num_available'] ) {
                 return array('stat'=>'noavail', 'err'=>array('code'=>'ciniki.poma.184', 'msg'=>"I'm sorry, there are no more available."));
             }
         }
@@ -242,6 +242,19 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $tnid, $args)
     // Add the item if it doesn't already exist
     //
     else {
+        //
+        // Check for inventory on limited quantity items
+        //
+        if( ($item['flags']&0x0800) == 0x0800 && $args['object'] != '' && isset($item['num_available']) ) {
+            if( $item['itype'] == 10 ) {
+                $qty_diff = $item['weight_quantity'];
+            } else {
+                $qty_diff = $item['unit_quantity'];
+            }
+            if( $qty_diff > 0 && $qty_diff > $item['num_available'] ) {
+                return array('stat'=>'noavail', 'err'=>array('code'=>'ciniki.poma.184', 'msg'=>"I'm sorry, there are no more available."));
+            }
+        }
         $item['order_id'] = $order['id'];
         if( isset($order['max_line_number']) ) {
             $item['line_number'] = $order['max_line_number'] + 1;
