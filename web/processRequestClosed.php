@@ -48,6 +48,7 @@ function ciniki_poma_web_processRequestClosed(&$ciniki, $settings, $tnid, $args)
         . "ciniki_poma_order_dates.status, "
         . "ciniki_poma_order_dates.pickupstart_dt, "
         . "ciniki_poma_order_dates.pickupend_dt, "
+        . "ciniki_poma_order_dates.pickupinterval, "
         . "ciniki_poma_order_dates.flags "
         . "FROM ciniki_poma_order_dates "
         . "INNER JOIN ciniki_poma_orders ON ("
@@ -62,7 +63,7 @@ function ciniki_poma_web_processRequestClosed(&$ciniki, $settings, $tnid, $args)
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'dates', 'fname'=>'id', 'fields'=>array('id', 'order_date', 'display_name', 'status', 'flags',
-            'pickupstart_dt', 'pickupend_dt')),
+            'pickupstart_dt', 'pickupend_dt', 'pickupinterval')),
         ));
     if( $rc['stat'] != 'ok' ) {
         return array('stat'=>'500', 'err'=>array('code'=>'ciniki.poma.225', 'msg'=>'Unable to find order dates'));
@@ -90,6 +91,9 @@ function ciniki_poma_web_processRequestClosed(&$ciniki, $settings, $tnid, $args)
                 $cur_order_dt = $odate['order_dt'];
                 $odate['order_date_text'] = $odate['order_dt']->format('M d, Y');
                 $content .= "<option value='" . $odate['order_date'] . "' selected>" . $odate['display_name'] . "</option>";
+                $pickupstart_dt = $odate['pickupstart_dt'];
+                $pickupend_dt = $odate['pickupend_dt'];
+                $pickupinterval = $odate['pickupinterval'];
             } else {
                 $content .= "<option value='" . $odate['order_date'] . "'>" . $odate['display_name'] . "</option>";
             }
@@ -160,11 +164,20 @@ function ciniki_poma_web_processRequestClosed(&$ciniki, $settings, $tnid, $args)
                 //
                 // List the available times
                 //
-                $start_dt = new DateTime($ciniki['session']['ciniki.poma']['date']['pickupstart_dt'], new DateTimezone('UTC'));
-                $start_dt->setTimezone(new DateTimezone($intl_timezone));
-                $end_dt = new DateTime($ciniki['session']['ciniki.poma']['date']['pickupend_dt'], new DateTimezone('UTC'));
-                $end_dt->setTimezone(new DateTimezone($intl_timezone));
-                $interval = new DateInterval('PT5M');
+                if( isset($pickupstart_dt) ) {
+                    $start_dt = new DateTime($pickupstart_dt, new DateTimezone('UTC'));
+                    $start_dt->setTimezone(new DateTimezone($intl_timezone));
+                    $end_dt = new DateTime($pickupend_dt, new DateTimezone('UTC'));
+                    $end_dt->setTimezone(new DateTimezone($intl_timezone));
+                } else {
+                    $start_dt = 0;
+                    $end_dt = 0;
+                }
+                if( isset($pickupinterval) ) {
+                    $interval = new DateInterval('PT' . $pickupinterval . 'M');
+                } else {
+                    $interval = new DateInterval('PT5M');
+                }
                 $options = array();
                 while($start_dt < $end_dt) {
                     $option = array(
