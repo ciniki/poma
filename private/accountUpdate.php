@@ -131,8 +131,8 @@ function ciniki_poma_accountUpdate(&$ciniki, $tnid, $args) {
         . "";
     if( isset($start_ledger_date) ) {
         $strsql .= "AND transaction_date >= '" . ciniki_core_dbQuote($ciniki, $start_ledger_date) . "' "
-        . "AND id <> '" . ciniki_core_dbQuote($ciniki, $start_ledger_id) . "' "
-        . "";
+            . "AND id <> '" . ciniki_core_dbQuote($ciniki, $start_ledger_id) . "' "
+            . "";
     }
     $strsql .= "AND tnid = '" . ciniki_core_dbQuote($ciniki, $tnid) . "' "
         . "ORDER BY transaction_date ASC "
