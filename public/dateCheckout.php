@@ -111,7 +111,7 @@ function ciniki_poma_dateCheckout($ciniki) {
         . "AND ciniki_poma_order_dates.status > 5 "
         . "GROUP BY ciniki_poma_order_dates.id "
         . "ORDER BY ciniki_poma_order_dates.order_date DESC "
-        . "LIMIT 25"
+        . "LIMIT 75"
         . "";
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'dates', 'fname'=>'id', 'fields'=>array('id', 'order_date', 'display_name', 'status', 'flags')),
