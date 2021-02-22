@@ -148,8 +148,6 @@ function ciniki_poma_datesAdd(&$ciniki) {
     //
     if( isset($settings['dates-pickup-start']) && $settings['dates-pickup-start'] != '' ) {
         $pickupstart_dt = new DateTime($args['order_date'] . ' ' . $settings['dates-pickup-start'], new DateTimeZOne($intl_timezone));
-
-        error_log(print_r($pickupstart_dt,true));
         if( $pickupstart_dt === FALSE ) {
             unset($pickupstart_dt);
         } else {
