@@ -236,7 +236,7 @@ function ciniki_poma_queueInvoiceItem(&$ciniki, $tnid, $item_id) {
     if( $order_id > 0 ) {
         $item['order_id'] = $order_id;
         $item['line_number'] = $max_line_number + 1;
-        $item['flags'] = 0x20;
+        $item['flags'] |= 0x20;
         $item['deposited_amount'] = $deposited_amount;
         if( $item['itype'] == 10 ) {
             $item['weight_quantity'] = $qitem['quantity'];
