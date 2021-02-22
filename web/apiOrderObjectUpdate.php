@@ -44,10 +44,10 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $tnid, $args)
         . "";
     $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'date');
     if( $rc['stat'] != 'ok' ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.221', 'msg'=>'Unable to load order date', 'err'=>$rc['err']));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.238', 'msg'=>'Unable to load order date', 'err'=>$rc['err']));
     }
     if( !isset($rc['date']) ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.222', 'msg'=>'Unable to find requested order date'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.239', 'msg'=>'Unable to find requested order date'));
     }
     if( $rc['date']['status'] < 10 || $rc['date']['status'] > 30 ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.223', 'msg'=>'Order date is closed.'));
@@ -183,7 +183,7 @@ function ciniki_poma_web_apiOrderObjectUpdate(&$ciniki, $settings, $tnid, $args)
                 $qty_diff = bcsub($item['unit_quantity'], $rc['item']['unit_quantity'], 6);
             }
             if( $qty_diff > 0 && $qty_diff > $item['num_available'] ) {
-                return array('stat'=>'noavail', 'err'=>array('code'=>'ciniki.poma.184', 'msg'=>"I'm sorry, there are no more available."));
+                return array('stat'=>'noavail', 'err'=>array('code'=>'ciniki.poma.236', 'msg'=>"I'm sorry, there are no more available."));
             }
         }
         $existing_item = $rc['item'];

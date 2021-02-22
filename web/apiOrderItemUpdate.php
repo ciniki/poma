@@ -70,7 +70,7 @@ function ciniki_poma_web_apiOrderItemUpdate(&$ciniki, $settings, $tnid, $args) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.222', 'msg'=>'Unable to find requested order date'));
     }
     if( $rc['date']['status'] < 10 || $rc['date']['status'] > 30 ) {
-        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.223', 'msg'=>'Order date is closed.'));
+        return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.240', 'msg'=>'Order date is closed.'));
     }
     
     //

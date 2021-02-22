@@ -140,7 +140,7 @@ function ciniki_poma_web_processRequestOpen(&$ciniki, $settings, $tnid, $args) {
                     array('container'=>'orders', 'fname'=>'id', 'fields'=>array('id')),
                     ));
                 if( $rc['stat'] != 'ok' ) {
-                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.217', 'msg'=>'Unable to load pickup times', 'err'=>$rc['err']));
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.237', 'msg'=>'Unable to load pickup times', 'err'=>$rc['err']));
                 }
                 $picked_times = isset($rc['times']) ? $rc['times'] : array();
                 if( isset($_GET['t']) && $_GET['t'] != '' ) {
