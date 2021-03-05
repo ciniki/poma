@@ -38,13 +38,13 @@ function ciniki_poma_queueUpdateObject(&$ciniki, $tnid, $args) {
     }
     $fn = $rc['function_call'];
     $rc = $fn($ciniki, $tnid, $args);
-    if( $rc['stat'] != 'ok' ) {
+    if( $rc['stat'] != 'ok' && ($rc['stat'] == 'noexist' && $args['quantity'] > 0) ) {
         return $rc;
     }
-    if( !isset($rc['item']) ) {
+    if( !isset($rc['item']) && $args['quantity'] > 0 ) {
         return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.162', 'msg'=>'Unable to add item to queue.'));
     }
-    $item = $rc['item'];
+    $item = isset($rc['item']) ? $rc['item'] : null;
 
     //
     // Start a transaction
@@ -127,7 +127,7 @@ function ciniki_poma_queueUpdateObject(&$ciniki, $tnid, $args) {
             //
             // Remove deposits
             //
-            if( isset($item['qdeposit_amount']) && $item['qdeposit_amount'] > 0 && isset($deposits) && count($deposits) > 0 ) {
+            if( isset($deposits) && count($deposits) > 0 ) {
                 foreach($deposits as $deposit) {
                     //
                     // Remove from unpaid invoices
