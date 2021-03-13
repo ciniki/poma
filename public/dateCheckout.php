@@ -485,6 +485,37 @@ function ciniki_poma_dateCheckout($ciniki) {
         $moved = 'no';
         foreach($rsp['dates'] as $orderdate) {
             if( $orderdate['id'] == $args['newdate_id'] ) {
+                $strsql = "SELECT customer_id "
+                    . "FROM ciniki_poma_orders "
+                    . "WHERE id = '" . ciniki_core_dbQuote($ciniki, $args['order_id']) . "' "
+                    . "AND tnid = '" . ciniki_core_dbQuote($ciniki, $args['tnid']) . "' "
+                    . "";
+                $rc = ciniki_core_dbHashQuery($ciniki, $strsql, 'ciniki.poma', 'order');
+                if( $rc['stat'] != 'ok' ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.241', 'msg'=>'Unable to load order', 'err'=>$rc['err']));
+                }
+                if( !isset($rc['order']) ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.242', 'msg'=>'Unable to find requested order'));
+                }
+                $order = $rc['order'];
+                
+                //
+                // Check if there is already an order for the new date for this customer
+                //
+                $strsql = "SELECT COUNT(*) AS num "
+                    . "FROM ciniki_poma_orders "
+                    . "WHERE date_id = '" . ciniki_core_dbQuote($ciniki, $args['newdate_id']) . "' "
+                    . "AND customer_id = '" . ciniki_core_dbQuote($ciniki, $order['customer_id']) . "' "
+                    . "";
+                ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbSingleCount');
+                $rc = ciniki_core_dbSingleCount($ciniki, $strsql, 'ciniki.poma', 'num');
+                if( $rc['stat'] != 'ok' ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.243', 'msg'=>'Unable to load get the number of items', 'err'=>$rc['err']));
+                }
+                if( isset($rc['num']) && $rc['num'] > 0 ) {
+                    return array('stat'=>'fail', 'err'=>array('code'=>'ciniki.poma.242', 'msg'=>'Order alreadys exists for that date, please move items.'));
+                }
+
                 // 
                 // Move the order
                 //
