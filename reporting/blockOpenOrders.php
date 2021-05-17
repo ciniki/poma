@@ -36,8 +36,8 @@ function ciniki_poma_reporting_blockOpenOrders(&$ciniki, $tnid, $args) {
     //
     // Load maps
     //
-    ciniki_core_loadMethod($ciniki, 'ciniki', 'customers', 'private', 'maps');
-    $rc = ciniki_customers_maps($ciniki);
+    ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'private', 'maps');
+    $rc = ciniki_poma_maps($ciniki);
     if( $rc['stat'] != 'ok' ) {
         return $rc;
     }
@@ -58,7 +58,9 @@ function ciniki_poma_reporting_blockOpenOrders(&$ciniki, $tnid, $args) {
         . "orders.customer_id, "
         . "DATE_FORMAT(orders.order_date, '%b %d, %Y') AS order_date, "
         . "orders.billing_name, "
-        . "orders.balance_amount "
+        . "orders.balance_amount, "
+        . "orders.status AS status_text, "
+        . "orders.payment_status AS payment_status_text "
         . "FROM ciniki_poma_orders AS orders "
         . "WHERE orders.order_date < '" . ciniki_core_dbQuote($ciniki, $dt->format('Y-m-d')) . "'"
         . "AND orders.status < 70 "
@@ -69,7 +71,12 @@ function ciniki_poma_reporting_blockOpenOrders(&$ciniki, $tnid, $args) {
     ciniki_core_loadMethod($ciniki, 'ciniki', 'core', 'private', 'dbHashQueryArrayTree');
     $rc = ciniki_core_dbHashQueryArrayTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'orders', 'fname'=>'id', 
-            'fields'=>array('id', 'date_id', 'customer_id', 'order_number', 'order_date', 'billing_name', 'balance_amount'),
+            'fields'=>array('id', 'date_id', 'customer_id', 'order_number', 'order_date', 'billing_name', 'balance_amount', 
+                'status_text', 'payment_status_text'),
+            'maps'=>array(
+                'status_text'=>$maps['order']['status'],
+                'payment_status_text'=>$maps['order']['payment_status'],
+                ),
             ),
         ));
     if( $rc['stat'] != 'ok' ) {
@@ -89,10 +96,11 @@ function ciniki_poma_reporting_blockOpenOrders(&$ciniki, $tnid, $args) {
     $chunk = array(
         'type'=>'table',
         'columns'=>array(
-            array('label'=>'#', 'pdfwidth'=>'15%', 'field'=>'order_number'),
-            array('label'=>'Date', 'pdfwidth'=>'25%', 'field'=>'order_date'),
-            array('label'=>'Name', 'pdfwidth'=>'45%', 'field'=>'billing_name'),
-            array('label'=>'Owing', 'pdfwidth'=>'15%', 'field'=>'balance_amount_display'),
+            array('label'=>'#', 'pdfwidth'=>'10%', 'field'=>'order_number'),
+            array('label'=>'Date', 'pdfwidth'=>'20%', 'field'=>'order_date'),
+            array('label'=>'Name', 'pdfwidth'=>'40%', 'field'=>'billing_name'),
+            array('label'=>'Amount', 'pdfwidth'=>'15%', 'field'=>'balance_amount_display'),
+            array('label'=>'Status', 'pdfwidth'=>'15%', 'field'=>'payment_status_text'),
             ),
         'data'=>$orders,
         'editApp'=>array('app'=>'ciniki.foodmarket.main', 'args'=>array('date_id'=>'d.date_id', 'order_id'=>'d.id', 'customer_id'=>'d.customer_id')),
