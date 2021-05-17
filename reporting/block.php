@@ -40,6 +40,9 @@ function ciniki_poma_reporting_block(&$ciniki, $tnid, $args) {
     if( $args['block_ref'] == 'ciniki.poma.todaysorders' ) {
         ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'reporting', 'blockTodaysOrders');
         return ciniki_poma_reporting_blockTodaysOrders($ciniki, $tnid, $args['options']);
+    } elseif( $args['block_ref'] == 'ciniki.poma.openorders' ) {
+        ciniki_core_loadMethod($ciniki, 'ciniki', 'poma', 'reporting', 'blockOpenOrders');
+        return ciniki_poma_reporting_blockOpenOrders($ciniki, $tnid, $args['options']);
     }
 
     return array('stat'=>'ok');

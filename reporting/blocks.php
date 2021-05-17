@@ -34,6 +34,12 @@ function ciniki_poma_reporting_blocks(&$ciniki, $tnid, $args) {
         'options'=>array(
             ),
         );
+    $blocks['ciniki.poma.openorders'] = array(
+        'name'=>'Open Orders',
+        'module' => 'Orders',
+        'options'=>array(
+            ),
+        );
 
     return array('stat'=>'ok', 'blocks'=>$blocks);
 }
