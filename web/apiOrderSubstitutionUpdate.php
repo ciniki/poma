@@ -186,6 +186,8 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $tnid, 
         . "ciniki_poma_order_items.object_id, "
         . "ciniki_poma_order_items.flags, "
         . "ciniki_poma_order_items.itype, "
+        . "ciniki_poma_order_items.cdeposit_amount, "
+        . "ciniki_poma_order_items.cdeposit_description, "
         . "ciniki_poma_order_items.weight_units, "
         . "ciniki_poma_order_items.weight_quantity, "
         . "ciniki_poma_order_items.unit_quantity, "
@@ -200,7 +202,9 @@ function ciniki_poma_web_apiOrderSubstitutionUpdate(&$ciniki, $settings, $tnid, 
         . "";
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'subitems', 'fname'=>'id', 'fields'=>array('id', 'uuid', 'description', 'object', 'object_id', 
-            'flags', 'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'unit_amount', 'total_amount')),
+            'flags', 'itype', 'weight_units', 'weight_quantity', 
+            'cdeposit_amount', 'cdeposit_description',
+            'unit_quantity', 'unit_suffix', 'unit_amount', 'total_amount')),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;

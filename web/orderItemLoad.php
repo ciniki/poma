@@ -28,6 +28,8 @@ function ciniki_poma_web_orderItemLoad($ciniki, $settings, $tnid, $args) {
         . "ciniki_poma_order_items.object_id, "
         . "ciniki_poma_order_items.flags, "
         . "ciniki_poma_order_items.itype, "
+        . "ciniki_poma_order_items.cdeposit_amount, "
+        . "ciniki_poma_order_items.cdeposit_description, "
         . "ciniki_poma_order_items.weight_quantity, "
         . "ciniki_poma_order_items.unit_quantity, "
         . "ciniki_poma_order_items.total_amount "
@@ -88,6 +90,8 @@ function ciniki_poma_web_orderItemLoad($ciniki, $settings, $tnid, $args) {
         . "ciniki_poma_order_items.object, "
         . "ciniki_poma_order_items.object_id, "
         . "ciniki_poma_order_items.itype, "
+        . "ciniki_poma_order_items.cdeposit_amount, "
+        . "ciniki_poma_order_items.cdeposit_description, "
         . "ciniki_poma_order_items.weight_units, "
         . "ciniki_poma_order_items.weight_quantity, "
         . "ciniki_poma_order_items.unit_quantity, "
@@ -102,7 +106,9 @@ function ciniki_poma_web_orderItemLoad($ciniki, $settings, $tnid, $args) {
         . "";
     $rc = ciniki_core_dbHashQueryIDTree($ciniki, $strsql, 'ciniki.poma', array(
         array('container'=>'subitems', 'fname'=>'id', 'fields'=>array('id', 'uuid', 'description', 'flags', 'object', 'object_id', 
-            'itype', 'weight_units', 'weight_quantity', 'unit_quantity', 'unit_suffix', 'unit_amount', 'total_amount')),
+            'itype', 'weight_units', 'weight_quantity', 
+            'cdeposit_amount', 'cdeposit_description',
+            'unit_quantity', 'unit_suffix', 'unit_amount', 'total_amount')),
         ));
     if( $rc['stat'] != 'ok' ) {
         return $rc;
